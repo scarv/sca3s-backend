@@ -17,14 +17,6 @@ to resolve:
   2) the management of those exceptions, e.g., to allow a graceful
      and well-logged action.
 
-- currently the depo. assumes one global S3 bucket, into which the
-  job archive is uploaded; do we want to retain this, or, instead, 
-  move to one bucket per job archive
-
-- currently the AWS credentials form part of the job manifest: it
-  *seems* there must be a better approach than this, e.g., a form
-  of session token?
-
 - there is currently an informal policy that restricts the per job 
   log to INFO level only: there are never any DEBUG entries.  this
   is to prevent exposure of low level information about the server

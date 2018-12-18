@@ -6,7 +6,7 @@
 
 from acquire import share
 
-import json, jsonschema, os, sys
+import json, os, sys
 
 class Conf( dict ) :
   def __init__( self, conf = None ) :
@@ -59,21 +59,3 @@ class Conf( dict ) :
           value = os.path.expandvars( value )
 
       self[ key ] = value
-
-def extend_with_default( validator_class ) :
-  validate_properties = validator_class.VALIDATORS[ 'properties' ]
-
-  def set_defaults(validator, properties, instance, schema):
-    for ( property, subschema ) in properties.items() :
-      if 'default' in subschema :
-        instance.setdefault( property, subschema[ 'default' ] )
-
-    for error in validate_properties( validator, properties, instance, schema ):
-      yield error
-
-  return jsonschema.validators.extend( validator_class, { 'properties' : set_defaults } )
-
-validator = extend_with_default( jsonschema.Draft4Validator )
-
-def validate( conf, schema ) :
-  validator( schema ).validate( conf )

@@ -6,7 +6,7 @@
 
 from acquire import share
 
-import argparse, json, os, sys, tempfile
+import argparse, os, sys
 
 conf = None
 log  = None
@@ -46,23 +46,7 @@ def init() :
   conf.populate( args[ 'sys:conf' ] )
   conf.populate( args               )
 
-  schema = {
-    'type' : 'object', 'default' : {}, 'properties' : {
-      'path:git'          : { 'type' : 'string', 'default' : tempfile.tempdir },
-      'path:job'          : { 'type' : 'string', 'default' : tempfile.tempdir },
-      'path:log'          : { 'type' : 'string', 'default' : tempfile.tempdir },
-  
-      'timeout:extern'    : { 'type' : 'number', 'default' :               60 },
-      'timeout:kernel'    : { 'type' : 'number', 'default' :                1 },
-  
-      'job:device-db'     : { 'type' : 'object'                               },
-
-      'job:manifest-file' : { 'type' : 'string'                               },
-      'job:manifest-data' : { 'type' : 'string'                               }
-    }                              
-  }
-
-  share.conf.validate( conf, schema )
+  share.schema.validate( conf, share.schema.SCHEMA_CONF )
 
   # initialise system logger
 

@@ -19,15 +19,6 @@ class SCALE( board.BoardAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
     
-    schema = {
-      'type' : 'object', 'default' : {}, 'properties' : {
-                'connect-timeout' : { "type" : "number", "default" : 10        },
-                'connect-id'      : { "type" : "string"                        }
-      }
-    }
-
-    share.conf.validate( self.device_spec, schema )
-
     self.connect_id         = self.device_spec.get( 'connect-id'      )
     self.connect_timeout    = self.device_spec.get( 'connect-timeout' )
 

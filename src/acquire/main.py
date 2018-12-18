@@ -18,17 +18,30 @@ import flask, queue, threading
 app = flask.Flask( __name__ ) ; jobs = queue.Queue( 1 )
 
 def process( manifest ) :
-    share.sys.log.info( '|>>>   creating job' )
+    share.sys.log.info( '|>>> validating job' )
+
+    db = share.sys.conf.get( 'device-db', section = 'job' )
+
+    if ( manifest.has( 'device-id' ) ) :
+      t =  manifest.get( 'device-id' )
+
+      if ( db.has( t ) ) :
+        for ( key, value ) in db.get( t ).items() :
+          manifest.put( key, value )
+      else :
+        raise share.exception.ConfigurationException()
+
+    share.schema.validate( manifest, share.schema.SCHEMA_JOB )
+
+    share.sys.log.info( '|>>> processing job id = %s' % ( manifest.get( 'id' ) ) )
 
     job = share.job.Job( manifest )
-
-    share.sys.log.info( '|>>> processing job id = %s' % ( job.id ) )
 
     job.process_prologue()
     job.process()
     job.process_epilogue()
 
-    share.sys.log.info( '|<<< processing job id = %s' % ( job.id ) )
+    share.sys.log.info( '|<<< processing job id = %s' % ( manifest.get( 'id' ) ) )
 
 def server_worker() :
   while( True ) :

@@ -17,23 +17,8 @@ class RepoImp( repo.RepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    schema = {
-      'type' : 'object', 'default' : {}, 'properties' : {  
-        'url' : { 'type' : 'string'                       },
-        'tag' : { 'type' : 'string', 'default' : 'master' }
-      }
-    }  
-
-    share.conf.validate( self.repo_spec, schema )
-
     self.url = self.repo_spec.get( 'url' )
     self.tag = self.repo_spec.get( 'tag' )
-
-  def _validate_repo_spec( self ) :
-    t = { 'url' : { 'default' :     None, 'option' : None, 'type' : str },
-          'tag' : { 'default' : 'master', 'option' : None, 'type' : str } }
-
-    self.repo_spec.validate( t )
 
   def transfer( self ) :
     env = { 'CACHE' : share.sys.conf.get( 'git', section = 'path' ) }

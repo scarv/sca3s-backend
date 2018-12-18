@@ -97,6 +97,7 @@ class DriverAbs( abc.ABC ) :
   def  process( self ) :
     trace_count  = self.job.conf.get( 'trace-count'  )
     trace_format = self.job.conf.get( 'trace-format' )
+    trace_crop   = self.job.conf.get( 'trace-crop'   )
 
     if   ( trace_format == 'pickle' ) :
       traces = share.trace.TraceSetPickle()
@@ -107,8 +108,17 @@ class DriverAbs( abc.ABC ) :
 
     for i in range( trace_count ) :
       self.job.log.info( 'started  acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
-      traces.update( self._process() )
+      trace = self._process()
       self.job.log.info( 'finished acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
+
+      if ( trace_crop ) :
+        edge_pos = share.util.measure( share.util.MEASURE_MODE_EDGE_POS, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold )
+        edge_neg = share.util.measure( share.util.MEASURE_MODE_EDGE_NEG, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold )
+
+        trace.signal_trigger = trace.signal_trigger[ edge_pos : edge_neg ]
+        trace.signal_acquire = trace.signal_acquire[ edge_pos : edge_neg ]
+
+      traces.update( trace )
 
     traces.close()
 

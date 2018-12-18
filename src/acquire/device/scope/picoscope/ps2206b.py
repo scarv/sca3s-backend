@@ -25,17 +25,6 @@ PS2000A_RATIO_MODE_AVERAGE   = 4 # Section 3.18.1
 class ScopeImp( PicoScope ) :
   def __init__( self, job ) :
     super().__init__( job, api.PS2000a )
-
-    schema = {
-      'type' : 'object', 'default' : {}, 'properties' : {
-                'connect-timeout' : { 'type' : 'number', 'default' : 10000     },
-                'connect-id'      : { 'type' : 'string'                        },
-        'channel-trigger-id'      : { 'type' : 'string', 'enum' : [ 'A', 'B' ] },
-        'channel-acquire-id'      : { 'type' : 'string', 'enum' : [ 'A', 'B' ] }
-      }
-    }
-
-    share.conf.validate( self.device_spec, schema )
     
     self.connect_id         = self.device_spec.get( 'connect-id'         )
     self.connect_timeout    = self.device_spec.get( 'connect-timeout'    )

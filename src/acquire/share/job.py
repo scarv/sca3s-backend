@@ -13,47 +13,8 @@ class Job( object ) :
     super().__init__()  
 
     self.conf    = conf
-
-    schema = { 
-      'type' : 'object', 'default' : {}, 'properties' : {
-        'version'               : { 'type' : 'string' },
-        'id'                    : { 'type' : 'string' },
-      
-        'repo-id'               : { 'type' : 'string' },
-        'repo-spec'             : { 'type' : 'object' },
-        'depo-id'               : { 'type' : 'string' },
-        'depo-spec'             : { 'type' : 'object' },
-
-        'driver-id'             : { 'type' : 'string' },
-        'driver-spec'           : { 'type' : 'object' },
-
-        'device-id'             : { 'type' : 'string' },
-      
-        'trace-count'           : { 'type' : 'number', 'default' : 1 },
-        'trace-format'          : { 'type' : 'string', 'default' : 'pickle', 'enum' : [ 'pickle', 'trs'                             ] },
-
-        'trace-period-id'       : { 'type' : 'string', 'default' :   'auto', 'enum' : [ 'auto', 'interval', 'frequency', 'duration' ] },
-        'trace-period-spec'     : { 'type' : 'number' },
-        'trace-resolution-id'   : { 'type' : 'string', 'default' :   'auto', 'enum' : [ 'auto', 'bit'                               ] },
-        'trace-resolution-spec' : { 'type' : 'number' }
-      }
-    }
-
-    share.conf.validate( self.conf, schema )
-
     self.version = self.conf.get( 'version' )
     self.id      = self.conf.get(      'id' )
-
-    if ( self.version != share.version.VERSION ) :
-      raise share.exception.ConfigurationException()
-
-    db = share.sys.conf.get( 'device-db', section = 'job' )
-
-    if ( db.has( self.conf.get( 'device-id' ) ) ) :
-      for ( key, value ) in db.get( self.conf.get( 'device-id' ) ).items() :
-        self.conf.put( key, value )
-    else :
-      raise share.exception.ConfigurationException()
 
   def _build_device_board( self ) :
     t = self.conf.get(  'board-id' )

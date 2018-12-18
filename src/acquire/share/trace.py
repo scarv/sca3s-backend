@@ -6,7 +6,7 @@
 
 from acquire import share
 
-import abc, gzip, os, pickle, sys
+import abc, gzip, os, pickle, sys, trsfile
 
 class Trace( object ) :
   def __init__( self, signal_trigger, signal_acquire, data_in = None , data_out = None ) :
@@ -65,10 +65,28 @@ class TraceSetTRS( TraceSet ) :
     super().__init__()  
 
   def   open( self ) :
-    pass
+    self.fd = trsfile.create( 'trace.trs', trsfile.TracePadding.PAD, force_overwrite = True )
 
   def update( self, trace ) :
-    pass
+    def conv( data ) :
+      r = bytearray()
+
+      for key in sorted( data.keys() ) :
+        r += data[ key ]
+
+      return r
+
+    data_in  = conv( trace.data_in  )
+    data_out = conv( trace.data_out ) 
+
+    data     = data_in + data_out
+
+    headers  = { trsfile.Header.INPUT_OFFSET  : 0,
+                 trsfile.Header.INPUT_LENGTH  : len( data_in  ),
+                 trsfile.Header.OUTPUT_OFFSET : len( data_in  ),
+                 trsfile.Header.OUTPUT_OFFSET : len( data_out ) }
+
+    self.fd.extend( [ trsfile.Trace( trsfile.SampleCoding.FLOAT, trace.signal_acquire, data = data, headers = headers ) ] )
 
   def  close( self ) :
-    pass
+    self.fd.close()

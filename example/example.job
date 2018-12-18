@@ -3,7 +3,7 @@
 
   "repo-id"             :    "git",
   "repo-spec"           : { 
-    "url"           : "ssh://git@github.com/danpage/lab-target.git",
+    "url"           : "ssh://git@github.com/scarv/lab-target.git",
     "tag"           : "master"
   },
 
@@ -13,16 +13,16 @@
     "access-key"    : "${AWS_ACCESS_KEY}",
 
     "region-id"     : "eu-west-1",
-
     "bucket-id"     : "lab.scarv.org",
-    "bucket-verify" : true
+
+    "verify"        : true
   },
 
   "device-id"           : "SCALE-M4/PS2206B",
   "driver-id"           : "block",
 
   "trace-count"         :       10,
-  "trace-format"        : "pickle",
+  "trace-format"        :    "trs",
   "trace-period-id"     :   "auto",
   "trace-resolution-id" :   "auto"
 }
