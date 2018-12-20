@@ -38,16 +38,16 @@ SCHEMA_JOB  = {
   'type' : 'object', 'default' : {}, 'properties' : {
     'version'               : { 'type' :  'string'                 },
     'id'                    : { 'type' :  'string'                 },
-      
-    'repo-id'               : { 'type' :  'string'                 },
-    'repo-spec'             : { 'type' :  'object', 'default' : {} },
-    'depo-id'               : { 'type' :  'string'                 },
-    'depo-spec'             : { 'type' :  'object', 'default' : {} },
 
     'driver-id'             : { 'type' :  'string'                 },
     'driver-spec'           : { 'type' :  'object', 'default' : {} },
 
     'device-id'             : { 'type' :  'string'                 },
+      
+    'repo-id'               : { 'type' :  'string'                 },
+    'repo-spec'             : { 'type' :  'object', 'default' : {} },
+    'depo-id'               : { 'type' :  'string'                 },
+    'depo-spec'             : { 'type' :  'object', 'default' : {} },
       
     'trace-period-id'       : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'interval', 'frequency', 'duration' ] },
     'trace-period-spec'     : { 'type' :  'number', 'default' :        0                                                           },
