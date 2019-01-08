@@ -10,15 +10,15 @@ import json, jsonschema, os, sys, tempfile
 
 SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
-    'path:git'              : { 'type' : 'string', 'default' : tempfile.tempdir },
-    'path:job'              : { 'type' : 'string', 'default' : tempfile.tempdir },
-    'path:log'              : { 'type' : 'string', 'default' : tempfile.tempdir },
+    'path:git'          : { 'type' : 'string', 'default' : tempfile.tempdir },
+    'path:job'          : { 'type' : 'string', 'default' : tempfile.tempdir },
+    'path:log'          : { 'type' : 'string', 'default' : tempfile.tempdir },
+
+    'timeout:extern'    : { 'type' : 'number', 'default' :               60 },
+    'timeout:kernel'    : { 'type' : 'number', 'default' :                1 },
   
-    'timeout:extern'        : { 'type' : 'number', 'default' :               60 },
-    'timeout:kernel'        : { 'type' : 'number', 'default' :                1 },
-  
-    'job:manifest-file'     : { 'type' : 'string'                               },
-    'job:manifest-data'     : { 'type' : 'string'                               },
+    'job:manifest-file' : { 'type' : 'string'                               },
+    'job:manifest-data' : { 'type' : 'string'                               },
 
     'job:device-db'         : { 'type' : 'object', 'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
@@ -36,73 +36,83 @@ SCHEMA_CONF = {
 SCHEMA_JOB  = {
   # core
   'type' : 'object', 'default' : {}, 'properties' : {
-    'version'               : { 'type' :  'string'                 },
-    'id'                    : { 'type' :  'string'                 },
+    'version'     : { 'type' :  'string'                 },
+    'id'          : { 'type' :  'string'                 },
 
-    'driver-id'             : { 'type' :  'string'                 },
-    'driver-spec'           : { 'type' :  'object', 'default' : {} },
+    'driver-id'   : { 'type' :  'string'                 },
+    'driver-spec' : { 'type' :  'object', 'default' : {} },
 
-    'device-id'             : { 'type' :  'string'                 },
+    'device-id'   : { 'type' :  'string'                 },
       
-    'repo-id'               : { 'type' :  'string'                 },
-    'repo-spec'             : { 'type' :  'object', 'default' : {} },
-    'depo-id'               : { 'type' :  'string'                 },
-    'depo-spec'             : { 'type' :  'object', 'default' : {} },
-      
-    'trace-period-id'       : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'interval', 'frequency', 'duration' ] },
-    'trace-period-spec'     : { 'type' :  'number', 'default' :        0                                                           },
-    'trace-resolution-id'   : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'bit'                               ] },
-    'trace-resolution-spec' : { 'type' :  'number', 'default' :        0                                                           },
+      'repo-id'   : { 'type' :  'string'                 },
+      'repo-spec' : { 'type' :  'object', 'default' : {} },
+      'depo-id'   : { 'type' :  'string'                 },
+      'depo-spec' : { 'type' :  'object', 'default' : {} },
 
-    'trace-count'           : { 'type' :  'number', 'default' :        1                                                           },
-    'trace-format'          : { 'type' :  'string', 'default' : 'pickle', 'enum' : [ 'pickle', 'trs'                             ] },
-    'trace-crop'            : { 'type' : 'boolean', 'default' :    False                                                           }
-  },
-  'required' : [ 'version', 'id', 'repo-id', 'repo-spec', 'depo-id', 'depo-spec', 'driver-id', 'driver-spec', 'device-id', 'trace-period-id', 'trace-period-spec', 'trace-resolution-id', 'trace-resolution-spec', 'trace-count', 'trace-format', 'trace-crop' ],
-  # options: board
+     'trace-spec' : { 'type' :  'object', 'default' : {}, 'properties' : {
+           'period-id'   : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'interval', 'frequency', 'duration' ] },
+           'period-spec' : { 'type' :  'number', 'default' :        0                                                           },
+       'resolution-id'   : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'bit'                               ] },
+       'resolution-spec' : { 'type' :  'number', 'default' :        0                                                           },
+   
+       'count'           : { 'type' :  'number', 'default' :        1                                                           },
+       'format'          : { 'type' :  'string', 'default' : 'pickle', 'enum' : [ 'pickle', 'trs'                             ] },
+       'crop'            : { 'type' : 'boolean', 'default' :    False                                                           }
+    }, 'required' : [ ] }
+  }, 'required' : [ 'version', 'id', 'repo-id', 'depo-id', 'driver-id', 'device-id', 'trace-spec' ],
+  # options: driver-spec
   'oneOf' : [ { 
     'properties' : {
-      'board-id'   : { 'enum' : [ 'scale/lpc1313fbd48' ] },
-      'board-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                'connect-timeout' : { 'type' :     'number', 'default' : 10       },
-                'connect-id'      : { 'type' :     'string'                       }
+      'driver-id'   : { 'enum' : [ 'block' ] },
+      'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+
       }, 'required' : [ 'board-id', 'board-spec' ] }
     }
   } ],
-  # options: scope
+  # options:  board-spec
   'oneOf' : [ { 
     'properties' : {
-      'scope-id'   : { 'enum' : [ 'picoscope/ps2206b' ] },
-      'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                'connect-timeout' : { 'type' :     'number', 'default' : 10000    },
-                'connect-id'      : { 'type' :     'string'                       },
-        'channel-trigger-id'      : { 'enum' : [ 'A', 'B' ], 'default' : 'A'      },
-        'channel-acquire-id'      : { 'enum' : [ 'A', 'B' ], 'default' : 'B'      }
+       'board-id'   : { 'enum' : [ 'scale/lpc1313fbd48' ] },
+       'board-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                 'connect-timeout' : { 'type' :     'number', 'default' : 10       },
+                 'connect-id'      : { 'type' :     'string'                       }
+      }, 'required' : [ 'board-id', 'board-spec' ] }
+    }
+  } ],
+  # options:  scope-spec
+  'oneOf' : [ { 
+    'properties' : {
+       'scope-id'   : { 'enum' : [ 'picoscope/ps2206b' ] },
+       'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                 'connect-timeout' : { 'type' :     'number', 'default' : 10000    },
+                 'connect-id'      : { 'type' :     'string'                       },
+         'channel-trigger-id'      : { 'enum' : [ 'A', 'B' ], 'default' : 'A'      },
+         'channel-acquire-id'      : { 'enum' : [ 'A', 'B' ], 'default' : 'B'      }
       }, 'required' : [ 'scope-id', 'scope-spec' ] }
     }
   } ],
-  # options: repo
+  # options:   repo-spec
   'oneOf' : [ { 
     'properties' : {
-      'repo-id'   : { 'enum' : [ 'git' ] },
-      'repo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-        'url'                     : { 'type' :     'string'                       },
-        'tag'                     : { 'type' :     'string', 'default' : 'master' }
+        'repo-id'   : { 'enum' : [ 'git' ] },
+        'repo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+          'url'                     : { 'type' :     'string'                       },
+          'tag'                     : { 'type' :     'string', 'default' : 'master' }
       }, 'required' : [ 'url', 'tag' ] }
     }
   } ],
-  # options: depo
+  # options:   depo-spec
   'oneOf' : [ { 
     'properties' : {
-      'depo-id'   : { 'enum' : [ 's3' ] },
-      'depo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {  
-        'access-key-id'           : { 'type' :     'string'                       },
-        'access-key'              : { 'type' :     'string'                       },
-      
-        'region-id'               : { 'type' :     'string'                       },
-        'bucket-id'               : { 'type' :     'string'                       },
+        'depo-id'   : { 'enum' : [ 's3' ] },
+        'depo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {  
+          'access-key-id'           : { 'type' :     'string'                       },
+          'access-key'              : { 'type' :     'string'                       },
+        
+          'region-id'               : { 'type' :     'string'                       },
+          'bucket-id'               : { 'type' :     'string'                       },    
 
-        'verify'                  : { 'type' :    'boolean', 'default' : True     }
+          'verify'                  : { 'type' :    'boolean', 'default' : True     }
       }, 'required' : [ 'access-key', 'access-key-id', 'bucket-id', 'region-id', 'verify' ] }
     }
   } ]

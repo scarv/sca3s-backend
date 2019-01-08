@@ -37,10 +37,12 @@ class DriverAbs( abc.ABC ) :
     raise NotImplementedError()
 
   def  process_prologue( self ) :
-    trace_period_id       = self.job.conf.get( 'trace-period-id'       )
-    trace_period_spec     = self.job.conf.get( 'trace-period-spec'     )
-    trace_resolution_id   = self.job.conf.get( 'trace-resolution-id'   )
-    trace_resolution_spec = self.job.conf.get( 'trace-resolution-spec' )
+    trace_spec            = self.job.conf.get( 'trace-spec' )
+
+    trace_period_id       = trace_spec.get( 'period-id'       )
+    trace_period_spec     = trace_spec.get( 'period-spec'     )
+    trace_resolution_id   = trace_spec.get( 'resolution-id'   )
+    trace_resolution_spec = trace_spec.get( 'resolution-spec' )
 
     self.job.log.indent_inc( message = 'program board' )
     self.job.device_board.program()
@@ -95,9 +97,11 @@ class DriverAbs( abc.ABC ) :
     self.job.log.indent_dec()
 
   def  process( self ) :
-    trace_count  = self.job.conf.get( 'trace-count'  )
-    trace_format = self.job.conf.get( 'trace-format' )
-    trace_crop   = self.job.conf.get( 'trace-crop'   )
+    trace_spec            = self.job.conf.get( 'trace-spec' )
+
+    trace_count           = trace_spec.get( 'count'  )
+    trace_format          = trace_spec.get( 'format' )
+    trace_crop            = trace_spec.get( 'crop'   )
 
     if   ( trace_format == 'pickle' ) :
       traces = share.trace.TraceSetPickle()

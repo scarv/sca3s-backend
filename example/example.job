@@ -21,9 +21,13 @@
     "verify"        : true
   },
 
-  "trace-count"         :       10,
-  "trace-format"        :    "trs",
-  "trace-period-id"     :   "auto",
-  "trace-resolution-id" :   "auto"
+  "trace-spec"          : {
+        "period-id" :   "auto",
+    "resolution-id" :   "auto",
+
+    "count"         :       10,
+    "format"        : "pickle",
+    "crop"          : true
+  }
 }
 
