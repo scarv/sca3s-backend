@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # set home
-export ACQUIRE_HOME="${PWD}"
+export REPO="${PWD}"
 
 # set path
-export PATH="${PATH}:${ACQUIRE_HOME}/bin"
+export PATH="${PATH}:${REPO}/bin"
