@@ -41,10 +41,13 @@ class SCALE( board.BoardAbs ) :
   def program( self ) :
     env = { 'CACHE' : share.sys.conf.get( 'git', section = 'path' ), 'USB' : self.connect_id }
 
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'build'    ], env = env )
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'report'   ], env = env )
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'program'  ], env = env )
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'spotless' ], env = env )
+    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-fetch' ], env = env )
+    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-build' ], env = env )
+
+    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',      'build' ], env = env )
+    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',     'report' ], env = env )
+    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',    'program' ], env = env )
+    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',   'spotless' ], env = env )
 
   def    open( self ) :
 

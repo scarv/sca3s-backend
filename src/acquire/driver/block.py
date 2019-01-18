@@ -35,8 +35,12 @@ class DriverImp( driver.DriverAbs ) :
     ( signal_trigger, signal_acquire ) = self.job.device_scope.acquire( scope.ACQUIRE_MODE_COLLECT )
   
     c = share.util.octetstr2str( self.job.device_board.interact( '<reg c' ) )
+
+    tsc_enc = share.util.seq2int( share.util.octetstr2str( self.job.device_board.interact( '?tsc' ) ), 2 ** 8 )
+    self.job.device_board.interact( '!nop'      )
+    tsc_nop = share.util.seq2int( share.util.octetstr2str( self.job.device_board.interact( '?tsc' ) ), 2 ** 8 )
   
-    return ( c, signal_trigger, signal_acquire )
+    return ( c, signal_trigger, signal_acquire, tsc_enc, tsc_nop )
 
   def _process_prologue( self ) : 
     t = self.job.device_board.interact( '?id' ).split( ':' )
@@ -77,7 +81,12 @@ class DriverImp( driver.DriverAbs ) :
     r = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_rnd ) ] )
     m = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_blk ) ] )
 
-    ( c, signal_trigger, signal_acquire ) = self._interact( k, r, m )
+    ( c, signal_trigger, signal_acquire, tsc_enc, tsc_nop ) = self._interact( k, r, m )
+
+    l = share.util.measure( share.util.MEASURE_MODE_DURATION, signal_trigger, self.job.device_scope.channel_trigger_threshold ) * self.job.device_scope.signal_interval
+
+    self.job.log.info( 'measure via TSC    => {0:d} - {1:d} = {2:d}'.format( tsc_enc, tsc_nop, tsc_enc - tsc_nop ) )
+    self.job.log.info( 'measure via signal => {0:g}'.format( l ) )
   
     return share.trace.Trace( signal_trigger, signal_acquire, data_in = { 'k' : k, 'r' : r, 'm' : m }, data_out = { 'c' : c } )
 

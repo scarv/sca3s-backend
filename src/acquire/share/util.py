@@ -25,6 +25,35 @@ def octetstr2str( x ) :
 def str2octetstr( x ) :
   return ( '%02X' % ( len( x ) ) ) + ':' + ( binascii.b2a_hex( x ).decode() )
 
+LE = +1 ; BE = -1
+
+def int2seq( x, b, endian = LE, pad = None ) :
+  t = []
+
+  while ( x != 0 ) :
+    if   ( endian == LE ) : 
+      t = t + [ x % b ]
+    elif ( endian == BE ) : 
+      t = [ x % b ] + t
+
+    x = x / b
+
+  if ( ( pad != None ) and ( len( t ) < pad ) ) :
+    if   ( endian == LE ) : 
+      t = t + ( [ 0 ] * ( pad - len( t ) ) )
+    elif ( endian == BE ) : 
+      t = ( [ 0 ] * ( pad - len( t ) ) ) + t
+
+  return t
+
+def seq2int( x, b, endian = +1 ) :
+  if   ( endian == LE ) :
+    x = enumerate(           x   )
+  elif ( endian == BE ) :
+    x = enumerate( reversed( x ) )
+
+  return sum( [ t * ( b ** i ) for ( i, t ) in x ] )
+
 def MD5( f ) :
   H = hashlib.md5() ; fd = open( f, 'rb' )
   
@@ -40,12 +69,12 @@ def MD5( f ) :
   
   return H.hexdigest()
 
-MEASURE_MODE_EDGE_POS = 0
-MEASURE_MODE_EDGE_NEG = 1
-MEASURE_MODE_DURATION = 2
+MEASURE_MODE_DURATION    = 0
+MEASURE_MODE_TRIGGER_POS = 1
+MEASURE_MODE_TRIGGER_NEG = 2
 
 def measure( mode, samples, threshold ) :
-  done = False ; edge_pos = 0; edge_neg = 0
+  done = False ; edge_pos = 0; edge_neg = len( samples ) - 1
 
   for ( i, sample ) in enumerate( samples ) :
     if ( ( not done ) and ( sample > threshold ) ) :
@@ -53,9 +82,9 @@ def measure( mode, samples, threshold ) :
     if ( (     done ) and ( sample < threshold ) ) :
       done = False ; edge_neg = i ; break
 
-  if   ( mode == share.util.MEASURE_MODE_EDGE_POS ) :
-    return            edge_pos
-  elif ( mode == share.util.MEASURE_MODE_EDGE_NEG ) :
-    return edge_neg
-  elif ( mode == share.util.MEASURE_MODE_DURATION ) :
+  if   ( mode == share.util.MEASURE_MODE_DURATION    ) :
     return edge_neg - edge_pos
+  elif ( mode == share.util.MEASURE_MODE_TRIGGER_POS ) :
+    return            edge_pos
+  elif ( mode == share.util.MEASURE_MODE_TRIGGER_NEG ) :
+    return edge_neg
