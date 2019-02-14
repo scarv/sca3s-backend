@@ -4,3 +4,5 @@ Flask
 picoscope
 pyserial
 trsfile
+requests
+PyJWT
