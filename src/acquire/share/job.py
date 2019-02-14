@@ -6,15 +6,18 @@
 
 from acquire import share
 
-import importlib, json, os, subprocess, sys, tempfile
+import importlib, json, os, subprocess, sys
 
 class Job( object ) :
-  def __init__( self, conf ) :
+  def __init__( self, conf, path, log ) :
     super().__init__()  
 
     self.conf    = conf
     self.version = self.conf.get( 'version' )
     self.id      = self.conf.get(      'id' )
+
+    self.path    = path
+    self.log     = log
 
   def _build_device_board( self ) :
     t = self.conf.get(  'board-id' )
@@ -102,10 +105,6 @@ class Job( object ) :
     return ( result == 0 )
 
   def process_prologue( self ) :
-    self.path = tempfile.mkdtemp( prefix = self.id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( self.path )
-
-    self.log = share.log.build_log_job( name = self.id )
-
     self.log.indent_inc( message = 'configuration' )
 
     n = 0

@@ -10,17 +10,19 @@ import json, jsonschema, os, sys, tempfile
 
 SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
-    'path:git'          : { 'type' : 'string', 'default' : tempfile.tempdir },
-    'path:job'          : { 'type' : 'string', 'default' : tempfile.tempdir },
-    'path:log'          : { 'type' : 'string', 'default' : tempfile.tempdir },
+    'path:git'          : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:job'          : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:log'          : { 'type' :  'string', 'default' : tempfile.tempdir },
 
-    'timeout:extern'    : { 'type' : 'number', 'default' :               60 },
-    'timeout:kernel'    : { 'type' : 'number', 'default' :                1 },
+    'timeout:extern'    : { 'type' :  'number', 'default' :               60 },
+    'timeout:kernel'    : { 'type' :  'number', 'default' :                1 },
+
+    'job:clean'         : { 'type' : 'boolean', 'default' : False            },
   
-    'job:manifest-file' : { 'type' : 'string'                               },
-    'job:manifest-data' : { 'type' : 'string'                               },
+    'job:manifest-file' : { 'type' :  'string'                               },
+    'job:manifest-data' : { 'type' :  'string'                               },
 
-    'job:device-db'         : { 'type' : 'object', 'default' : {}, 'patternProperties' : {
+    'job:device-db'     : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
         'board-desc' : { 'type' : 'string' },
         'board-id'   : { 'type' : 'string' },

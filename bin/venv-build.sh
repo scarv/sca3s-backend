@@ -1,16 +1,16 @@
 #!/bin/bash
 
 # check configuration
-if [ -z ${REPO} ] ; then
-  echo "REPO environment variable undefined: aborting" ; exit
+if [ -z ${REPO_HOME} ] ; then
+  echo "REPO_HOME environment variable undefined: aborting" ; exit
 fi
 
 # create   environment
-python3 -m venv --clear ${REPO}/venv
+python3 -m venv --clear ${REPO_HOME}/venv
 
 # activate environment
-source ${REPO}/venv/bin/activate
+source ${REPO_HOME}/venv/bin/activate
 
 # populate environment
 python3 -m pip install --upgrade pip
-python3 -m pip install -r ${REPO}/requirements.txt
+python3 -m pip install -r ${REPO_HOME}/requirements.txt

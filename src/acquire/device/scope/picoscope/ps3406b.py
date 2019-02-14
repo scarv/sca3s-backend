@@ -15,19 +15,19 @@ from acquire        import depo   as depo
 
 from .              import *
 
-import math, picoscope.ps2000a as api
+import math, picoscope.ps3000a as api
 
-# PicoScope 2206B
+# PicoScope 3406B
 # ---------------
 # 
-# specification     : using 2 (of 2) channels @ 8-bit resolution => 50 MHz, 500 MS/s, 16 MS per channel (32 MS total)
+# specification     : using 2 (of 4) channels @ 8-bit resolution => 200 MHz, 1 GS/s, 64 MS per channel (128 MS total)
 #
-# datasheet         : https://www.picotech.com/download/datasheets/picoscope-2000-series-data-sheet-en.pdf
-# programming guide : https://www.picotech.com/download/manuals/picoscope-2000-series-a-api-programmers-guide.pdf
+# datasheet         : https://www.picotech.com/download/datasheets/PicoScope3400.pdf
+# programming guide : https://www.picotech.com/download/manuals/picoscope-3000-series-a-api-programmers-guide.pdf
 
 class ScopeImp( PicoScope ) :
   def __init__( self, job ) :
-    super().__init__( job, api.PS2000a )
+    super().__init__( job, api.PS3000a )
     
     self.connect_id         = self.device_spec.get( 'connect-id'         )
     self.connect_timeout    = self.device_spec.get( 'connect-timeout'    )
@@ -36,12 +36,12 @@ class ScopeImp( PicoScope ) :
     self.channel_acquire_id = self.device_spec.get( 'channel-acquire-id' )
 
   def _interval2timebase( self, x ) :
-    if   ( x <   4.0e-9 ) :
+    if   ( x <   2.0e-9 ) :
       t = 1
-    elif ( x <  16.0e-9 ) :
-      t = math.log( x * 500.0e6, 2 )
+    elif ( x <   8.0e-9 ) :
+      t = math.log( x *   1.0e9, 2 )
     else :
-      t = ( x *  62.5e6 ) + 2
+      t = ( x * 125.0e6 ) + 2
 
     return round( t )
 
@@ -51,7 +51,7 @@ class ScopeImp( PicoScope ) :
     elif ( x <  3 ) :
       t = math.pow( 2, x ) / 500.0e6
     else :
-      t = ( x - 2 ) /  62.5e6
+      t = ( x - 2 ) / 125.0e6
 
     return        t
 
@@ -66,7 +66,7 @@ class ScopeImp( PicoScope ) :
       return 4
 
   def conf( self, mode, x, resolution = None ) :  
-    maxSamples = 16.0e6
+    maxSamples = 64.0e6
 
     if   ( mode == scope.CONF_MODE_INTERVAL  ) :
       interval =     x

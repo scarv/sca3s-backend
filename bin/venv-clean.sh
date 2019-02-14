@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # check configuration
-if [ -z ${REPO} ] ; then
-  echo "REPO environment variable undefined: aborting" ; exit
+if [ -z ${REPO_HOME} ] ; then
+  echo "REPO_HOME environment variable undefined: aborting" ; exit
 fi
 
 # remove environment
-rm -rf ${REPO}/venv
+rm -rf ${REPO_HOME}/venv

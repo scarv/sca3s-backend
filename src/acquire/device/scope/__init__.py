@@ -37,6 +37,7 @@ class ScopeAbs( abc.ABC ) :
     self.channel_acquire_range     = None
     self.channel_acquire_threshold = None
 
+    self.signal_resolution         = None
     self.signal_interval           = None
     self.signal_duration           = None
 

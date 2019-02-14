@@ -1,7 +1,7 @@
 { "version"             :  "0.1.0",
   "id"                  :    "foo",
 
-  "device-id"           : "SCALE-M4/PS2206B",
+  "device-id"           : "scale-m4/ps2206b",
   "driver-id"           : "block",
 
   "repo-id"             :    "git",

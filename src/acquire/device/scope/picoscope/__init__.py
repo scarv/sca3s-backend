@@ -13,6 +13,11 @@ from acquire        import driver as driver
 from acquire        import repo   as repo
 from acquire        import depo   as depo
 
+PICOSCOPE_DOWNSAMPLE_MODE_NONE      = 0 
+PICOSCOPE_DOWNSAMPLE_MODE_AGGREGATE = 1
+PICOSCOPE_DOWNSAMPLE_MODE_DECIMATE  = 2
+PICOSCOPE_DOWNSAMPLE_MODE_AVERAGE   = 3
+
 class PicoScope( scope.ScopeAbs ) :
   def __init__( self, job, api ) :
     super().__init__( job )
@@ -30,3 +35,40 @@ class PicoScope( scope.ScopeAbs ) :
 
   def close( self ) :
     self.device.close()
+
+  def acquire( self, mode ) :
+    if ( self.device == None ) :
+      raise Exception()
+
+    if ( mode & scope.ACQUIRE_MODE_PREPARE ) :
+      # configure resolution (if supported)
+      if ( hasattr( self.device, '_lowLevelSetDeviceResolution' ) ) :
+        self.device.setResolution( self.signal_resolution )
+
+      # configure channels
+      self.device.setChannel( channel = self.channel_trigger_id, enabled = True, coupling = 'DC', VRange = self.channel_trigger_range )
+      self.device.setChannel( channel = self.channel_acquire_id, enabled = True, coupling = 'DC', VRange = self.channel_acquire_range )
+  
+      # configure timebase
+      ( _, samples, samples_max ) = self.device.setSamplingInterval( self.signal_interval, self.signal_duration )
+
+      # configure trigger
+      self.device.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.connect_timeout )
+    
+      # start acquisition
+      self.device.runBlock()
+
+    if ( mode & scope.ACQUIRE_MODE_COLLECT ) :
+      # wait for acquisition to complete  
+      self.device.waitReady()
+    
+      # configure buffers, then transfer
+      signal_trigger = self.device.getDataV( channel = self.channel_trigger_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ) )
+      signal_acquire = self.device.getDataV( channel = self.channel_acquire_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ) )
+
+      # stop  acquisition
+      self.device.stop()
+
+      return ( signal_trigger, signal_acquire )
+
+    return None

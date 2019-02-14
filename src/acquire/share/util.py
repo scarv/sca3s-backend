@@ -54,6 +54,9 @@ def seq2int( x, b, endian = +1 ) :
 
   return sum( [ t * ( b ** i ) for ( i, t ) in x ] )
 
+def closest( x, xs ) :
+  return min( xs, key = lambda t : abs( t - x ) )
+
 def MD5( f ) :
   H = hashlib.md5() ; fd = open( f, 'rb' )
   

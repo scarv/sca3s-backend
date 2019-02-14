@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# set home
-export REPO="${PWD}"
+# record repo. home directory
+export REPO_HOME="${PWD}"
 
-# set path
-export PATH="${PATH}:${REPO}/bin"
+# update path
+export PATH="${PATH}:${REPO_HOME}/bin"

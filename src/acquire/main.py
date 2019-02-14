@@ -13,7 +13,7 @@ from acquire        import driver as driver
 from acquire        import repo   as repo
 from acquire        import depo   as depo
 
-import flask, queue, threading
+import flask, os, queue, shutil, tempfile, threading
 
 app = flask.Flask( __name__ ) ; jobs = queue.Queue( 1 )
 
@@ -31,17 +31,22 @@ def process( manifest ) :
       else :
         raise share.exception.ConfigurationException()
 
-    share.schema.validate( manifest, share.schema.SCHEMA_JOB )
+    share.schema.validate( manifest, share.schema.SCHEMA_JOB ) ; id = manifest.get( 'id' )
 
-    share.sys.log.info( '|>>> processing job id = %s' % ( manifest.get( 'id' ) ) )
+    share.sys.log.info( '|>>> processing job id = %s' % ( id ) )
 
-    job = share.job.Job( manifest )
+    path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id )
+
+    job = share.job.Job( manifest, path, log )
 
     job.process_prologue()
     job.process()
     job.process_epilogue()
 
-    share.sys.log.info( '|<<< processing job id = %s' % ( manifest.get( 'id' ) ) )
+    if ( share.sys.conf.get( 'clean', section = 'job' ) ) :
+      shutil.rmtree( path )
+
+    share.sys.log.info( '|<<< processing job id = %s' % ( id ) )
 
 def server_worker() :
   while( True ) :
