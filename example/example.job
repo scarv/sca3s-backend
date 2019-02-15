@@ -6,7 +6,7 @@
 
   "repo-id"             :    "git",
   "repo-spec"           : { 
-    "url"           : "ssh://git@github.com/scarv/lab-target.git",
+    "url"           : "git@lab-target:scarv/lab-target.git",
     "tag"           : "master"
   },
 
