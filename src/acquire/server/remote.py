@@ -48,14 +48,16 @@ class Remote():
             raise Exception("Auth0 Authorization failed.")
 
 
-    def receive_job(self):
+    def receive_job(self,devices):
         """
         Retrieves pending jobs from the SCARV API.
         """
         self._authorize()
+        params = { 'device-db' : devices }
         headers = {"Authorization": "Bearer " + self._access_token}
         for i in range(3):
             res = requests.get("https://lab.scarv.org/api/job",
+                               params = params,
                                headers = headers)
             if res.status_code == 200:
                 job = res.json()
