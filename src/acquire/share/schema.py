@@ -41,6 +41,9 @@ SCHEMA_JOB  = {
     'version'     : { 'type' :  'string'                 },
     'id'          : { 'type' :  'string'                 },
 
+    'remark'      : { 'type' :  'string'                 },
+    'status'      : { 'type' :  'number'                 },
+
     'driver-id'   : { 'type' :  'string'                 },
     'driver-spec' : { 'type' :  'object', 'default' : {} },
 
@@ -108,14 +111,9 @@ SCHEMA_JOB  = {
     'properties' : {
         'depo-id'   : { 'enum' : [ 's3' ] },
         'depo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {  
-          'access-key-id'           : { 'type' :     'string'                       },
-          'access-key'              : { 'type' :     'string'                       },
-        
-          'region-id'               : { 'type' :     'string'                       },
-          'bucket-id'               : { 'type' :     'string'                       },    
-
+          'identity_id'             : { 'type' :     'string'                       },
           'verify'                  : { 'type' :    'boolean', 'default' : True     }
-      }, 'required' : [ 'access-key', 'access-key-id', 'bucket-id', 'region-id', 'verify' ] }
+      }, 'required' : [ 'verify', 'identity_id' ] }
     }
   } ]
 }

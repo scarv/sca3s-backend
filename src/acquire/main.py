@@ -13,9 +13,11 @@ from acquire        import driver as driver
 from acquire        import repo   as repo
 from acquire        import depo   as depo
 
-import flask, os, queue, shutil, tempfile, threading
+from acquire        import server as server
 
-app = flask.Flask( __name__ ) ; jobs = queue.Queue( 1 )
+import flask, os, queue, shutil, tempfile, threading, time
+
+#app = flask.Flask( __name__ ) ; jobs = queue.Queue( 1 )
 
 def process( manifest ) :
     share.sys.log.info( '|>>> validating job' )
@@ -48,32 +50,32 @@ def process( manifest ) :
 
     share.sys.log.info( '|<<< processing job id = %s' % ( id ) )
 
-def server_worker() :
-  while( True ) :
-    process( share.conf.Conf( conf = jobs.get() ) )
-
-@app.route( '/api/device', methods = [ 'GET', 'POST' ] )
-def server_api_device() :
-  t = dict()
-
-  for ( key, value ) in share.sys.conf.get( 'device-db', section = 'job' ).items() :
-    t[ key ] = { 'board-desc' : value[ 'board-desc' ],
-                 'scope-desc' : value[ 'scope-desc' ] }
-
-  return flask.jsonify( t )
-
-@app.route( '/api/submit', methods = [ 'GET', 'POST' ] )
-def server_api_submit() :
-  try :
-    share.sys.log.info( '!>>> queueing job' )
-
-    jobs.put( flask.request.get_json() )
-
-    share.sys.log.info( '!<<< queueing job' )
-  except Exception as e :
-    raise e
-
-  return ""
+#def server_worker() :
+#  while( True ) :
+#    process( share.conf.Conf( conf = jobs.get() ) )
+#
+#@app.route( '/api/device', methods = [ 'GET', 'POST' ] )
+#def server_api_device() :
+#  t = dict()
+#
+#  for ( key, value ) in share.sys.conf.get( 'device-db', section = 'job' ).items() :
+#    t[ key ] = { 'board-desc' : value[ 'board-desc' ],
+#                 'scope-desc' : value[ 'scope-desc' ] }
+#
+#  return flask.jsonify( t )
+#
+#@app.route( '/api/submit', methods = [ 'GET', 'POST' ] )
+#def server_api_submit() :
+#  try :
+#    share.sys.log.info( '!>>> queueing job' )
+#
+#    jobs.put( flask.request.get_json() )
+#
+#    share.sys.log.info( '!<<< queueing job' )
+#  except Exception as e :
+#    raise e
+#
+#  return ""
 
 if ( __name__ == '__main__' ) :
   try :
@@ -82,18 +84,32 @@ if ( __name__ == '__main__' ) :
     raise e
 
   try :
-    if   ( share.sys.conf.get( 'mode', section = 'sys' ) == 'server' ) :
-      threading.Thread( target = server_worker ).start() ; app.run()
+#    if   ( share.sys.conf.get( 'mode', section = 'sys' ) == 'server' ) :
+#      threading.Thread( target = server_worker ).start() ; app.run()
+#
+#    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'    ) :
+#      if   ( share.sys.conf.has( 'manifest-file', section = 'job' ) ) :
+#        manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-file', section = 'job' ) )
+#      elif ( share.sys.conf.has( 'manifest-data', section = 'job' ) ) :
+#        manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-data', section = 'job' ) )
+#      else :
+#        raise Exception()
+#  
+#      process( manifest )
 
-    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'    ) :
-      if   ( share.sys.conf.has( 'manifest-file', section = 'job' ) ) :
-        manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-file', section = 'job' ) )
-      elif ( share.sys.conf.has( 'manifest-data', section = 'job' ) ) :
-        manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-data', section = 'job' ) )
-      else :
-        raise Exception()
-  
-      process( manifest )
+    remote = server.remote.Remote()
+    
+    while( True ) :
+      share.sys.log.info( 'start wait' )
+      time.sleep( 1 )
+      share.sys.log.info( 'end   wait' )
+
+      share.sys.log.info( 'start fetch' )
+      manifest = remote.receive_job()
+      share.sys.log.info( 'end   fetch' )
+
+      if ( manifest != None ) :
+        process( manifest )
 
   except Exception as e :
     raise e
