@@ -110,12 +110,10 @@ class Job( object ) :
     n = 0
 
     for ( key, value ) in sorted( self.conf.items() ) : 
-      if ( key.startswith( 'job' ) ) :
-        n = max( n, len( key ) )
+      n = max( n, len( key ) )
 
     for ( key, value ) in sorted( self.conf.items() ) :
-      if ( key.startswith( 'job' ) ) :
-        self.log.info( '{0:<{width}} = {1}'.format( key, json.dumps( value ), width = n ) )
+      self.log.info( '{0:<{width}} = {1}'.format( key, json.dumps( value ), width = n ) )
 
     self.log.indent_dec()
 
