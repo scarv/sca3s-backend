@@ -1,4 +1,7 @@
 venv
 __pycache__
+\.idea/
+\.Python
+pip-selfcheck\.json
 *.pyo
 *.pyc
