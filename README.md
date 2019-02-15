@@ -1,10 +1,6 @@
 to  finish:
 
-- finish up TRS trace set implementation
-- allow flask configuration from some source, e.g., another file?
-- cycle count capture (e.g., via systick: need to upgrade the SCALE
-  BSPs first)
-- generalised picoscope support; check via 5444B
+- sort out some sensible deployment strategy
 - move credentials to configuration rather than environment, i.e.,
 
   'AWS_ACCESS_KEY_ID'
@@ -15,10 +11,10 @@ to  finish:
 - fix server waiting time to configuration
 - reintegrate or remove flask-based server
 
-to resolve:
+- finish up TRS trace set implementation
+- generalised picoscope support; check via 5444B
 
-- submit the configuration to infrastructure to "register" that is
-  what is available; then request jobs wrt. ID returned
+to resolve:
 
 - the source code is currently totally undocumented :-/
 
