@@ -1,5 +1,6 @@
 import requests, os, jwt, time
 from acquire.server.status import JSONStatus
+from acquire import share as share
 
 
 class Remote():
@@ -40,17 +41,16 @@ class Remote():
                     self._access_token = credentials["access_token"]
                     return
                 else:
-                    print ("[Auth0] Auth failure - trying again...")
-                    print (res.text)
+                    share.sys.log.info("[Auth0] Auth failure - trying again...")
+                    share.sys.log.info(res.text)
                     time.sleep(1)
-            print ("[Auth0] Authorization not successful")
+            share.sys.log.info("[Auth0] Authorization not successful")
             raise Exception("Auth0 Authorization failed.")
 
 
     def receive_job(self):
         """
         Retrieves pending jobs from the SCARV API.
-        :return: revocation list from UH Net API.
         """
         self._authorize()
         headers = {"Authorization": "Bearer " + self._access_token}
@@ -64,8 +64,34 @@ class Remote():
                 else:
                     return None
             else:
-                print ("[SCARV] API Communication Error - trying again...")
-                print (res.text)
+                share.sys.log.info("[SCARV] API Communication Error - trying again...")
+                share.sys.log.info(res.text)
                 time.sleep(1)
-        print ("[SCARV] Error in API Communication")
+        share.sys.log.info("[SCARV] Error in API Communication")
+        raise Exception("SCARV API Communication Error.")
+
+
+    def complete_job(self, job_id):
+        """
+        Marks a job as complete on the SCARV API.
+        """
+        self._authorize()
+        headers = {"Authorization": "Bearer " + self._access_token}
+        for i in range(3):
+            res = requests.patch("https://lab.scarv.org/api/job/" + job_id,
+                                 headers = headers,
+                                 json={
+                                     "remark" : "complete"
+                                 })
+            if res.status_code == 200:
+                info = res.json()
+                if info["status"] == JSONStatus.SUCCESS:
+                    return
+                share.sys.log.info("[SCARV] Error in API Communication - " + info["status"])
+                return
+            else:
+                share.sys.log.info("[SCARV] API Communication Error - trying again...")
+                share.sys.log.info(res.text)
+                time.sleep(1)
+        share.sys.log.info("[SCARV] Error in API Communication")
         raise Exception("SCARV API Communication Error.")
