@@ -105,11 +105,11 @@ if ( __name__ == '__main__' ) :
       share.sys.log.info( 'end   wait' )
 
       share.sys.log.info( 'start fetch' )
-      manifest = share.conf.Conf( remote.receive_job() )
+      manifest = remote.receive_job()
       share.sys.log.info( 'end   fetch' )
 
       if ( manifest != None ) :
-        process( manifest ) ; remote.complete_job( manifest.get( 'id' ) )
+        manifest = share.conf.Conf( manifest ) ; process( manifest ) ; remote.complete_job( manifest.get( 'id' ) )
 
   except Exception as e :
     raise e
