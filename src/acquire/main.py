@@ -109,7 +109,7 @@ if ( __name__ == '__main__' ) :
       share.sys.log.info( 'end   fetch' )
 
       if ( manifest != None ) :
-        process( manifest )
+        process( share.conf.Conf( manifest ) )
 
   except Exception as e :
     raise e
