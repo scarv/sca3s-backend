@@ -103,9 +103,9 @@ class DriverAbs( abc.ABC ) :
   def  process( self ) :
     trace_spec            = self.job.conf.get( 'trace-spec' )
 
-    trace_count           = int( trace_spec.get( 'count'  ) )
-    trace_format          =      trace_spec.get( 'format' )
-    trace_crop            =      trace_spec.get( 'crop'   )
+    trace_count           =  int( trace_spec.get( 'count'  ) )
+    trace_format          =       trace_spec.get( 'format' )
+    trace_crop            = bool( trace_spec.get( 'crop'   ) )
 
     if   ( trace_format == 'pickle' ) :
       traces = share.trace.TraceSetPickle()

@@ -19,21 +19,21 @@ class DepoImp( depo.DepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.access_key_id =       self.depo_spec.get( 'access-key-id' )
-    self.access_key    =       self.depo_spec.get( 'access-key'    )
+    self.access_key_id = os.environ[ 'AWS_ACCESS_KEY_ID' ]
+    self.access_key    = os.environ[ 'AWS_ACCESS_KEY'    ] 
+    self.region_id     = 'eu-west-1'
 
-    self.region_id     =       self.depo_spec.get( 'region-id'     )
-    self.bucket_id     =       self.depo_spec.get( 'bucket-id'     )
+    self.identity_id =       self.depo_spec.get( 'identity_id' )
 
-    self.verify        = bool( self.depo_spec.get( 'verify'        ) )
+    self.verify      = bool( self.depo_spec.get( 'verify'      ) )
 
   def transfer( self ) :
     session  = boto3.Session( aws_access_key_id = self.access_key_id, aws_secret_access_key = self.access_key, region_name = self.region_id )
     resource = session.resource( 's3' )
-    bucket   = resource.Bucket( self.bucket_id )
+    bucket   = resource.Bucket( 'scarv-lab-traces' )
 
     def copy( src, quiet = False ) :
-      dst = os.path.join( self.job.id, os.path.relpath( src, start = self.job.path ) )
+      dst = os.path.join( self.identity_id, self.job.id, os.path.relpath( src, start = self.job.path ) )
 
       if ( not quiet ) :
         self.job.log.debug( '[src=%s] --> [dst=%s]' % ( os.path.relpath( src, start = self.job.path ), dst ) )
