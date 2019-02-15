@@ -105,7 +105,7 @@ if ( __name__ == '__main__' ) :
       share.sys.log.info( 'end   wait' )
 
       share.sys.log.info( 'start fetch' )
-      manifest = remote.receive_job()
+      manifest = remote.receive_job( list( share.sys.conf.get( 'device-db', section = 'job' ).keys() ) )
       share.sys.log.info( 'end   fetch' )
 
       if ( manifest != None ) :
