@@ -5,8 +5,20 @@ to  finish:
 - cycle count capture (e.g., via systick: need to upgrade the SCALE
   BSPs first)
 - generalised picoscope support; check via 5444B
+- move credentials to configuration rather than environment, i.e.,
+
+  'AWS_ACCESS_KEY_ID'
+  'AWS_ACCESS_KEY'
+  'AWS_REGION_ID'
+  'AUTH0_CLIENT_SECRET'
+
+- fix server waiting time to configuration
+- reintegrate or remove flask-based server
 
 to resolve:
+
+- submit the configuration to infrastructure to "register" that is
+  what is available; then request jobs wrt. ID returned
 
 - the source code is currently totally undocumented :-/
 
