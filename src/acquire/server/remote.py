@@ -1,5 +1,5 @@
 import requests, os, jwt, time
-from acquire.job.status import JSONStatus
+from acquire.server.status import JSONStatus
 
 
 class Remote():
