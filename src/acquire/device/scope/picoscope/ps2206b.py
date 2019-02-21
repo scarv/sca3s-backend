@@ -29,12 +29,6 @@ class ScopeImp( PicoScope ) :
   def __init__( self, job ) :
     super().__init__( job, api.PS2000a )
     
-    self.connect_id         = self.device_spec.get( 'connect-id'         )
-    self.connect_timeout    = self.device_spec.get( 'connect-timeout'    )
-
-    self.channel_trigger_id = self.device_spec.get( 'channel-trigger-id' )
-    self.channel_acquire_id = self.device_spec.get( 'channel-acquire-id' )
-
   def _interval2timebase( self, x ) :
     if   ( x <   4.0e-9 ) :
       t = 1

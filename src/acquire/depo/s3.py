@@ -19,18 +19,20 @@ class DepoImp( depo.DepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.access_key_id = os.environ[ 'AWS_ACCESS_KEY_ID' ]
-    self.access_key    = os.environ[ 'AWS_ACCESS_KEY'    ] 
-    self.region_id     = 'eu-west-1'
+    self.access_key_id = share.sys.conf.get( 'creds' ).get( 'access-key-id', section = 'aws' )
+    self.access_key    = share.sys.conf.get( 'creds' ).get( 'access-key',    section = 'aws' ) 
 
-    self.identity_id =       self.depo_spec.get( 'identity_id' )
+    self.identity_id   =       self.depo_spec.get( 'identity_id' )
 
-    self.verify      = bool( self.depo_spec.get( 'verify'      ) )
+    self.region_id     =       self.depo_spec.get( 'region-id'   )
+    self.bucket_id     =       self.depo_spec.get( 'bucket-id'   )
+
+    self.verify        = bool( self.depo_spec.get( 'verify'      ) )
 
   def transfer( self ) :
     session  = boto3.Session( aws_access_key_id = self.access_key_id, aws_secret_access_key = self.access_key, region_name = self.region_id )
     resource = session.resource( 's3' )
-    bucket   = resource.Bucket( 'scarv-lab-traces' )
+    bucket   = resource.Bucket( self.bucket_id )
 
     def copy( src, quiet = False ) :
       dst = os.path.join( self.identity_id, self.job.id, os.path.relpath( src, start = self.job.path ) )

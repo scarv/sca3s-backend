@@ -17,99 +17,96 @@ from acquire        import server as server
 
 import flask, os, queue, shutil, tempfile, threading, time
 
-#app = flask.Flask( __name__ ) ; jobs = queue.Queue( 1 )
-
 def process( manifest ) :
-    share.sys.log.info( '|>>> validating job' )
+  share.sys.log.info( '|>>> validating job' )
 
-    db = share.sys.conf.get( 'device-db', section = 'job' )
+  db = share.sys.conf.get( 'device-db', section = 'job' )
 
-    if ( manifest.has( 'device-id' ) ) :
-      t =  manifest.get( 'device-id' )
+  if ( manifest.has( 'device-id' ) ) :
+    t =  manifest.get( 'device-id' )
 
-      if ( db.has( t ) ) :
-        for ( key, value ) in db.get( t ).items() :
-          manifest.put( key, value )
-      else :
-        raise share.exception.ConfigurationException()
+    if ( db.has( t ) ) :
+      for ( key, value ) in db.get( t ).items() :
+        manifest.put( key, value )
+    else :
+      raise share.exception.ConfigurationException()
 
-    share.schema.validate( manifest, share.schema.SCHEMA_JOB ) ; id = manifest.get( 'id' )
+  share.schema.validate( manifest, share.schema.SCHEMA_JOB )
 
-    share.sys.log.info( '|>>> processing job id = %s' % ( id ) )
+  share.sys.log.info( '|<<< validating job' )
 
-    path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id )
+  id = manifest.get( 'id' )
 
-    job = share.job.Job( manifest, path, log )
+  share.sys.log.info( '|>>> processing job id = %s' % ( id ) )
 
-    job.process_prologue()
-    job.process()
-    job.process_epilogue()
+  path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id )
 
-    if ( share.sys.conf.get( 'clean', section = 'job' ) ) :
-      shutil.rmtree( path )
+  job = share.job.Job( manifest, path, log )
 
-    share.sys.log.info( '|<<< processing job id = %s' % ( id ) )
+  job.process_prologue()
+  job.process()
+  job.process_epilogue()
 
-#def server_worker() :
-#  while( True ) :
-#    process( share.conf.Conf( conf = jobs.get() ) )
-#
-#@app.route( '/api/device', methods = [ 'GET', 'POST' ] )
-#def server_api_device() :
-#  t = dict()
-#
-#  for ( key, value ) in share.sys.conf.get( 'device-db', section = 'job' ).items() :
-#    t[ key ] = { 'board-desc' : value[ 'board-desc' ],
-#                 'scope-desc' : value[ 'scope-desc' ] }
-#
-#  return flask.jsonify( t )
-#
-#@app.route( '/api/submit', methods = [ 'GET', 'POST' ] )
-#def server_api_submit() :
-#  try :
-#    share.sys.log.info( '!>>> queueing job' )
-#
-#    jobs.put( flask.request.get_json() )
-#
-#    share.sys.log.info( '!<<< queueing job' )
-#  except Exception as e :
-#    raise e
-#
-#  return ""
+  if ( share.sys.conf.get( 'clean', section = 'job' ) ) :
+    shutil.rmtree( path )
+
+  share.sys.log.info( '|<<< processing job id = %s' % ( id ) )
+
+  return id
+
+def mode_cli() :
+  if   ( share.sys.conf.has( 'manifest-file', section = 'job' ) ) :
+    manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-file', section = 'job' ) )
+  elif ( share.sys.conf.has( 'manifest-data', section = 'job' ) ) :
+    manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-data', section = 'job' ) )
+
+  process( manifest )
+
+def mode_server_push() :
+  server_host  =      sys.conf.get( 'host', section = 'server-push' )
+  server_port  = int( sys.conf.get( 'port', section = 'server-push' ) )
+
+  server       = flask.Flask( __name__, host = server_host, port = server_port ) 
+      
+  @server.route( '/api/device', methods = [ 'GET', 'POST' ] )
+  def server_api_device() :
+    t = dict()
+      
+    for ( key, value ) in share.sys.conf.get( 'device-db', section = 'job' ).items() :
+      t[ key ] = { 'board-desc' : value[ 'board-desc' ],
+                   'scope-desc' : value[ 'scope-desc' ] }
+      
+    return flask.jsonify( t )
+      
+  @server.route( '/api/submit', methods = [ 'GET', 'POST' ] )
+  def server_api_submit() :
+    process( share.conf.Conf( conf = flask.request.get_json() ) )
+
+    return ""
+      
+  server.run()
+
+def mode_server_pull() :
+  server = server.remote.Remote() ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+      
+  while( True ) :
+    manifest = remote.receive_job( db )
+  
+    if ( manifest != None ) :
+      remote.complete_job( process( share.conf.Conf( conf = manifest ) ) )
+
+    time.sleep( sys.conf.get( 'poll', section = 'server-pull' ) )
 
 if ( __name__ == '__main__' ) :
   try :
     share.sys.init()
-  except Exception as e :
-    raise e
 
-  try :
-#    if   ( share.sys.conf.get( 'mode', section = 'sys' ) == 'server' ) :
-#      threading.Thread( target = server_worker ).start() ; app.run()
-#
-#    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'    ) :
-#      if   ( share.sys.conf.has( 'manifest-file', section = 'job' ) ) :
-#        manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-file', section = 'job' ) )
-#      elif ( share.sys.conf.has( 'manifest-data', section = 'job' ) ) :
-#        manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-data', section = 'job' ) )
-#      else :
-#        raise Exception()
-#  
-#      process( manifest )
-
-    remote = server.remote.Remote()
-    
-    while( True ) :
-      share.sys.log.info( 'start wait' )
-      time.sleep( 1 )
-      share.sys.log.info( 'end   wait' )
-
-      share.sys.log.info( 'start fetch' )
-      manifest = remote.receive_job( list( share.sys.conf.get( 'device-db', section = 'job' ).keys() ) )
-      share.sys.log.info( 'end   fetch' )
-
-      if ( manifest != None ) :
-        manifest = share.conf.Conf( manifest ) ; process( manifest ) ; remote.complete_job( manifest.get( 'id' ) )
+    if   ( share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'         ) :
+      mode_cli()
+    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'server-push' ) :
+      mode_server_push()
+    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'server-pull' ) :
+      mode_server_pull()
 
   except Exception as e :
     raise e

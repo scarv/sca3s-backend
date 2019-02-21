@@ -14,19 +14,28 @@ SCHEMA_CONF = {
     'path:job'          : { 'type' :  'string', 'default' : tempfile.tempdir },
     'path:log'          : { 'type' :  'string', 'default' : tempfile.tempdir },
 
-    'timeout:extern'    : { 'type' :  'number', 'default' :               60 },
-    'timeout:kernel'    : { 'type' :  'number', 'default' :                1 },
+    'creds'             : { 'type' :  'object', 'default' : {}               },
 
-    'job:clean'         : { 'type' : 'boolean', 'default' : False            },
+    'server-push:host'  : { 'type' :  'string', 'default' :      '127.0.0.1' },
+    'server-push:port'  : { 'type' :  'number', 'default' :             1234 },
+    'server-pull:wait'  : { 'type' :  'number', 'default' :               60 },
+
+    'extern:env'        : { 'type' :  'object', 'default' : {}               },
+    'extern:timeout'    : { 'type' :  'number', 'default' :               60 },
   
+    'job:timeout'       : { 'type' :  'number', 'default' :                1 },
+
     'job:manifest-file' : { 'type' :  'string'                               },
     'job:manifest-data' : { 'type' :  'string'                               },
+
+    'job:clean'         : { 'type' : 'boolean', 'default' : False            },
 
     'job:device-db'     : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
         'board-desc' : { 'type' : 'string' },
         'board-id'   : { 'type' : 'string' },
         'board-spec' : { 'type' : 'object' },
+
         'scope-desc' : { 'type' : 'string' },
         'scope-id'   : { 'type' : 'string' },
         'scope-spec' : { 'type' : 'object' }
@@ -38,21 +47,17 @@ SCHEMA_CONF = {
 SCHEMA_JOB  = {
   # core
   'type' : 'object', 'default' : {}, 'properties' : {
-    'version'     : { 'type' :  'string'                 },
-    'id'          : { 'type' :  'string'                 },
+    'version'     : { 'type' :  'string' },
+    'id'          : { 'type' :  'string' },
 
-    'remark'      : { 'type' :  'string'                 },
-    'status'      : { 'type' :  'number'                 },
+    'remark'      : { 'type' :  'string' },
+    'status'      : { 'type' :  'number' },
 
-    'driver-id'   : { 'type' :  'string'                 },
-    'driver-spec' : { 'type' :  'object', 'default' : {} },
-
-    'device-id'   : { 'type' :  'string'                 },
+    'driver-id'   : { 'type' :  'string' },
+    'device-id'   : { 'type' :  'string' },
       
-      'repo-id'   : { 'type' :  'string'                 },
-      'repo-spec' : { 'type' :  'object', 'default' : {} },
-      'depo-id'   : { 'type' :  'string'                 },
-      'depo-spec' : { 'type' :  'object', 'default' : {} },
+      'repo-id'   : { 'type' :  'string' },
+      'depo-id'   : { 'type' :  'string' },
 
      'trace-spec' : { 'type' :  'object', 'default' : {}, 'properties' : {
            'period-id'   : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'interval', 'frequency', 'duration' ] },
@@ -70,8 +75,8 @@ SCHEMA_JOB  = {
     'properties' : {
       'driver-id'   : { 'enum' : [ 'block' ] },
       'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-
-      }, 'required' : [ 'board-id', 'board-spec' ] }
+        'kernel'         : { 'type' :  'string', 'default' :    'enc', 'enum' : [ 'enc', 'dec'                                ] }
+      }, 'required' : [ 'driver-id', 'driver-spec' ] }
     }
   } ],
   # options:  board-spec
@@ -79,9 +84,11 @@ SCHEMA_JOB  = {
     'properties' : {
        'board-id'   : { 'enum' : [ 'scale/lpc1313fbd48' ] },
        'board-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                 'connect-timeout' : { 'type' :     'number', 'default' : 10       },
-                 'connect-id'      : { 'type' :     'string'                       }
-      }, 'required' : [ 'board-id', 'board-spec' ] }
+                 'connect-id'      : { 'type' :     'string' },
+                 'connect-timeout' : { 'type' :     'number' },
+
+                 'program-timeout' : { 'type' :     'number' }
+      }, 'required' : [  'board-id',  'board-spec' ] }
     }
   } ],
   # options:  scope-spec
@@ -89,11 +96,12 @@ SCHEMA_JOB  = {
     'properties' : {
        'scope-id'   : { 'enum' : [ 'picoscope/ps2206b' ] },
        'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                 'connect-timeout' : { 'type' :     'number', 'default' : 10000    },
-                 'connect-id'      : { 'type' :     'string'                       },
-         'channel-trigger-id'      : { 'enum' : [ 'A', 'B' ], 'default' : 'A'      },
-         'channel-acquire-id'      : { 'enum' : [ 'A', 'B' ], 'default' : 'B'      }
-      }, 'required' : [ 'scope-id', 'scope-spec' ] }
+                 'connect-id'      : { 'type' :     'string' },
+                 'connect-timeout' : { 'type' :     'number' },
+
+         'channel-trigger-id'      : { 'enum' : [ 'A', 'B' ] },
+         'channel-acquire-id'      : { 'enum' : [ 'A', 'B' ] }
+      }, 'required' : [  'scope-id',  'scope-spec' ] }
     }
   } ],
   # options:   repo-spec
@@ -103,7 +111,7 @@ SCHEMA_JOB  = {
         'repo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
           'url'                     : { 'type' :     'string'                       },
           'tag'                     : { 'type' :     'string', 'default' : 'master' }
-      }, 'required' : [ 'url', 'tag' ] }
+      }, 'required' : [ 'url' ] }
     }
   } ],
   # options:   depo-spec
@@ -111,9 +119,13 @@ SCHEMA_JOB  = {
     'properties' : {
         'depo-id'   : { 'enum' : [ 's3' ] },
         'depo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {  
-          'identity_id'             : { 'type' :     'string'                       },
-          'verify'                  : { 'type' :    'boolean', 'default' : True     }
-      }, 'required' : [ 'verify', 'identity_id' ] }
+          'identity_id'             : { 'type' :     'string'                                 },
+
+            'region-id'             : { 'type' :     'string', 'default' : 'eu-west-1'        },
+            'bucket-id'             : { 'type' :     'string', 'default' : 'scarv-lab-traces' },
+
+          'verify'                  : { 'type' :    'boolean', 'default' : True               }
+      }, 'required' : [ 'identity_id' ] }
     }
   } ]
 }

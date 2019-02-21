@@ -1,4 +1,4 @@
-# [`lab.scarv.org`](https://github.com/scarv/lab.scarv.org.git): acquire framework
+# [`lab.scarv.org`](https://github.com/scarv/lab.scarv.org.git): acquisition appliance
 
 <!--- -------------------------------------------------------------------- --->
 
@@ -18,44 +18,21 @@ power and EM) stemming from
 [RISC-V](https://riscv.org)-based
 platforms.
 The main
-[repository](https://github.com/scarv/xcrypto)
+[repository](https://github.com/scarv/lab.scarv.org)
 acts as a general container for associated resources;
 this specific submodule houses
-the framework tasked with orchestrating the acquisition of traces.*
+the acquisition appliance, which is tasked with orchestrating the acquisition of traces.*
 
 <!--- -------------------------------------------------------------------- --->
 
+## TODO
 
-<!--- -------------------------------------------------------------------- --->
-
-## Acknowledgements
-
-This work has been supported in part by EPSRC via grant 
-[EP/R012288/1](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/R012288/1),
-under the [RISE](http://www.ukrise.org) programme.
-
-<!--- -------------------------------------------------------------------- --->
-
-to  finish:
+- resolve issue with default values in (nested) objects
+- generalised picoscope support; check via 5444B
+- finish up TRS trace set implementation
 
 - sort out some sensible deployment strategy
-- move credentials to configuration rather than environment, i.e.,
-
-  'AWS_ACCESS_KEY_ID'
-  'AWS_ACCESS_KEY'
-  'AWS_REGION_ID'
-  'AUTH0_CLIENT_SECRET'
-
-- fix server waiting time to configuration
-- reintegrate or remove flask-based server
-
-- finish up TRS trace set implementation
-- generalised picoscope support; check via 5444B
-
-to resolve:
-
 - the source code is currently totally undocumented :-/
-
 - the management of exceptions is currently less than ideal: there
   are two central issues, namely
 
@@ -75,3 +52,13 @@ to resolve:
   - environment variables currently)allowed in job manifest.
 
   a more precise and fail-safe way to manage this would be great.
+
+<!--- -------------------------------------------------------------------- --->
+
+## Acknowledgements
+
+This work has been supported in part by EPSRC via grant 
+[EP/R012288/1](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/R012288/1),
+under the [RISE](http://www.ukrise.org) programme.
+
+<!--- -------------------------------------------------------------------- --->

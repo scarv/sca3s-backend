@@ -1,27 +1,25 @@
-{ "version"             :  "0.1.0",
-  "id"                  :    "foo",
+{ "version"    : "0.1.0",
+  "id"         :   "foo",
 
-  "device-id"           : "scale-m3/ps2206b",
-  "driver-id"           : "block",
+  "device-id"  : "scale-m3/ps2206b",
 
-  "repo-id"             :    "git",
-  "repo-spec"           : { 
-    "url"           : "git@lab-target:scarv/lab-target.git",
+  "driver-id"  : "block",
+  "driver-spec" : {
+    "kernel"        : "enc"
+  },
+
+  "repo-id"    : "git",
+  "repo-spec"  : { 
+    "url"           : "git@danpage_lab-target:danpage/lab-target.git",
     "tag"           : "master"
   },
 
-  "depo-id"             :     "s3",
-  "depo-spec"           : { 
-    "access-key-id" : "${AWS_ACCESS_KEY_ID}",
-    "access-key"    : "${AWS_ACCESS_KEY}",
-
-    "region-id"     : "eu-west-1",
-    "bucket-id"     : "lab.scarv.org",
-
-    "verify"        : true
+  "depo-id"    : "s3",
+  "depo-spec"  : { 
+    "identity_id"   : "bar"
   },
 
-  "trace-spec"          : {
+  "trace-spec" : {
         "period-id" :   "auto",
     "resolution-id" :   "auto",
 

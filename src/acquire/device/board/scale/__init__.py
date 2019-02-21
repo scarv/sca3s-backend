@@ -19,8 +19,10 @@ class SCALE( board.BoardAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
     
-    self.connect_id         = self.device_spec.get( 'connect-id'      )
-    self.connect_timeout    = self.device_spec.get( 'connect-timeout' )
+    self.connect_id         =      self.device_spec.get( 'connect-id'      )
+    self.connect_timeout    = int( self.device_spec.get( 'connect-timeout' ) )
+
+    self.program_timeout    = int( self.device_spec.get( 'program-timeout' ) )
 
   def _uart_send( self, x ) :
     self.device.write( ( x + '\x0D' ).encode() )
@@ -46,7 +48,9 @@ class SCALE( board.BoardAbs ) :
 
     self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',      'build' ], env = env )
     self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',     'report' ], env = env )
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',    'program' ], env = env )
+
+    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',    'program' ], env = env, timeout = self.program_timeout )
+
     self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',   'spotless' ], env = env )
 
   def    open( self ) :

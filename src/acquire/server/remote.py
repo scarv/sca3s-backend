@@ -32,7 +32,7 @@ class Remote():
                                     headers={"Content-Type": "application/json"},
                                     json={
                                         "client_id": "BTYyO2udN3iKP3PY2Gcv2T1dMwzwO6kd",
-                                        "client_secret": os.environ["AUTH0_CLIENT_SECRET"],
+                                        "client_secret": sys.conf.get( 'creds' ).get( 'client-secret', section = 'auth0' ),
                                         "audience": "https://lab.scarv.org",
                                         "grant_type": "client_credentials"
                                     })

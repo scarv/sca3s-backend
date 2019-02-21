@@ -9,14 +9,16 @@ from acquire import share
 import abc, gzip, os, pickle, sys, trsfile
 
 class Trace( object ) :
-  def __init__( self, signal_trigger, signal_acquire, data_in = None , data_out = None ) :
+  def __init__( self, signal_trigger, signal_acquire, tsc = None, data_i = None , data_o = None ) :
     super().__init__()  
 
     self.signal_trigger = signal_trigger
     self.signal_acquire = signal_acquire
 
-    self.data_in        = data_in
-    self.data_out       = data_out
+    self.tsc            = tsc
+
+    self.data_i         = data_i
+    self.data_o         = data_o
 
 class TraceSet( abc.ABC ) :
   def __init__( self ) :
@@ -50,8 +52,8 @@ class TraceSetPickle( TraceSet ) :
     pickle.dump( trace.signal_trigger, fd )
     pickle.dump( trace.signal_acquire, fd )
 
-    pickle.dump( trace.data_in,        fd )
-    pickle.dump( trace.data_out,       fd )
+    pickle.dump( trace.data_i,         fd )
+    pickle.dump( trace.data_o,         fd )
      
     fd.close()
 
@@ -76,15 +78,15 @@ class TraceSetTRS( TraceSet ) :
 
       return r
 
-    data_in  = conv( trace.data_in  )
-    data_out = conv( trace.data_out ) 
+    data_i  = conv( trace.data_i )
+    data_o  = conv( trace.data_o )
 
-    data     = data_in + data_out
+    data    = data_i + data_o
 
-    headers  = { trsfile.Header.INPUT_OFFSET  : 0,
-                 trsfile.Header.INPUT_LENGTH  : len( data_in  ),
-                 trsfile.Header.OUTPUT_OFFSET : len( data_in  ),
-                 trsfile.Header.OUTPUT_OFFSET : len( data_out ) }
+    headers = { trsfile.Header.INPUT_OFFSET  : 0,
+                trsfile.Header.INPUT_LENGTH  : len( data_i ),
+                trsfile.Header.OUTPUT_OFFSET : len( data_i ),
+                trsfile.Header.OUTPUT_OFFSET : len( data_o ) }
 
     self.fd.extend( [ trsfile.Trace( trsfile.SampleCoding.FLOAT, trace.signal_acquire, data = data, headers = headers ) ] )
 

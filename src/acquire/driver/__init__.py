@@ -72,7 +72,7 @@ class DriverAbs( abc.ABC ) :
     self.job.log.indent_inc( message = 'configure scope'  )
 
     if ( trace_period_id == 'auto' ) :
-      l = share.sys.conf.get( 'kernel', section = 'timeout' )
+      l = share.sys.conf.get( 'timeout', section = 'job' )
     
       t = self.job.device_scope.conf( scope.CONF_MODE_DURATION, 1 * l )
 
@@ -118,6 +118,11 @@ class DriverAbs( abc.ABC ) :
       self.job.log.indent_inc( message = 'started  acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
 
       trace = self._process()
+
+      l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold )
+
+      self.job.log.info( 'measure via TSC    => {0:d}'.format( trace.tsc ) )
+      self.job.log.info( 'measure via signal => {0:g}'.format( l         ) )
 
       if ( trace_crop ) :
         edge_pos = share.util.measure( share.util.MEASURE_MODE_TRIGGER_POS, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold )

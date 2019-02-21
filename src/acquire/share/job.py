@@ -59,9 +59,11 @@ class Job( object ) :
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
 
-  def extern( self, x, env = None, quiet = False, fail = True ) :
-    if ( env == None ) :
-      env = dict()
+  def extern( self, x, env = None, timeout = None, quiet = False, fail = True ) :
+    if ( env     == None ) :
+      env     =      share.sys.conf.get( 'env',     section = 'extern' )
+    if ( timeout == None ) :
+      timeout = int( share.sys.conf.get( 'timeout', section = 'extern' ) )
 
     env.update( os.environ )
 
@@ -72,7 +74,7 @@ class Job( object ) :
       self.log.info( '| command : %s', ' '.join( x ) )
 
     try :
-      pd = subprocess.run( x, cwd = self.path, env = env, timeout = int( share.sys.conf.get( 'extern', section = 'timeout' ) ), stdout = subprocess.PIPE, stderr = subprocess.PIPE )
+      pd = subprocess.run( x, cwd = self.path, env = env, timeout = timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 
       if ( not quiet ) :
         stdout = pd.stdout.decode().split( '\n' )
