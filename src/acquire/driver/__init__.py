@@ -44,15 +44,14 @@ class DriverAbs( abc.ABC ) :
     trace_resolution_id   = trace_spec.get( 'resolution-id'   )
     trace_resolution_spec = trace_spec.get( 'resolution-spec' )
 
-    self.job.log.indent_inc( message = 'program board' )
+    self.job.log.indent_inc( message = 'open  board' )
+
     self.job.device_board.program()
-    self.job.log.indent_dec()
-
-    self.job.log.indent_inc( message = 'open    board' )
     self.job.device_board.open()
+
     self.job.log.indent_dec()
 
-    self.job.log.indent_inc( message = 'open    scope' )
+    self.job.log.indent_inc( message = 'open  scope' )
 
     self.job.device_scope.open()
 
@@ -64,12 +63,10 @@ class DriverAbs( abc.ABC ) :
     self.job.log.indent_dec()
 
     self.job.log.indent_inc( message = 'configure driver' )
-
     self._process_prologue()
-
     self.job.log.indent_dec()
 
-    self.job.log.indent_inc( message = 'configure scope'  )
+    self.job.log.indent_inc( message = 'calibrate scope'  )
 
     if ( trace_period_id == 'auto' ) :
       l = share.sys.conf.get( 'timeout', section = 'job' )
@@ -141,11 +138,11 @@ class DriverAbs( abc.ABC ) :
     traces.close()
 
   def  process_epilogue( self ) :
-    self.job.log.indent_inc( message = 'close   board' )
+    self.job.log.indent_inc( message = 'close board' )
     self.job.device_board.close()
     self.job.log.indent_dec()
 
-    self.job.log.indent_inc( message = 'close   scope' )
+    self.job.log.indent_inc( message = 'close scope' )
     self.job.device_scope.close()
     self.job.log.indent_dec()
 
