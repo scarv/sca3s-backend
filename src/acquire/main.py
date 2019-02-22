@@ -63,8 +63,8 @@ def mode_cli() :
   process( manifest )
 
 def mode_server_push() :
-  server_push_host  =      sys.conf.get( 'host', section = 'server-push' )
-  server_push_port  = int( sys.conf.get( 'port', section = 'server-push' ) )
+  server_push_host  =      share.sys.conf.get( 'host', section = 'server-push' )
+  server_push_port  = int( share.sys.conf.get( 'port', section = 'server-push' ) )
 
   server_push       = flask.Flask( __name__, host = server_push_host, port = server_push_port ) 
       
