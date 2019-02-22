@@ -8,13 +8,17 @@ ifndef REPO_HOME
   $(error "execute 'source ./bin/conf.sh' to configure environment")
 endif
 
-example-cli :
-	@${REPO_HOME}/bin/acquire.sh --sys:mode=cli --sys:conf=${REPO_HOME}/example/example.conf --job:manifest-file=${REPO_HOME}/example/example.job
+acquire-cli         :
+	@${REPO_HOME}/bin/acquire.sh --sys:mode=cli         --sys:conf=${REPO_HOME}/example/example.conf --job:manifest-file=${REPO_HOME}/example/example.job
+acquire-server-push :
+	@${REPO_HOME}/bin/acquire.sh --sys:mode=server-push --sys:conf=${REPO_HOME}/example/example.conf
+acquire-server-pull :
+	@${REPO_HOME}/bin/acquire.sh --sys:mode=server-pull --sys:conf=${REPO_HOME}/example/example.conf
 
-example-server-push_device :
-	@curl localhost:5000/api/device --header 'Content-Type: application/json' 
-example-server-push_submit :
-	@curl localhost:5000/api/submit --header 'Content-Type: application/json' --data @${REPO_HOME}/example/example.job
+client-server-push_device :
+	@curl 127.0.0.1:1234/api/device --header 'Content-Type: application/json' 
+client-server-push_submit :
+	@curl 127.0.0.1:1234/api/submit --header 'Content-Type: application/json' --data @${REPO_HOME}/example/example.job
 
 clean    :
 	@rm -rf ${REPO_HOME}/data/job/*
