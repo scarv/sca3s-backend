@@ -63,13 +63,13 @@ def mode_cli() :
   process( manifest )
 
 def mode_server_push() :
-  server_host  =      sys.conf.get( 'host', section = 'server-push' )
-  server_port  = int( sys.conf.get( 'port', section = 'server-push' ) )
+  server_push_host  =      sys.conf.get( 'host', section = 'server-push' )
+  server_push_port  = int( sys.conf.get( 'port', section = 'server-push' ) )
 
-  server       = flask.Flask( __name__, host = server_host, port = server_port ) 
+  server_push       = flask.Flask( __name__, host = server_push_host, port = server_push_port ) 
       
-  @server.route( '/api/device', methods = [ 'GET', 'POST' ] )
-  def server_api_device() :
+  @server_push.route( '/api/device', methods = [ 'GET', 'POST' ] )
+  def server_push_api_device() :
     t = dict()
       
     for ( key, value ) in share.sys.conf.get( 'device-db', section = 'job' ).items() :
@@ -78,8 +78,8 @@ def mode_server_push() :
       
     return flask.jsonify( t )
       
-  @server.route( '/api/submit', methods = [ 'GET', 'POST' ] )
-  def server_api_submit() :
+  @server_push.route( '/api/submit', methods = [ 'GET', 'POST' ] )
+  def server_push_api_submit() :
     share.sys.log.info( '|<<< pushing job' )
     manifest = flask.request.get_json()
     share.sys.log.info( '|>>> pushing job' )
@@ -88,18 +88,18 @@ def mode_server_push() :
 
     return ""
       
-  server.run()
+  server_push.run()
 
 def mode_server_pull() :
-  server = server.remote.Remote() ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+  server_pull = server.remote.Remote() ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
       
   while( True ) :
     share.sys.log.info( '|<<< pulling job' )
-    manifest = remote.receive_job( db )
+    manifest = server_pull.receive_job( db )
     share.sys.log.info( '|>>> pulling job' )
   
     if ( manifest != None ) :
-      remote.complete_job( process( share.conf.Conf( conf = manifest ) ) )
+      server_pull.complete_job( process( share.conf.Conf( conf = manifest ) ) )
 
     time.sleep( sys.conf.get( 'poll', section = 'server-pull' ) )
 
