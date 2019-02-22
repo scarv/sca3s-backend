@@ -68,67 +68,70 @@ SCHEMA_JOB  = {
        'count'           : { 'type' :  'number', 'default' :        1                                                           },
        'format'          : { 'type' :  'string', 'default' : 'pickle', 'enum' : [ 'pickle', 'trs'                             ] },
        'crop'            : { 'type' : 'boolean', 'default' :    False                                                           }
-    }, 'required' : [ ] }
+    }, 'required' : [] }
   }, 'required' : [ 'version', 'id', 'repo-id', 'depo-id', 'driver-id', 'device-id', 'trace-spec' ],
-  # options: driver-spec
-  'oneOf' : [ { 
-    'properties' : {
-      'driver-id'   : { 'enum' : [ 'block' ] },
-      'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-        'kernel'         : { 'type' :  'string', 'default' :    'enc', 'enum' : [ 'enc', 'dec'                                ] }
-      }, 'required' : [ 'driver-id', 'driver-spec' ] }
-    }
-  } ],
-  # options:  board-spec
-  'oneOf' : [ { 
-    'properties' : {
-       'board-id'   : { 'enum' : [ 'scale/lpc1313fbd48' ] },
-       'board-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                 'connect-id'      : { 'type' :     'string' },
-                 'connect-timeout' : { 'type' :     'number' },
-
-                 'program-timeout' : { 'type' :     'number' }
-      }, 'required' : [  'board-id',  'board-spec' ] }
-    }
-  } ],
-  # options:  scope-spec
-  'oneOf' : [ { 
-    'properties' : {
-       'scope-id'   : { 'enum' : [ 'picoscope/ps2206b' ] },
-       'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                 'connect-id'      : { 'type' :     'string' },
-                 'connect-timeout' : { 'type' :     'number' },
-
-         'channel-trigger-id'      : { 'enum' : [ 'A', 'B' ] },
-         'channel-acquire-id'      : { 'enum' : [ 'A', 'B' ] }
-      }, 'required' : [  'scope-id',  'scope-spec' ] }
-    }
-  } ],
-  # options:   repo-spec
-  'oneOf' : [ { 
-    'properties' : {
-        'repo-id'   : { 'enum' : [ 'git' ] },
-        'repo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-          'url'                     : { 'type' :     'string'                       },
-          'tag'                     : { 'type' :     'string', 'default' : 'master' }
-      }, 'required' : [ 'url' ] }
-    }
-  } ],
-  # options:   depo-spec
-  'oneOf' : [ { 
-    'properties' : {
-        'depo-id'   : { 'enum' : [ 's3' ] },
-        'depo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {  
-          'identity_id'             : { 'type' :     'string'                                 },
-
-            'region-id'             : { 'type' :     'string', 'default' : 'eu-west-1'        },
-            'bucket-id'             : { 'type' :     'string', 'default' : 'scarv-lab-traces' },
-
-          'verify'                  : { 'type' :    'boolean', 'default' : True               }
-      }, 'required' : [ 'identity_id' ] }
-    }
-  } ]
+  'allOf' : [ {
+    'oneOf' : [ { # options: driver-spec
+      'properties' : {
+        'driver-id'   : { 'enum' : [ 'block' ] },
+        'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+          'kernel'         : { 'type' :  'string', 'default' :    'enc', 'enum' : [ 'enc', 'dec'                                ] }
+        } }
+      }
+    } ] }, { 
+    'oneOf' : [ { # options:  board-spec
+      'properties' : {
+         'board-id'   : { 'enum' : [ 'scale/lpc1313fbd48' ] },
+         'board-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                   'connect-id'      : { 'type' :     'string' },
+                   'connect-timeout' : { 'type' :     'number' },
+  
+                   'program-timeout' : { 'type' :     'number' }
+        }, 'required' : [ 'connect-id', 'connect-timeout', 'program-timeout' ] }
+      }
+    } ] }, { 
+    'oneOf' : [ { # options:  scope-spec
+      'properties' : {
+         'scope-id'   : { 'enum' : [ 'picoscope/ps2206b' ] },
+         'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                   'connect-id'      : { 'type' :     'string' },
+                   'connect-timeout' : { 'type' :     'number' },
+  
+           'channel-trigger-id'      : { 'enum' : [ 'A', 'B' ] },
+           'channel-acquire-id'      : { 'enum' : [ 'A', 'B' ] }
+        }, 'required' : [ 'connect-id', 'connect-timeout', 'channel-trigger-id', 'channel-acquire-id' ] }
+      }
+    } ] }, { 
+    'oneOf' : [ { # options:   repo-spec
+      'properties' : {
+          'repo-id'   : { 'enum' : [ 'git' ] },
+          'repo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+            'url'                     : { 'type' :     'string'                       },
+            'tag'                     : { 'type' :     'string', 'default' : 'master' }
+        }, 'required' : [ 'url' ] }
+      }
+    } ] }, { 
+    'oneOf' : [ { # options:   depo-spec
+      'properties' : {
+          'depo-id'   : { 'enum' : [ 's3' ] },
+          'depo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {  
+            'identity_id'             : { 'type' :     'string'                                 },
+  
+              'region-id'             : { 'type' :     'string', 'default' : 'eu-west-1'        },
+              'bucket-id'             : { 'type' :     'string', 'default' : 'scarv-lab-traces' },
+  
+            'verify'                  : { 'type' :    'boolean', 'default' : True               }
+        }, 'required' : [ 'identity_id' ] }
+      }
+    } ] }
+  ]
 }
+
+# this is basically the solution to a FAQ in
+# 
+# https://python-jsonschema.readthedocs.io
+#
+# which (recursively) applies default values within a schema
 
 def validate( conf, schema ) :
   def defaults( validator_class ) :
@@ -141,7 +144,7 @@ def validate( conf, schema ) :
   
       for error in validate_properties( validator, properties, instance, schema ):
         yield error
-  
+
     return jsonschema.validators.extend( validator_class, { 'properties' : set_defaults } )
 
   validator = defaults( jsonschema.Draft4Validator ) ; validator( schema ).validate( conf )

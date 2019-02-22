@@ -2,16 +2,11 @@
   "id"         :   "foo",
 
   "device-id"  : "scale-m3/ps2206b",
-
   "driver-id"  : "block",
-  "driver-spec" : {
-    "kernel"        : "enc"
-  },
 
   "repo-id"    : "git",
   "repo-spec"  : { 
-    "url"           : "git@danpage_lab-target:danpage/lab-target.git",
-    "tag"           : "master"
+    "url"           : "git@danpage_lab-target:danpage/lab-target.git"
   },
 
   "depo-id"    : "s3",
