@@ -80,7 +80,11 @@ def mode_server_push() :
       
   @server.route( '/api/submit', methods = [ 'GET', 'POST' ] )
   def server_api_submit() :
-    process( share.conf.Conf( conf = flask.request.get_json() ) )
+    share.sys.log.info( '|<<< pushing job' )
+    manifest = flask.request.get_json()
+    share.sys.log.info( '|>>> pushing job' )
+
+    process( share.conf.Conf( conf = manifest ) )
 
     return ""
       
@@ -90,7 +94,9 @@ def mode_server_pull() :
   server = server.remote.Remote() ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
       
   while( True ) :
+    share.sys.log.info( '|<<< pulling job' )
     manifest = remote.receive_job( db )
+    share.sys.log.info( '|>>> pulling job' )
   
     if ( manifest != None ) :
       remote.complete_job( process( share.conf.Conf( conf = manifest ) ) )
