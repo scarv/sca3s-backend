@@ -83,7 +83,7 @@ class Remote():
             res = requests.patch("https://lab.scarv.org/api/job/" + job_id,
                                  headers = headers,
                                  json={
-                                     "remark" : "complete"
+                                     "remark" : "archiving"
                                  })
             if res.status_code == 200:
                 info = res.json()
