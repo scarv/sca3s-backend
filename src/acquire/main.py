@@ -101,7 +101,7 @@ def mode_server_pull() :
     if ( manifest != None ) :
       server_pull.complete_job( process( share.conf.Conf( conf = manifest ) ) )
 
-    time.sleep( share.sys.conf.get( 'poll', section = 'server-pull' ) )
+    time.sleep( int( share.sys.conf.get( 'wait', section = 'server-pull' ) ) )
 
 if ( __name__ == '__main__' ) :
   try :
