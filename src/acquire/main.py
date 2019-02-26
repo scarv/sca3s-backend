@@ -17,42 +17,62 @@ from acquire        import server as server
 
 import flask, os, queue, shutil, tempfile, threading, time
 
+SUCCESS            = 0
+
+FAILURE_VALIDATING = 1
+FAILURE_ALLOCATING = 2
+FAILURE_PROCESSING = 3
+
 def process( manifest ) :
-  share.sys.log.info( '|>>> validating job' )
+  id = None ; result = SUCCESS
 
-  db = share.sys.conf.get( 'device-db', section = 'job' )
+  try :
+    share.sys.log.info( '|> validating job' )
+  
+    try :
+      db = share.sys.conf.get( 'device-db', section = 'job' )
+    
+      if ( manifest.has( 'device-id' ) ) :
+        t =  manifest.get( 'device-id' )
+    
+        if ( db.has( t ) ) :
+          for ( key, value ) in db.get( t ).items() :
+            manifest.put( key, value )
+        else :
+          raise share.exception.ConfigurationException()
+    
+      share.schema.validate( manifest, share.schema.SCHEMA_JOB )
+  
+    except Exception as e :
+      result = FAILURE_VALIDATING ; raise e
 
-  if ( manifest.has( 'device-id' ) ) :
-    t =  manifest.get( 'device-id' )
+    share.sys.log.info( '|> allocating job' )
 
-    if ( db.has( t ) ) :
-      for ( key, value ) in db.get( t ).items() :
-        manifest.put( key, value )
-    else :
-      raise share.exception.ConfigurationException()
+    try :
+      id = manifest.get( 'id' ) ; path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id )
 
-  share.schema.validate( manifest, share.schema.SCHEMA_JOB )
+    except Exception as e :
+      result = FAILURE_ALLOCATING ; raise e
 
-  share.sys.log.info( '|<<< validating job' )
+    share.sys.log.info( '|> processing job' )
 
-  id = manifest.get( 'id' )
+    try :
+      job = share.job.Job( manifest, path, log )
 
-  share.sys.log.info( '|>>> processing job id = %s' % ( id ) )
+      job.process_prologue()
+      job.process()
+      job.process_epilogue()
+  
+    except Exception as e :
+      result = FAILURE_PROCESSING ; raise e
 
-  path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id )
+    if ( share.sys.conf.get( 'clean', section = 'job' ) ) :
+      shutil.rmtree( path, ignore_errors = True )
 
-  job = share.job.Job( manifest, path, log )
+  except Exception as e :
+    share.exception.dump( e, log = share.sys.log )
 
-  job.process_prologue()
-  job.process()
-  job.process_epilogue()
-
-  if ( share.sys.conf.get( 'clean', section = 'job' ) ) :
-    shutil.rmtree( path )
-
-  share.sys.log.info( '|<<< processing job id = %s' % ( id ) )
-
-  return id
+  return ( id, result )
 
 def mode_cli() :
   if   ( share.sys.conf.has( 'manifest-file', section = 'job' ) ) :
@@ -99,7 +119,9 @@ def mode_server_pull() :
     share.sys.log.info( '|>>> pulling job' )
   
     if ( manifest != None ) :
-      server_pull.complete_job( process( share.conf.Conf( conf = manifest ) ) )
+      ( id, result ) = process( share.conf.Conf( conf = manifest ) )
+
+      server_pull.complete_job( id, failed = ( result != SUCCESS ) )
 
     time.sleep( int( share.sys.conf.get( 'wait', section = 'server-pull' ) ) )
 

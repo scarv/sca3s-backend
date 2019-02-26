@@ -75,7 +75,7 @@ SCHEMA_JOB  = {
       'properties' : {
         'driver-id'   : { 'enum' : [ 'block' ] },
         'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-          'kernel'         : { 'type' :  'string', 'default' :    'enc', 'enum' : [ 'enc', 'dec'                                ] }
+          'kernel'         : { 'type' :  'string', 'default' :    'enc', 'enum' : [ 'enc', 'dec' ] }
         } }
       }
     } ] }, { 

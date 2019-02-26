@@ -1,8 +1,9 @@
 boto3
-jsonschema
 Flask
+jsonschema
 picoscope
-pyserial
-trsfile
-requests
 PyJWT
+pyserial
+requests
+trsfile
+

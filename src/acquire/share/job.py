@@ -107,7 +107,7 @@ class Job( object ) :
       self.log.indent_dec()
 
     if ( ( fail == True ) and ( result != 0 ) ) :
-      raise ExecuteException()
+      raise Exception()
 
     return ( result == 0 )
 

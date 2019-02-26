@@ -27,7 +27,7 @@ the acquisition appliance, which is tasked with orchestrating the acquisition of
 
 ## TODO
 
-- resolve issue with default values in (nested) objects
+- change driver into block/enc etc. st. first field is driver and second is kernel
 - generalised picoscope support; check via 5444B
 - finish up TRS trace set implementation
 

@@ -6,11 +6,19 @@
 
 from acquire import share
 
-class ConfigurationError( Exception ) :
-  def __init__( self, message = None ) :
-    super().__init__( message )
+import sys, traceback
 
-class ExecuteException( Exception ) :
-  def __init__( self, message = None ) :
-    super().__init__( message )
+def dump( exception, log = None ) :
+  lines = list()
 
+  for line in traceback.format_exception( *sys.exc_info() ) :
+    lines.extend( line.strip( '\n' ).split( '\n' ) )
+
+  n = max( [ len( line ) for line in lines ] )
+
+  log.error( '┌' + ( '─' * ( n + 2 ) ) + '┐' )
+
+  for line in lines :
+    log.error( '│ ' + line + ( ' ' * ( n - len( line ) ) ) + ' │' )
+
+  log.error( '└' + ( '─' * ( n + 2 ) ) + '┘' )
