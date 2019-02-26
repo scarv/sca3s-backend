@@ -73,14 +73,16 @@ class Remote():
         raise Exception("SCARV API Communication Error.")
 
 
-    def complete_job(self, job_id, failed=False):
+    def complete_job(self, job_id, error_code=None):
         """
         Marks a job as finished on the SCARV API.
+        :param job_id: Job ID to finish.
+        :param error_code: If an error has occured, specify it here (JSONStatus enum only).
         """
         self._authorize()
         remark = "archiving"
-        if failed:
-            remark = "failed"
+        if error_code is not None:
+            remark = "failed:" + str(error_code)
         headers = {"Authorization": "Bearer " + self._access_token}
         for i in range(3):
             res = requests.patch("https://lab.scarv.org/api/job/" + job_id,
