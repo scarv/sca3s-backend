@@ -12,7 +12,11 @@ class JSONStatus(IntEnum):
     NO_ITEMS_ON_QUEUE = 1000
     INVALID_JOB_SYNTAX = 1001
     TOO_MANY_QUEUED_JOBS = 1002
+    JOB_DOES_NOT_EXIST = 1003
     # User error codes
     NOT_LOGGED_IN = 2000
     # AWS Error Codes
     AWS_AUTHENTICATION_FAILED = 3000
+    S3_URL_GENERATION_FAILED = 3001
+    # Acquisition Error Codes (dan fill in...)
+    ACQUISITION_ERROR = 4000
