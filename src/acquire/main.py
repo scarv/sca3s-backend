@@ -17,14 +17,14 @@ from acquire        import server as server
 
 import flask, os, queue, shutil, tempfile, threading, time
 
-SUCCESS            = 0
+STATUS_SUCCESS                = 0
 
-FAILURE_VALIDATING = 1
-FAILURE_ALLOCATING = 2
-FAILURE_PROCESSING = 3
+STATUS_FAILURE_VALIDATING_JOB = 1
+STATUS_FAILURE_ALLOCATING_JOB = 2
+STATUS_FAILURE_PROCESSING_JOB = 3
 
 def process( manifest ) :
-  id = None ; result = SUCCESS
+  id = None ; result = STATUS_SUCCESS
 
   try :
     share.sys.log.info( '|> validating job' )
@@ -44,7 +44,7 @@ def process( manifest ) :
       share.schema.validate( manifest, share.schema.SCHEMA_JOB )
   
     except Exception as e :
-      result = FAILURE_VALIDATING ; raise e
+      result = STATUS_FAILURE_VALIDATING_JOB ; raise e
 
     share.sys.log.info( '|> allocating job' )
 
@@ -52,7 +52,7 @@ def process( manifest ) :
       id = manifest.get( 'id' ) ; path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id )
 
     except Exception as e :
-      result = FAILURE_ALLOCATING ; raise e
+      result = STATUS_FAILURE_ALLOCATING_JOB ; raise e
 
     share.sys.log.info( '|> processing job' )
 
@@ -64,7 +64,7 @@ def process( manifest ) :
       job.process_epilogue()
   
     except Exception as e :
-      result = FAILURE_PROCESSING ; raise e
+      result = STATUS_FAILURE_PROCESSING_JOB ; raise e
 
     if ( share.sys.conf.get( 'clean', section = 'job' ) ) :
       shutil.rmtree( path, ignore_errors = True )
@@ -100,9 +100,7 @@ def mode_server_push() :
       
   @server_push.route( '/api/submit', methods = [ 'GET', 'POST' ] )
   def server_push_api_submit() :
-    share.sys.log.info( '|<<< pushing job' )
     manifest = flask.request.get_json()
-    share.sys.log.info( '|>>> pushing job' )
 
     process( share.conf.Conf( conf = manifest ) )
 
@@ -114,14 +112,20 @@ def mode_server_pull() :
   server_pull = server.remote.Remote() ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
       
   while( True ) :
-    share.sys.log.info( '|<<< pulling job' )
     manifest = server_pull.receive_job( db )
-    share.sys.log.info( '|>>> pulling job' )
   
     if ( manifest != None ) :
       ( id, result ) = process( share.conf.Conf( conf = manifest ) )
 
-      server_pull.complete_job( id, failed = ( result != SUCCESS ) )
+      if ( id != None ) :
+        if   ( result == STATUS_SUCCESS                ) :
+          server_pull.complete_job( id, error_code = server.status.SUCCESS                )
+        elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
+          server_pull.complete_job( id, error_code = server.status.FAILURE_VALIDATING_JOB )
+        elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
+          server_pull.complete_job( id, error_code = server.status.FAILURE_ALLOCATING_JOB )
+        elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
+          server_pull.complete_job( id, error_code = server.status.FAILURE_PROCESSING_JOB )
 
     time.sleep( int( share.sys.conf.get( 'wait', section = 'server-pull' ) ) )
 

@@ -18,5 +18,7 @@ class JSONStatus(IntEnum):
     # AWS Error Codes
     AWS_AUTHENTICATION_FAILED = 3000
     S3_URL_GENERATION_FAILED = 3001
-    # Acquisition Error Codes (dan fill in...)
-    ACQUISITION_ERROR = 4000
+    # Acquisition Error Codes
+    FAILURE_VALIDATING_JOB = 4000
+    FAILURE_ALLOCATING_JOB = 4001
+    FAILURE_PROCESSING_JOB = 4002
