@@ -81,7 +81,7 @@ class Remote():
         """
         self._authorize()
         remark = "archiving"
-        if error_code is not None:
+        if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
             remark = "failed:" + str(error_code)
         headers = {"Authorization": "Bearer " + self._access_token}
         for i in range(3):
