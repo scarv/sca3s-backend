@@ -119,13 +119,13 @@ def mode_server_pull() :
 
       if ( id != None ) :
         if   ( result == STATUS_SUCCESS                ) :
-          server_pull.complete_job( id, error_code = server.status.SUCCESS                )
+          server_pull.complete_job( id, error_code = server.status.JSONStatus.SUCCESS                )
         elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
-          server_pull.complete_job( id, error_code = server.status.FAILURE_VALIDATING_JOB )
+          server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_VALIDATING_JOB )
         elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
-          server_pull.complete_job( id, error_code = server.status.FAILURE_ALLOCATING_JOB )
+          server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_ALLOCATING_JOB )
         elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
-          server_pull.complete_job( id, error_code = server.status.FAILURE_PROCESSING_JOB )
+          server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_PROCESSING_JOB )
 
     time.sleep( int( share.sys.conf.get( 'wait', section = 'server-pull' ) ) )
 
