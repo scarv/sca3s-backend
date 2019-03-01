@@ -84,7 +84,7 @@ class DriverAbs( abc.ABC ) :
       self.job.log.info( 'after  calibration, configuration = %s', t )
 
     else :
-      l = int( trace_period_spec )
+      l = trace_period_spec
 
       if   ( trace_period_id == 'interval'  ) :
         t = self.job.device_scope.conf( scope.CONF_MODE_INTERVAL,  l )
