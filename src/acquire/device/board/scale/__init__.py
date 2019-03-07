@@ -13,7 +13,7 @@ from acquire        import driver as driver
 from acquire        import repo   as repo
 from acquire        import depo   as depo
 
-import os, serial
+import os, serial, more_itertools as mit
 
 class SCALE( board.BoardAbs ) :
   def __init__( self, job ) :
@@ -41,7 +41,7 @@ class SCALE( board.BoardAbs ) :
     return r
 
   def program( self ) :
-    env = { 'DEVICE' : self.job.conf.get( 'board-id' ), 'DRIVER' : self.job.conf.get( 'driver-id' ), 'CACHE' : share.sys.conf.get( 'git', section = 'path' ), 'USB' : self.connect_id }
+    env = { 'DEVICE' : self.job.conf.get( 'board-id' ), 'DRIVER' : mit.first( self.job.conf.get( 'driver-id' ).split( '/' ) ), 'CACHE' : share.sys.conf.get( 'git', section = 'path' ), 'USB' : self.connect_id }
 
     self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-fetch' ], env = env )
     self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-build' ], env = env )

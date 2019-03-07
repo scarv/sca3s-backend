@@ -73,9 +73,16 @@ SCHEMA_JOB  = {
   'allOf' : [ {
     'oneOf' : [ { # options: driver-spec
       'properties' : {
-        'driver-id'   : { 'enum' : [ 'block' ] },
+        'driver-id'   : { 'enum' : [ 'block/enc' ] },
         'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-          'kernel'         : { 'type' :  'string', 'default' :    'enc', 'enum' : [ 'enc', 'dec' ] }
+
+        } }
+      }
+    }, {
+      'properties' : {
+        'driver-id'   : { 'enum' : [ 'block/dec' ] },
+        'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+
         } }
       }
     } ] }, { 

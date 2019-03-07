@@ -2,7 +2,7 @@
   "id"         :   "foo",
 
   "device-id"  : "scale-m3/ps3406b",
-  "driver-id"  : "block",
+  "driver-id"  : "block/enc",
 
   "repo-id"    : "git",
   "repo-spec"  : { 

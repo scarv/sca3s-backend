@@ -1,6 +1,7 @@
 boto3
 Flask
 jsonschema
+more-itertools
 picoscope
 PyJWT
 pyserial
