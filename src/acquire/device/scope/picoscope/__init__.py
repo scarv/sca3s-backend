@@ -29,6 +29,7 @@ class PicoScope( scope.ScopeAbs ) :
 
     self.channel_trigger_id = self.device_spec.get( 'channel-trigger-id' )
     self.channel_acquire_id = self.device_spec.get( 'channel-acquire-id' )
+    self.channel_disable_id = self.device_spec.get( 'channel-disable-id' )
 
   def  open( self ) :
     self.device = self.api( serialNumber = self.connect_id.encode(), connect = True )
@@ -47,6 +48,10 @@ class PicoScope( scope.ScopeAbs ) :
       raise Exception()
 
     if ( mode & scope.ACQUIRE_MODE_PREPARE ) :
+      # configure segments   (if supported)
+      if ( hasattr( self.device, '_lowLevelMemorySegments'      ) ) :
+        self.device.memorySegments( 1 )
+
       # configure resolution (if supported)
       if ( hasattr( self.device, '_lowLevelSetDeviceResolution' ) ) :
         self.device.setResolution( self.signal_resolution )
@@ -54,7 +59,10 @@ class PicoScope( scope.ScopeAbs ) :
       # configure channels
       self.device.setChannel( channel = self.channel_trigger_id, enabled = True, coupling = 'DC', VRange = self.channel_trigger_range )
       self.device.setChannel( channel = self.channel_acquire_id, enabled = True, coupling = 'DC', VRange = self.channel_acquire_range )
-  
+
+      for channel in self.channel_disable_id :
+        self.device.setChannel( channel = channel, enabled = False )
+
       # configure timebase
       ( _, samples, samples_max ) = self.device.setSamplingInterval( self.signal_interval, self.signal_duration )
 

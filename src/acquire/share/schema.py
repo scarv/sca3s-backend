@@ -96,9 +96,36 @@ SCHEMA_JOB  = {
          'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
                    'connect-id'      : { 'type' :     'string' },
                    'connect-timeout' : { 'type' :     'number' },
+
+           'channel-trigger-id'      : { 
+             'enum' : [ 'A', 'B' ] 
+            },
+           'channel-acquire-id'      : {
+             'enum' : [ 'A', 'B' ]
+            },
+           'channel-disable-id'      : { 'type' :      'array', 'default' : [], 'items' : {
+             'enum' : [ 'A', 'B' ]
+            } 
+          }
+        }, 'required' : [ 'connect-id', 'connect-timeout', 'channel-trigger-id', 'channel-acquire-id' ] }
+      }
+    }, {
+      'properties' : {
+         'scope-id'   : { 'enum' : [ 'picoscope/ps3406b' ] },
+         'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                   'connect-id'      : { 'type' :     'string' },
+                   'connect-timeout' : { 'type' :     'number' },
   
-           'channel-trigger-id'      : { 'enum' : [ 'A', 'B' ] },
-           'channel-acquire-id'      : { 'enum' : [ 'A', 'B' ] }
+           'channel-trigger-id'      : { 
+             'enum' : [ 'A', 'B', 'C', 'D' ] 
+            },
+           'channel-acquire-id'      : {
+             'enum' : [ 'A', 'B', 'C', 'D' ]
+            },
+           'channel-disable-id'      : { 'type' :      'array', 'default' : [], 'items' : {
+             'enum' : [ 'A', 'B', 'C', 'D' ]
+            } 
+          }
         }, 'required' : [ 'connect-id', 'connect-timeout', 'channel-trigger-id', 'channel-acquire-id' ] }
       }
     } ] }, { 

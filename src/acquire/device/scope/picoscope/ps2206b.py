@@ -20,7 +20,7 @@ import math, picoscope.ps2000a as api
 # PicoScope 2206B
 # ---------------
 # 
-# specification     : using 2 (of 2) channels @ 8-bit resolution => 50 MHz, 500 MS/s, 16 MS per channel (32 MS total)
+# specification     : using 1 segment, 2 (of 2) channels @ 8-bit resolution => 50 MHz, 250 MS/s, 16 MS per channel (32 MS total)
 #
 # datasheet         : https://www.picotech.com/download/datasheets/picoscope-2000-series-data-sheet-en.pdf
 # programming guide : https://www.picotech.com/download/manuals/picoscope-2000-series-a-api-programmers-guide.pdf
@@ -30,7 +30,7 @@ class ScopeImp( PicoScope ) :
     super().__init__( job, api.PS2000a )
     
   def _interval2timebase( self, x ) :
-    if   ( x <   4.0e-9 ) :
+    if   ( x <   8.0e-9 ) :
       t = 1
     elif ( x <  16.0e-9 ) :
       t = math.log( x * 500.0e6, 2 )
@@ -40,8 +40,8 @@ class ScopeImp( PicoScope ) :
     return round( t )
 
   def _timebase2interval( self, x ) :
-    if   ( x <  1 ) :
-      t = 1
+    if   ( x <  2 ) :
+      t = 4.0e-9
     elif ( x <  3 ) :
       t = math.pow( 2, x ) / 500.0e6
     else :
