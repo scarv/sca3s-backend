@@ -75,10 +75,10 @@ class DriverAbs( abc.ABC ) :
 
       self.job.log.info( 'before calibration, configuration = %s', t )
 
-      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold ) * self.job.device_scope.signal_interval
+      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.device_scope.channel_trigger_threshold ) * self.job.device_scope.signal_interval
       t = self.job.device_scope.conf( scope.CONF_MODE_DURATION, 2 * l )
 
-      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold ) * self.job.device_scope.signal_interval
+      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.device_scope.channel_trigger_threshold ) * self.job.device_scope.signal_interval
       t = self.job.device_scope.conf( scope.CONF_MODE_DURATION, 1 * l )
 
       self.job.log.info( 'after  calibration, configuration = %s', t )
@@ -100,42 +100,24 @@ class DriverAbs( abc.ABC ) :
   def  process( self ) :
     trace_spec            = self.job.conf.get( 'trace-spec' )
 
-    trace_count           =  int( trace_spec.get( 'count'  ) )
-    trace_format          =       trace_spec.get( 'format' )
-    trace_crop            = bool( trace_spec.get( 'crop'   ) )
+    trace_count           =  int( trace_spec.get( 'count'    ) )
+    trace_format          =       trace_spec.get( 'format'   )
 
-    if   ( trace_format == 'pickle' ) :
-      traces = share.trace.TraceSetPickle()
-    elif ( trace_format == 'trs'    ) :
-      traces = share.trace.TraceSetTRS()
+    if   ( trace_format == 'pkl' ) :
+      trace = share.trace.TracePKL( self.job )
+    elif ( trace_format == 'csv' ) :
+      trace = share.trace.TraceCSV( self.job )
+    elif ( trace_format == 'trs' ) :
+      trace = share.trace.TraceTRS( self.job )
 
-    traces.open()
+    trace.open()
 
     for i in range( trace_count ) :
       self.job.log.indent_inc( message = 'started  acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
-
-      trace = self._process()
-
-      l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold )
-
-      self.job.log.info( 'measure via TSC    => {0:d}'.format( trace.tsc ) )
-      self.job.log.info( 'measure via signal => {0:g}'.format( l         ) )
-
-      if ( trace_crop ) :
-        edge_pos = share.util.measure( share.util.MEASURE_MODE_TRIGGER_POS, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold )
-        edge_neg = share.util.measure( share.util.MEASURE_MODE_TRIGGER_NEG, trace.signal_trigger, self.job.device_scope.channel_trigger_threshold )
-
-        self.job.log.info( 'crop wrt. +ve trigger edge @ {0:d}'.format( edge_pos ) )
-        self.job.log.info( 'crop wrt. -ve trigger edge @ {0:d}'.format( edge_neg ) )
-
-        trace.signal_trigger = trace.signal_trigger[ edge_pos : edge_neg ]
-        trace.signal_acquire = trace.signal_acquire[ edge_pos : edge_neg ]
-
-      traces.update( trace )
-
+      trace.update( self._process(), i, trace_count )
       self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
 
-    traces.close()
+    trace.close()
 
   def  process_epilogue( self ) :
     self.job.log.indent_inc( message = 'close board' )

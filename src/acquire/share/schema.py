@@ -45,6 +45,20 @@ SCHEMA_CONF = {
 }
 
 SCHEMA_JOB  = {
+  'definitions' : {
+     'trace-spec' : { 'type' :  'object', 'default' : {}, 'properties' : {
+           'period-id'   : { 'type' :  'string', 'default' : 'auto', 'enum' : [ 'auto', 'interval', 'frequency', 'duration' ] },
+           'period-spec' : { 'type' :  'number', 'default' :      0                                                           },
+       'resolution-id'   : { 'type' :  'string', 'default' : 'auto', 'enum' : [ 'auto', 'bit'                               ] },
+       'resolution-spec' : { 'type' :  'number', 'default' :      0                                                           },
+   
+       'count'           : { 'type' :  'number', 'default' :      1                                                           },
+       'format'          : { 'type' :  'string', 'default' :  'pkl', 'enum' : [ 'pkl', 'csv', 'trs'                         ] },
+
+       'compress'        : { 'type' : 'boolean', 'default' :   True                                                           },
+       'crop'            : { 'type' : 'boolean', 'default' :   True                                                           }
+    }, 'required' : [] }
+  },
   # core
   'type' : 'object', 'default' : {}, 'properties' : {
     'version'     : { 'type' :  'string' },
@@ -59,16 +73,7 @@ SCHEMA_JOB  = {
       'repo-id'   : { 'type' :  'string' },
       'depo-id'   : { 'type' :  'string' },
 
-     'trace-spec' : { 'type' :  'object', 'default' : {}, 'properties' : {
-           'period-id'   : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'interval', 'frequency', 'duration' ] },
-           'period-spec' : { 'type' :  'number', 'default' :        0                                                           },
-       'resolution-id'   : { 'type' :  'string', 'default' :   'auto', 'enum' : [ 'auto', 'bit'                               ] },
-       'resolution-spec' : { 'type' :  'number', 'default' :        0                                                           },
-   
-       'count'           : { 'type' :  'number', 'default' :        1                                                           },
-       'format'          : { 'type' :  'string', 'default' : 'pickle', 'enum' : [ 'pickle', 'trs'                             ] },
-       'crop'            : { 'type' : 'boolean', 'default' :    False                                                           }
-    }, 'required' : [] }
+     'trace-spec' : { '$ref' : '#/definitions/trace-spec' }
   }, 'required' : [ 'version', 'id', 'repo-id', 'depo-id', 'driver-id', 'device-id', 'trace-spec' ],
   'allOf' : [ {
     'oneOf' : [ { # options: driver-spec
@@ -76,14 +81,28 @@ SCHEMA_JOB  = {
         'driver-id'   : { 'enum' : [ 'block/enc' ] },
         'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
 
-        } }
-      }
+        } },
+         'trace-spec' : { 
+           'allOf' : [ { '$ref' : '#/definitions/trace-spec' }, { 'properties' : { # extend trace-spec w. driver-specific content options
+             'content' : { 'type' :   'array', 'default' : [ 'signal', 'm', 'c', 'k' ], 'items' : {
+               'enum' : [ 'trigger', 'signal', 'tsc', 'k', 'r', 'm', 'c' ]
+            } },
+          } } ]
+        }
+      } 
     }, {
       'properties' : {
         'driver-id'   : { 'enum' : [ 'block/dec' ] },
         'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
 
-        } }
+        } },
+         'trace-spec' : { 
+           'allOf' : [ { '$ref' : '#/definitions/trace-spec' }, { 'properties' : { # extend trace-spec w. driver-specific content options
+             'content' : { 'type' :   'array', 'default' : [ 'signal', 'c', 'm', 'k' ], 'items' : {
+               'enum' : [ 'trigger', 'signal', 'tsc', 'k', 'r', 'm', 'c' ]
+            } },
+          } } ]
+        }
       }
     } ] }, { 
     'oneOf' : [ { # options:  board-spec
@@ -112,8 +131,7 @@ SCHEMA_JOB  = {
             },
            'channel-disable-id'      : { 'type' :      'array', 'default' : [], 'items' : {
              'enum' : [ 'A', 'B' ]
-            } 
-          }
+           } }
         }, 'required' : [ 'connect-id', 'connect-timeout', 'channel-trigger-id', 'channel-acquire-id' ] }
       }
     }, {
@@ -131,8 +149,7 @@ SCHEMA_JOB  = {
             },
            'channel-disable-id'      : { 'type' :      'array', 'default' : [], 'items' : {
              'enum' : [ 'A', 'B', 'C', 'D' ]
-            } 
-          }
+           } }
         }, 'required' : [ 'connect-id', 'connect-timeout', 'channel-trigger-id', 'channel-acquire-id' ] }
       }
     } ] }, { 
@@ -181,4 +198,4 @@ def validate( conf, schema ) :
 
     return jsonschema.validators.extend( validator_class, { 'properties' : set_defaults } )
 
-  validator = defaults( jsonschema.Draft4Validator ) ; validator( schema ).validate( conf )
+  validator = defaults( jsonschema.Draft6Validator ) ; validator( schema ).validate( conf )

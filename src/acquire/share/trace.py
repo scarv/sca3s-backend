@@ -6,89 +6,130 @@
 
 from acquire import share
 
-import abc, gzip, os, pickle, sys, trsfile
+import abc, binascii, csv, glob, os, pickle, sys, trsfile
 
-class Trace( object ) :
-  def __init__( self, signal_trigger, signal_acquire, tsc = None, data_i = None , data_o = None ) :
+class Trace( abc.ABC ) :
+  def __init__( self, job ) :
     super().__init__()  
 
-    self.signal_trigger = signal_trigger
-    self.signal_acquire = signal_acquire
+    self.job            = job
 
-    self.tsc            = tsc
+    self.trace_spec     = self.job.conf.get( 'trace-spec' )
 
-    self.data_i         = data_i
-    self.data_o         = data_o
+    self.trace_content  =       self.trace_spec.get( 'content'  )
+    self.trace_crop     = bool( self.trace_spec.get( 'crop'     ) )
+    self.trace_compress = bool( self.trace_spec.get( 'compress' ) )
 
-class TraceSet( abc.ABC ) :
-  def __init__( self ) :
-    super().__init__()  
+  def _prepare( self, trace ) :
+    l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.device_scope.channel_trigger_threshold )
+
+    self.job.log.info( 'measure via TSC    => {0:d}'.format( trace[ 'tsc' ] ) )
+    self.job.log.info( 'measure via signal => {0:g}'.format( l              ) )
+
+    if ( self.trace_crop ) :
+      edge_pos = share.util.measure( share.util.MEASURE_MODE_TRIGGER_POS, trace[ 'trigger' ], self.job.device_scope.channel_trigger_threshold )
+      edge_neg = share.util.measure( share.util.MEASURE_MODE_TRIGGER_NEG, trace[ 'trigger' ], self.job.device_scope.channel_trigger_threshold )
+
+      self.job.log.info( 'crop wrt. +ve trigger edge @ {0:d}'.format( edge_pos ) )
+      self.job.log.info( 'crop wrt. -ve trigger edge @ {0:d}'.format( edge_neg ) )
+
+      trace[ 'trigger' ] = trace[ 'trigger' ][ edge_pos : edge_neg ]
+      trace[ 'signal'  ] = trace[ 'signal'  ][ edge_pos : edge_neg ]
 
   @abc.abstractmethod
   def   open( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def update( self ) :
+  def update( self, trace, i, n ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
   def  close( self ) :
     raise NotImplementedError()
 
-class TraceSetPickle( TraceSet ) :
-  def __init__( self ) :
-    super().__init__()  
+class TracePKL( Trace ) :
+  def __init__( self, job ) :
+    super().__init__( job )  
 
   def   open( self ) :
     if ( not os.path.exists( './trace' ) ) :
       os.mkdir( './trace' )
 
-    self.traces = 0
+  def update( self, trace, i, n ) :
+    self._prepare( trace )
 
-  def update( self, trace ) :
-    fd = gzip.open( os.path.join( './trace', '%08X.pkl.gz' % ( self.traces ) ), 'wb' )
-      
-    pickle.dump( trace.signal_trigger, fd )
-    pickle.dump( trace.signal_acquire, fd )
+    fd = open( os.path.join( './trace', '%08X.pkl' % ( i ) ), 'wb' )
 
-    pickle.dump( trace.data_i,         fd )
-    pickle.dump( trace.data_o,         fd )
-     
+    for item in self.trace_content :      
+      pickle.dump( trace[ item ], fd )
+
     fd.close()
 
-    self.traces += 1
-
   def  close( self ) :
-    pass
+    if ( self.trace_compress ) :
+      for f in glob.glob( './trace/*.pkl' ) :
+        self.job.extern( [ 'gzip', '--quiet', f ] )
 
-class TraceSetTRS( TraceSet ) :
-  def __init__( self ) :
-    super().__init__()  
+class TraceCSV( Trace ) :
+  def __init__( self, job ) :
+    super().__init__( job )  
 
   def   open( self ) :
-    self.fd = trsfile.create( 'trace.trs', trsfile.TracePadding.PAD, force_overwrite = True )
+    self.fd = open( './trace.csv', 'w' ) ; self.writer = csv.writer( self.fd, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_ALL )
 
-  def update( self, trace ) :
-    def conv( data ) :
-      r = bytearray()
+  def update( self, trace, i, n ) :
+    self._prepare( trace )
 
-      for key in sorted( data.keys() ) :
-        r += data[ key ]
+    data = list()
 
-      return r
+    for item in self.trace_content :
+      if   ( item == 'trigger' ) :
+        data += [ x for x in        trace[ item ] ]
+      elif ( item == 'signal'  ) :
+        data += [ x for x in        trace[ item ] ]
+      elif ( item == 'tsc'     ) :
+        data += [                   trace[ item ] ]
+      else :
+        data += [ binascii.b2a_hex( trace[ item ] ).decode() ]
 
-    data_i  = conv( trace.data_i )
-    data_o  = conv( trace.data_o )
-
-    data    = data_i + data_o
-
-    headers = { trsfile.Header.INPUT_OFFSET  : 0,
-                trsfile.Header.INPUT_LENGTH  : len( data_i ),
-                trsfile.Header.OUTPUT_OFFSET : len( data_i ),
-                trsfile.Header.OUTPUT_OFFSET : len( data_o ) }
-
-    self.fd.extend( [ trsfile.Trace( trsfile.SampleCoding.FLOAT, trace.signal_acquire, data = data, headers = headers ) ] )
+    self.writer.writerow( data )
 
   def  close( self ) :
     self.fd.close()
+
+    if ( self.trace_compress ) :
+      self.job.extern( [ 'gzip', '--quiet', './trace.csv' ] )
+
+class TraceTRS( Trace ) :
+  def __init__( self, job ) :
+    super().__init__( job )  
+
+  def   open( self ) :
+    self.fd = trsfile.open( './trace.trs', 'w', padding_mode = trsfile.TracePadding.AUTO )
+
+  def update( self, trace, i, n ) :
+    self._prepare( trace )
+
+    data = bytes()
+
+    for item in self.trace_content :
+      if   ( item == 'trigger' ) :
+        continue
+      elif ( item == 'signal'  ) :
+        continue   
+      elif ( item == 'tsc'     ) :
+        data += bytes( struct.pack( '<Q', trace[ item ] ) )
+      else :
+        data += bytes(                    trace[ item ]   )
+
+    if   ( 'trigger' in self.trace_content ) :
+      self.fd.extend( [ trsfile.Trace( trsfile.SampleCoding.FLOAT, trace[ 'trigger' ], data = data ) ] )
+    elif ( 'signal'  in self.trace_content ) :
+      self.fd.extend( [ trsfile.Trace( trsfile.SampleCoding.FLOAT, trace[ 'signal'  ], data = data ) ] )
+
+  def  close( self ) :
+    self.fd.close()
+
+    if ( self.trace_compress ) :
+      self.job.extern( [ 'gzip', '--quiet', './trace.trs' ] )

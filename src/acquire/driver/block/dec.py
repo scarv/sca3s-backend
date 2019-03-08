@@ -36,12 +36,12 @@ class DriverImp( Block ) :
     self.job.device_board.interact( '!dec_init' )
     self.job.device_board.interact( '!dec'      )
   
-    ( signal_trigger, signal_acquire ) = self.job.device_scope.acquire( scope.ACQUIRE_MODE_COLLECT )
+    ( trigger, signal ) = self.job.device_scope.acquire( scope.ACQUIRE_MODE_COLLECT )
   
     m = share.util.octetstr2str( self.job.device_board.interact( '<reg m' ) )
 
     tsc_dec = share.util.seq2int( share.util.octetstr2str( self.job.device_board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.device_board.interact( '!nop'      )
     tsc_nop = share.util.seq2int( share.util.octetstr2str( self.job.device_board.interact( '?tsc' ) ), 2 ** 8 )
-    
-    return share.trace.Trace( signal_trigger, signal_acquire, tsc = tsc_dec - tsc_nop, data_i = { 'k' : k, 'r' : r, 'c' : c }, data_o = { 'm' : m } )
+
+    return { 'trigger' : trigger, 'signal' : signal, 'tsc' : tsc_enc - tsc_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    

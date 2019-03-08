@@ -1,7 +1,7 @@
 { "version"    : "0.1.0",
-  "id"         :   "foo",
+  "id"         : "foo",
 
-  "device-id"  : "scale-m3/ps3406b",
+  "device-id"  : "scale-m3/ps2206b",
   "driver-id"  : "block/enc",
 
   "repo-id"    : "git",
@@ -15,12 +15,12 @@
   },
 
   "trace-spec" : {
-        "period-id" :   "auto",
-    "resolution-id" :   "auto",
+        "period-id" : "auto",
+    "resolution-id" : "auto",
 
-    "count"         :       10,
-    "format"        : "pickle",
-    "crop"          : true
+    "count"         : 10,
+    "format"        : "trs",
+    "content"       : [ "signal", "m", "c" ]
   }
 }
 

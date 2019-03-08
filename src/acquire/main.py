@@ -104,7 +104,7 @@ def mode_server_push() :
 
     process( share.conf.Conf( conf = manifest ) )
 
-    return ""
+    return ''
       
   server_push.run()
 
