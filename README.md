@@ -27,19 +27,9 @@ the acquisition appliance, which is tasked with orchestrating the acquisition of
 
 ## TODO
 
-- change driver into block/enc etc. st. first field is driver and second is kernel
 - generalised picoscope support; check via 5444B
-- finish up TRS trace set implementation
-
 - sort out some sensible deployment strategy
 - the source code is currently totally undocumented :-/
-- the management of exceptions is currently less than ideal: there
-  are two central issues, namely
-
-  1) the generation of "rich" exceptions (vs. just *an* exception),
-  2) the management of those exceptions, e.g., to allow a graceful
-     and well-logged action.
-
 - there is currently an informal policy that restricts the per job 
   log to INFO level only: there are never any DEBUG entries.  this
   is to prevent exposure of low level information about the server
