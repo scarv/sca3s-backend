@@ -20,6 +20,9 @@ client-server-push_device :
 client-server-push_submit :
 	@curl 127.0.0.1:1234/api/submit --header 'Content-Type: application/json' --data @${REPO_HOME}/example/example.job
 
+doc      : Doxyfile
+	@doxygen ${<}
+
 clean    :
 	@rm -rf ${REPO_HOME}/data/job/*
 	@rm -rf ${REPO_HOME}/data/log/*
