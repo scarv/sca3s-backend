@@ -56,7 +56,7 @@ class Remote():
         params = { 'device-db' : devices }
         headers = {"Authorization": "Bearer " + self._access_token}
         for i in range(3):
-            res = requests.get("https://lab.scarv.org/api/job",
+            res = requests.get("https://lab.scarv.org/api/acquisition/job",
                                params = params,
                                headers = headers)
             if res.status_code == 200:
@@ -85,7 +85,7 @@ class Remote():
             remark = "failed:" + str(error_code)
         headers = {"Authorization": "Bearer " + self._access_token}
         for i in range(3):
-            res = requests.patch("https://lab.scarv.org/api/job/" + job_id,
+            res = requests.patch("https://lab.scarv.org/api/acquisition/job/" + job_id,
                                  headers = headers,
                                  json={
                                      "remark" : remark
