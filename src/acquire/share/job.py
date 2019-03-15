@@ -65,7 +65,7 @@ class Job( object ) :
     if ( timeout == None ) :
       timeout = int( share.sys.conf.get( 'timeout', section = 'extern' ) )
 
-    env.update( os.environ )
+    t = dict( os.environ ) ; t.update( env ) ; env = t
 
     if ( not quiet ) :
       self.log.indent_inc( message = 'execute' )
