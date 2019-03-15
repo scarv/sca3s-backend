@@ -9,8 +9,8 @@ from acquire import share
 import logging, logging.handlers, os, sys
 
 class IndentAdapter( logging.LoggerAdapter ):
-  def __init__( self, logger, args, indent = 0 ) :
-    super().__init__( logger, args ) ; self.indent = indent
+  def __init__( self, logger, args, indent = 0, replace = dict() ) :
+    super().__init__( logger, args ) ; self.indent = indent ; self.replace = replace
 
   def shutdown( self ) :
     self.logger.disabled = True
@@ -33,6 +33,9 @@ class IndentAdapter( logging.LoggerAdapter ):
       self.log( level, message )
 
   def process( self, message, args ):
+    for ( k, v ) in self.replace.items() :
+      message.replace( k, v )
+
     return '{indent}{message}'.format( indent = '  ' * self.indent, message = message ), args
 
 def build_log_sys( name = '', path = 'acquire.log' ) :
@@ -63,4 +66,4 @@ def build_log_job( name = '', path =     'job.log' ) :
 
   logger.setLevel( logging.INFO )
 
-  return IndentAdapter( logger, {}, indent = 0 )
+  return IndentAdapter( logger, {}, indent = 0, replace = { os.getcwd() : '${JOB}', os.path.basename( os.getcwd() ) : '${JOB}' } )

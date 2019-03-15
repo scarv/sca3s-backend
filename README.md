@@ -7,7 +7,7 @@
 
 <!--- -------------------------------------------------------------------- --->
 
-*A component part of the
+*Acting as a component part of the
 [SCARV](https://github.com/scarv)
 project,
 `lab.scarv.org` is a collection of resources that support the
@@ -21,7 +21,17 @@ The main
 [repository](https://github.com/scarv/lab.scarv.org)
 acts as a general container for associated resources;
 this specific submodule houses
-the acquisition appliance, which is tasked with orchestrating the acquisition of traces.*
+the acquisition appliance, which is, for example, tasked with orchestrating the acquisition of trace sets.*
+
+<!--- -------------------------------------------------------------------- --->
+
+## Organisation
+
+```
+├── bin                     - scripts (e.g., environment configuration)
+├── build                   - working directory for build
+└── src                     - source code
+```
 
 <!--- -------------------------------------------------------------------- --->
 
