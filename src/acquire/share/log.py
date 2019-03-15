@@ -38,7 +38,7 @@ class IndentAdapter( logging.LoggerAdapter ):
 
     return '{indent}{message}'.format( indent = '  ' * self.indent, message = message ), args
 
-def build_log_sys( name = '', path = 'acquire.log' ) :
+def build_log_sys( name = '', path = 'acquire.log', replace = dict() ) :
   logger = logging.getLogger( name )
   formatter = logging.Formatter( '[%(asctime)s]: %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
 
@@ -55,9 +55,9 @@ def build_log_sys( name = '', path = 'acquire.log' ) :
   elif ( debug >  0 ) :
     logger.setLevel( logging.DEBUG )
 
-  return IndentAdapter( logger, {}, indent = 0 )
+  return IndentAdapter( logger, {}, indent = 0, replace = replace )
 
-def build_log_job( name = '', path =     'job.log' ) :
+def build_log_job( name = '', path =     'job.log', replace = dict() ) :
   logger = logging.getLogger( name )
   formatter = logging.Formatter( '[%(asctime)s]: %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
 
@@ -66,4 +66,4 @@ def build_log_job( name = '', path =     'job.log' ) :
 
   logger.setLevel( logging.INFO )
 
-  return IndentAdapter( logger, {}, indent = 0, replace = { os.getcwd() : '${JOB}', os.path.basename( os.getcwd() ) : '${JOB}' } )
+  return IndentAdapter( logger, {}, indent = 0, replace = replace )

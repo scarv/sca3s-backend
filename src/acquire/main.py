@@ -49,7 +49,7 @@ def process( manifest ) :
     share.sys.log.info( '|> allocating job' )
 
     try :
-      id = manifest.get( 'id' ) ; path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id )
+      id = manifest.get( 'id' ) ; path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
 
     except Exception as e :
       result = STATUS_FAILURE_ALLOCATING_JOB ; raise e
