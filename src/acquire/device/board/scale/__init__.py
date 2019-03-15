@@ -41,7 +41,7 @@ class SCALE( board.BoardAbs ) :
     return r
 
   def program( self ) :
-    env = { 'REPO_HOME' : os.path.join( os.getcwd(), 'target' ), 'DEVICE' : self.job.conf.get( 'board-id' ), 'TARGET' : mit.first( self.job.conf.get( 'driver-id' ).split( '/' ) ), 'CACHE' : share.sys.conf.get( 'git', section = 'path' ), 'USB' : self.connect_id }
+    env = { 'REPO_HOME' : os.path.join( self.job.path, 'target' ), 'DEVICE' : self.job.conf.get( 'board-id' ), 'TARGET' : mit.first( self.job.conf.get( 'driver-id' ).split( '/' ) ), 'CACHE' : share.sys.conf.get( 'git', section = 'path' ), 'USB' : self.connect_id }
 
     self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-fetch' ], env = env )
     self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-build' ], env = env )
