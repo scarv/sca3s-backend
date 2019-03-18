@@ -136,7 +136,7 @@ def mode_server_pull() :
           server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_PROCESSING_JOB )
       else :
         if ( ( ping > 0 ) and ( ( ping % server_pull_ping ) == 0 ) ) :
-          sys.log.info( 'polled queue %d times ... no jobs', server_pull_ping ) 
+          share.sys.log.info( 'polled queue %d times ... no jobs', server_pull_ping ) 
 
     ping += 1 ; time.sleep( server_pull_wait )
 
