@@ -138,6 +138,8 @@ def mode_server_pull() :
         if ( ( ping > 0 ) and ( ( ping % server_pull_ping ) == 0 ) ) :
           share.sys.log.info( 'polled queue %d times ... no jobs', server_pull_ping ) 
 
+    share.sys.log.info( 'ping! %d %d', ping, ping % server_pull_ping )
+
     ping += 1 ; time.sleep( server_pull_wait )
 
 if ( __name__ == '__main__' ) :
