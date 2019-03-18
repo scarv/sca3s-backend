@@ -28,18 +28,136 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 ## Organisation
 
 ```
-├── bin                     - scripts (e.g., environment configuration)
-├── build                   - working directory for build
-└── src                     - source code
+├── bin                       - scripts (e.g., environment configuration)
+├── build                     - working directory for build
+├── data                      - working directory for data
+├── example                   - examples (e.g., job manifests)
+└── src                       - source code
+    ├── acquire/depo          - depository implementations
+    ├── acquire/device/board  - board      implementations
+    ├── acquire/device/scope  - scope      implementations
+    ├── acquire/driver        - driver     implementations
+    ├── acquire/repo          - repository implementations
+    ├── acquire/server        - server functionality
+    └── acquire/share         - shared functionality
 ```
 
 <!--- -------------------------------------------------------------------- --->
 
-## TODO
+## Quickstart
 
-- generalised picoscope support; check via 5444B
-- sort out some sensible deployment strategy
-- the source code is currently totally undocumented :-/
+1. Install any associated pre-requisites, e.g.,
+
+   - a device-specific compiler and programming tool-chain,
+     e.g., suitable versions of
+     [GCC](https://gcc.gnu.org)
+     and
+     [OpenOCD](http://openocd.org),
+   - the
+     [Doxygen](http://www.doxygen.nl)
+     documentation generation system.
+
+
+2. Execute
+
+   ```sh
+   git clone https://github.com/${USER}/lab-acquire.git
+   cd ./lab-acquire
+   source ./bin/conf.sh
+   ```
+
+   to clone and initialise the repository,
+   then configure the environment;
+   for example, you should find that the environment variable
+   `REPO_HOME`
+   is set appropriately.
+
+3. Prepare some support material:
+
+   1. create a suitable Python
+      [virtual environment](https://docs.python.org/library/venv.html)
+      based on `${REPO_HOME}/requirements.txt` by executing
+
+      ```
+      ${REPO_HOME}/bin/venv.sh
+      ```
+
+   2. write a configuration file, which captures the static
+      configuration of the acquisition appliance, e.g., by
+      updating
+
+      ```
+      ${REPO_HOME}/example/example.conf
+      ```
+
+      so the database of hardware (namely board and scope)
+      devices reflects those attached,
+
+   3. modern versions of 
+      [git-clone](https://git-scm.com/docs/git-clone)
+      allow the `--reference[-if-able]` option, allowing a
+      local cached replacement for some remote repository:
+      preparing such a cache somewhere, e.g., in
+
+      ```
+      ${REPO_HOME}/data/git
+      ```
+
+      can significantly improve efficiency wrt. repeated
+      download of common repositories.
+
+4. Either
+
+   1. execute the acquisition appliance directly via
+
+      ```
+      ${REPO_HOME}/bin/acquire.py
+      ```
+
+      to satisfy use-cases such as
+   
+      1. fulfilment of a local  job manifest,
+         e.g.,
+   
+         ```
+         ${REPO_HOME}/bin/acquire.py --sys:mode=cli         --sys:conf="${REPO_HOME}/example/example.conf" ...
+         ```
+   
+      2. fulfilment of a remote job manifest *pushed from* some queue to the server,
+         e.g.,
+   
+         ```
+         ${REPO_HOME}/bin/acquire.py --sys:mode=server-push --sys:conf="${REPO_HOME}/example/example.conf" ...
+         ```
+   
+      3. fulfilment of a remote job manifest *pulled from* some queue by the server,
+         e.g.,
+   
+         ```
+         ${REPO_HOME}/bin/acquire.py --sys:mode=server-pull --sys:conf="${REPO_HOME}/example/example.conf" ...
+         ```
+
+      or
+
+   2. use targets in the top-level `Makefile` to drive a set of
+      common tasks, e.g.,
+
+      - execute
+   
+        ```sh
+        make doc
+        ```
+   
+        to build the documentation,
+   
+      - execute
+   
+        ```sh
+        make clean
+        ```
+   
+        to clean-up
+        (e.g., remove everything built in `${REPO_HOME}/build`, and data in `${REPO_HOME}/data`).
 
 <!--- -------------------------------------------------------------------- --->
 
