@@ -8,9 +8,8 @@ ifndef REPO_HOME
   $(error "execute 'source ./bin/conf.sh' to configure environment")
 endif
 
-doc      : Doxyfile
+doc      : ${REPO_HOME}/Doxyfile
 	@doxygen ${<}
 
 clean    :
-spotless : clean
 	@rm -rf ${REPO_HOME}/build/*
