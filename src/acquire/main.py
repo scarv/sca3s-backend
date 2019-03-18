@@ -49,16 +49,19 @@ def process( manifest ) :
     share.sys.log.info( '|> allocating job' )
 
     try :
-      id = manifest.get( 'id' ) ; path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) ) ; os.chdir( path ) ; log = share.log.build_log_job( name = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
+      id = manifest.get( 'id' ) ; 
+
+      path = tempfile.mkdtemp( prefix = id + '.', dir = share.sys.conf.get( 'job', section = 'path' ) )
+      os.chdir( path ) 
+      log = share.log.build_log_job( name = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
+      job = share.job.Job( manifest, path, log )
 
     except Exception as e :
       result = STATUS_FAILURE_ALLOCATING_JOB ; raise e
 
     share.sys.log.info( '|> processing job' )
 
-    try :
-      job = share.job.Job( manifest, path, log )
-
+    try :    
       job.process_prologue()
       job.process()
       job.process_epilogue()
@@ -109,8 +112,13 @@ def mode_server_push() :
   server_push.run()
 
 def mode_server_pull() :
-  server_pull = server.remote.Remote() ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+  server_pull      = server.remote.Remote()
       
+  server_pull_wait = int( share.sys.conf.get( 'wait', section = 'server-pull' ) )
+  server_pull_ping = int( share.sys.conf.get( 'ping', section = 'server-pull' ) )
+
+  ping = 0 ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+
   while( True ) :
     manifest = server_pull.receive_job( db )
   
@@ -126,8 +134,11 @@ def mode_server_pull() :
           server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_ALLOCATING_JOB )
         elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
           server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_PROCESSING_JOB )
+      else :
+        if ( ( ping > 0 ) and ( ( ping % server_pull_ping ) == 0 ) ) :
+          sys.log.info( 'polled queue %d times ... no jobs', server_pull_ping ) 
 
-    time.sleep( int( share.sys.conf.get( 'wait', section = 'server-pull' ) ) )
+    ping += 1 ; time.sleep( server_pull_wait )
 
 if ( __name__ == '__main__' ) :
   try :

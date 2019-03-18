@@ -18,7 +18,9 @@ SCHEMA_CONF = {
 
     'server-push:host'  : { 'type' :  'string', 'default' :      '127.0.0.1' },
     'server-push:port'  : { 'type' :  'number', 'default' :             1234 },
+
     'server-pull:wait'  : { 'type' :  'number', 'default' :               60 },
+    'server-pull:ping'  : { 'type' :  'number', 'default' :               10 },
 
     'extern:env'        : { 'type' :  'object', 'default' : {}               },
     'extern:timeout'    : { 'type' :  'number', 'default' :               60 },

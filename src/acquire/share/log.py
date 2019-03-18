@@ -8,7 +8,7 @@ from acquire import share
 
 import logging, logging.handlers, os, sys
 
-class IndentAdapter( logging.LoggerAdapter ):
+class LogAdapter( logging.LoggerAdapter ):
   def __init__( self, logger, args, indent = 0, replace = dict() ) :
     super().__init__( logger, args ) ; self.indent = indent ; self.replace = replace
 
@@ -20,23 +20,26 @@ class IndentAdapter( logging.LoggerAdapter ):
 
     self.logger.handlers.clear()
       
-  def indent_inc( self, n = 1, level = logging.INFO, message = None ) :
+  def indent_inc( self, level = logging.INFO, n = 1, message = None ) :
     if ( message != None ) :
       self.log( level, message )
 
     self.indent = min( 10, self.indent + n )
       
-  def indent_dec( self, n = 1, level = logging.INFO, message = None ) :
+  def indent_dec( self, level = logging.INFO, n = 1, message = None ) :
     self.indent = max(  0, self.indent - n )
       
     if ( message != None ) :
       self.log( level, message )
 
-  def process( self, message, args ):
-    for ( k, v ) in self.replace.items() :
-      message.replace( k, v )
+  def log( self, level, message, *args, **kwargs ):
+    if self.isEnabledFor( level ):
+      message = ( ' ' * self.indent ) + message
 
-    return '{indent}{message}'.format( indent = '  ' * self.indent, message = message ), args
+      for ( src, dst ) in self.replace.items() :
+        message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )
+
+      self.logger._log( level, message, args )
 
 def build_log_sys( name = '', path = 'acquire.log', replace = dict() ) :
   logger = logging.getLogger( name )
@@ -55,7 +58,7 @@ def build_log_sys( name = '', path = 'acquire.log', replace = dict() ) :
   elif ( debug >  0 ) :
     logger.setLevel( logging.DEBUG )
 
-  return IndentAdapter( logger, {}, indent = 0, replace = replace )
+  return LogAdapter( logger, {}, indent = 0, replace = replace )
 
 def build_log_job( name = '', path =     'job.log', replace = dict() ) :
   logger = logging.getLogger( name )
@@ -66,4 +69,4 @@ def build_log_job( name = '', path =     'job.log', replace = dict() ) :
 
   logger.setLevel( logging.INFO )
 
-  return IndentAdapter( logger, {}, indent = 0, replace = replace )
+  return LogAdapter( logger, {}, indent = 0, replace = replace )

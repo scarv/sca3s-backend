@@ -8,7 +8,7 @@
 <!--- -------------------------------------------------------------------- --->
 
 *Acting as a component part of the
-[SCARV](https://github.com/scarv)
+[SCARV](https://www.scarv.org)
 project,
 `lab.scarv.org` is a collection of resources that support the
 development and analysis of cryptographic implementations wrt.
@@ -40,18 +40,6 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 - generalised picoscope support; check via 5444B
 - sort out some sensible deployment strategy
 - the source code is currently totally undocumented :-/
-- there is currently an informal policy that restricts the per job 
-  log to INFO level only: there are never any DEBUG entries.  this
-  is to prevent exposure of low level information about the server
-  in the per job log, which is, after all available to the user.
-  
-  on the other hand, this is informal: information might still be
-  exposed.  examples:
-
-  - (temporary) job path via external commands (e.g., git),
-  - environment variables currently)allowed in job manifest.
-
-  a more precise and fail-safe way to manage this would be great.
 
 <!--- -------------------------------------------------------------------- --->
 
