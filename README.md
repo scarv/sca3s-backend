@@ -1,4 +1,4 @@
-# [`lab.scarv.org`](https://github.com/scarv/lab.scarv.org.git): acquisition appliance
+# [`lab.scarv.org`](https://github.com/scarv/lab.scarv.org): acquisition appliance
 
 <!--- -------------------------------------------------------------------- --->
 
@@ -46,7 +46,13 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 
 ## Quickstart
 
-1. Install any associated pre-requisites, e.g.,
+1. The main `lab.scarv.org`
+   [repository](https://github.com/scarv/lab.scarv.org)
+   houses some overarching documentation, which offers some
+   context and explanation: it *might* be sensible to start
+   by reading that.
+
+2. Install any associated pre-requisites, e.g.,
 
    - a device-specific compiler and programming tool-chain,
      e.g., suitable versions of
@@ -57,8 +63,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
      [Doxygen](http://www.doxygen.nl)
      documentation generation system.
 
-
-2. Execute
+3. Execute
 
    ```sh
    git clone https://github.com/${USER}/lab-acquire.git
@@ -72,7 +77,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
    `REPO_HOME`
    is set appropriately.
 
-3. Prepare some support material:
+4. Prepare various supporting material:
 
    1. create a suitable Python
       [virtual environment](https://docs.python.org/library/venv.html)
@@ -106,7 +111,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       can significantly improve efficiency wrt. repeated
       download of common repositories.
 
-4. Either
+5. Either
 
    1. execute the acquisition appliance directly via
 
