@@ -15,14 +15,11 @@ from acquire        import depo   as depo
 
 import os
 
-class RepoImp( repo.RepoAbs ) :
+class DepoImp( depo.DepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.url = self.repo_spec.get( 'url' )
-    self.tag = self.repo_spec.get( 'tag' )
+    self.path = self.repo_spec.get( 'path' )
 
   def transfer( self ) :
-    env = { 'CACHE' : share.sys.conf.get( 'git', section = 'path' ) }
-
-    self.job.extern( [ 'git', 'clone', '--verbose', '--depth', '1', '--branch', self.tag, self.url, os.path.join( self.job.path, 'target' ) ], env = env )
+    self.job.extern( [ 'cp', '--recursive', self.job.path, self.path ] )

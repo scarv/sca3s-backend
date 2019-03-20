@@ -54,11 +54,15 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 
 2. Install any associated pre-requisites, e.g.,
 
-   - a device-specific compiler and programming tool-chain,
+   - a board-specific compiler and programming tool-chain,
      e.g., suitable versions of
      [GCC](https://gcc.gnu.org)
      and
      [OpenOCD](http://openocd.org),
+   - a scope-specific driver,
+     e.g., offering a specific API for some
+     [PicoScope](https://www.picotech.com/downloads)
+     oscilloscope,
    - the
      [Doxygen](http://www.doxygen.nl)
      documentation generation system.
