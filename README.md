@@ -83,7 +83,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 
 4. Prepare various supporting material:
 
-   1. create and populate a suitable Python
+   1. Create and populate a suitable Python
       [virtual environment](https://docs.python.org/library/venv.html)
       based on `${REPO_HOME}/requirements.txt` by executing
 
@@ -91,7 +91,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       make venv
       ```
 
-   2. write a configuration file, which captures the static
+   2. Write a configuration file, which captures the static
       configuration of the acquisition appliance, e.g., by
       updating
 
@@ -100,9 +100,9 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       ```
 
       so the database of hardware (namely board and scope)
-      devices reflects those attached,
+      devices reflects those attached.
 
-   3. modern versions of 
+   3. Modern versions of 
       [git-clone](https://git-scm.com/docs/git-clone)
       allow the `--reference[-if-able]` option, allowing a
       local cached replacement for some remote repository:
