@@ -70,7 +70,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 3. Execute
 
    ```sh
-   git clone https://github.com/${USER}/lab-acquire.git
+   git clone https://github.com/scarv/lab-acquire.git
    cd ./lab-acquire
    source ./bin/conf.sh
    ```
