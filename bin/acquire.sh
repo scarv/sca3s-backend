@@ -4,7 +4,7 @@ if [ -z ${REPO_HOME} ] ; then
   echo "REPO_HOME environment variable undefined: aborting" ; exit
 fi
 
-# activate environment
+# activate virtual environment
 source ${REPO_HOME}/build/venv/bin/activate
 
 # execute

@@ -83,12 +83,12 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 
 4. Prepare various supporting material:
 
-   1. create a suitable Python
+   1. create, activate, the populate a suitable Python
       [virtual environment](https://docs.python.org/library/venv.html)
       based on `${REPO_HOME}/requirements.txt` by executing
 
       ```
-      ${REPO_HOME}/bin/venv.sh
+      make venv
       ```
 
    2. write a configuration file, which captures the static
