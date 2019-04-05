@@ -54,8 +54,15 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 
 2. Install any associated pre-requisites, e.g.,
 
-   - a board-specific compiler and programming tool-chain,
-     e.g., suitable versions of
+   - a
+     [Python 3](https://www.python.org)
+     distribution,
+   - a suitable
+     compiler 
+     and 
+     programming 
+     tool-chain,
+     e.g., board-specific versions of
      [GCC](https://gcc.gnu.org)
      and
      [OpenOCD](http://openocd.org),
@@ -81,13 +88,13 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
    `REPO_HOME`
    is set appropriately.
 
-4. Prepare various supporting material:
+4. Perform various preparatory steps:
 
    1. Create and populate a suitable Python
       [virtual environment](https://docs.python.org/library/venv.html)
       based on `${REPO_HOME}/requirements.txt` by executing
 
-      ```
+      ```sh
       make venv
       ```
 
@@ -95,7 +102,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       configuration of the acquisition appliance, e.g., by
       updating
 
-      ```
+      ```sh
       ${REPO_HOME}/example/example.conf
       ```
 
@@ -108,7 +115,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       local cached replacement for some remote repository:
       preparing such a cache somewhere, e.g., in
 
-      ```
+      ```sh
       ${REPO_HOME}/data/git
       ```
 
@@ -119,7 +126,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 
    1. execute the acquisition appliance directly via
 
-      ```
+      ```sh
       ${REPO_HOME}/bin/acquire.py
       ```
 
@@ -128,21 +135,21 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       1. fulfilment of a local  job manifest,
          e.g.,
    
-         ```
+         ```sh
          ${REPO_HOME}/bin/acquire.py --sys:mode=cli         --sys:conf="${REPO_HOME}/example/example.conf" ...
          ```
    
       2. fulfilment of a remote job manifest *pushed from* some queue to the server,
          e.g.,
    
-         ```
+         ```sh
          ${REPO_HOME}/bin/acquire.py --sys:mode=server-push --sys:conf="${REPO_HOME}/example/example.conf" ...
          ```
    
       3. fulfilment of a remote job manifest *pulled from* some queue by the server,
          e.g.,
    
-         ```
+         ```sh
          ${REPO_HOME}/bin/acquire.py --sys:mode=server-pull --sys:conf="${REPO_HOME}/example/example.conf" ...
          ```
 
