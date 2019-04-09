@@ -4,16 +4,16 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire        import share  as share
+from acquire import share  as share
 
-from acquire.device import board  as board
-from acquire.device import scope  as scope
-from acquire        import driver as driver
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
 
-from acquire        import repo   as repo
-from acquire        import depo   as depo
+from acquire import repo   as repo
+from acquire import depo   as depo
 
-from .              import *
+from .       import *
 
 class DriverImp( Block ) :
   def __init__( self, job ) :
@@ -25,23 +25,23 @@ class DriverImp( Block ) :
     c = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_c ) ] )
 
     if ( len( k ) > 0 ) :
-      self.job.device_board.interact( '>reg k %s' % share.util.str2octetstr( k ).upper() )
+      self.job.board.interact( '>reg k %s' % share.util.str2octetstr( k ).upper() )
     if ( len( r ) > 0 ) :
-      self.job.device_board.interact( '>reg r %s' % share.util.str2octetstr( r ).upper() )
+      self.job.board.interact( '>reg r %s' % share.util.str2octetstr( r ).upper() )
     if ( len( c ) > 0 ) :
-      self.job.device_board.interact( '>reg c %s' % share.util.str2octetstr( c ).upper() )
+      self.job.board.interact( '>reg c %s' % share.util.str2octetstr( c ).upper() )
   
-    _                                  = self.job.device_scope.acquire( scope.ACQUIRE_MODE_PREPARE )
+    _                                  = self.job.scope.acquire( scope.ACQUIRE_MODE_PREPARE )
   
-    self.job.device_board.interact( '!dec_init' )
-    self.job.device_board.interact( '!dec'      )
+    self.job.board.interact( '!dec_init' )
+    self.job.board.interact( '!dec'      )
   
-    ( trigger, signal ) = self.job.device_scope.acquire( scope.ACQUIRE_MODE_COLLECT )
+    ( trigger, signal ) = self.job.scope.acquire( scope.ACQUIRE_MODE_COLLECT )
   
-    m = share.util.octetstr2str( self.job.device_board.interact( '<reg m' ) )
+    m = share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
 
-    tsc_dec = share.util.seq2int( share.util.octetstr2str( self.job.device_board.interact( '?tsc' ) ), 2 ** 8 )
-    self.job.device_board.interact( '!nop'      )
-    tsc_nop = share.util.seq2int( share.util.octetstr2str( self.job.device_board.interact( '?tsc' ) ), 2 ** 8 )
+    tsc_dec = share.util.seq2int( share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    self.job.board.interact( '!nop'      )
+    tsc_nop = share.util.seq2int( share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
     return { 'trigger' : trigger, 'signal' : signal, 'tsc' : tsc_enc - tsc_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    

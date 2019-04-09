@@ -4,14 +4,14 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire        import share  as share
+from acquire import share  as share
 
-from acquire.device import board  as board
-from acquire.device import scope  as scope
-from acquire        import driver as driver
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
 
-from acquire        import repo   as repo
-from acquire        import depo   as depo
+from acquire import repo   as repo
+from acquire import depo   as depo
 
 import abc
 
@@ -19,11 +19,11 @@ class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
     super().__init__()  
 
-    self.job                       = job
+    self.job          = job
 
-    self.device                    = None
-    self.device_id                 = self.job.conf.get( 'board-id'   )
-    self.device_spec               = self.job.conf.get( 'board-spec' )
+    self.board_object = None
+    self.board_id     = self.job.conf.get( 'board-id'   )
+    self.board_spec   = self.job.conf.get( 'board-spec' )
 
   @abc.abstractmethod
   def get_channel_trigger_range( self ) :

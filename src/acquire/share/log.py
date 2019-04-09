@@ -33,12 +33,13 @@ class LogAdapter( logging.LoggerAdapter ):
       self.log( level, message )
 
   def log( self, level, message, *args, **kwargs ):
-    message = ( ' ' * self.indent ) + message
-
-    for ( src, dst ) in self.replace.items() :
-      message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )
-
-    self.logger._log( level, message, args )
+    if ( self.logger.isEnabledFor( level ) ) :
+      message = ( ' ' * self.indent ) + message
+  
+      for ( src, dst ) in self.replace.items() :
+        message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )
+  
+      self.logger._log( level, message, args )
 
 def build_log_sys( name = '', path = 'acquire.log', replace = dict() ) :
   logger = logging.getLogger( name )

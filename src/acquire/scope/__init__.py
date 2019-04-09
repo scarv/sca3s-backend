@@ -4,14 +4,14 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire        import share  as share
+from acquire import share  as share
 
-from acquire.device import board  as board
-from acquire.device import scope  as scope
-from acquire        import driver as driver
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
 
-from acquire        import repo   as repo
-from acquire        import depo   as depo
+from acquire import repo   as repo
+from acquire import depo   as depo
 
 import abc
 
@@ -28,9 +28,9 @@ class ScopeAbs( abc.ABC ) :
 
     self.job                       = job
 
-    self.device                    = None
-    self.device_id                 = self.job.conf.get( 'scope-id'   )
-    self.device_spec               = self.job.conf.get( 'scope-spec' )
+    self.scope_object              = None
+    self.scope_id                  = self.job.conf.get( 'scope-id'   )
+    self.scope_spec                = self.job.conf.get( 'scope-spec' )
 
     self.channel_trigger_range     = None
     self.channel_trigger_threshold = None

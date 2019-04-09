@@ -19,19 +19,19 @@ class Job( object ) :
     self.path    = path
     self.log     = log
 
-  def _build_device_board( self ) :
+  def _build_board( self ) :
     t = self.conf.get(  'board-id' )
 
     try :
-      return importlib.import_module( 'acquire.device.board' + '.' + t.replace( '/', '.' ) ).BoardImp( self )
+      return importlib.import_module( 'acquire.board'  + '.' + t.replace( '/', '.' ) ).BoardImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (  'board', t ) )
   
-  def _build_device_scope( self ) :
+  def _build_scope( self ) :
     t = self.conf.get(  'scope-id' )
   
     try :
-      return importlib.import_module( 'acquire.device.scope' + '.' + t.replace( '/', '.' ) ).ScopeImp( self )  
+      return importlib.import_module( 'acquire.scope'  + '.' + t.replace( '/', '.' ) ).ScopeImp( self )  
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (  'scope', t ) )
   
@@ -39,7 +39,7 @@ class Job( object ) :
     t = self.conf.get( 'driver-id' )
   
     try :
-      return importlib.import_module( 'acquire.driver'       + '.' + t.replace( '/', '.' ) ).DriverImp( self )
+      return importlib.import_module( 'acquire.driver' + '.' + t.replace( '/', '.' ) ).DriverImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'driver', t ) )
 
@@ -47,7 +47,7 @@ class Job( object ) :
     t = self.conf.get(   'repo-id' )
 
     try :
-      return importlib.import_module( 'acquire.repo'         + '.' + t.replace( '/', '.' ) ).RepoImp( self )
+      return importlib.import_module( 'acquire.repo'   + '.' + t.replace( '/', '.' ) ).RepoImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'repo', t ) )
 
@@ -55,7 +55,7 @@ class Job( object ) :
     t = self.conf.get(   'depo-id' )
 
     try :
-      return importlib.import_module( 'acquire.depo'         + '.' + t.replace( '/', '.' ) ).DepoImp( self )
+      return importlib.import_module( 'acquire.depo'   + '.' + t.replace( '/', '.' ) ).DepoImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
 
@@ -125,23 +125,23 @@ class Job( object ) :
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct board  object' )
-    self.device_board = self._build_device_board()
+    self.board  = self._build_board()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct scope  object' )
-    self.device_scope = self._build_device_scope()
+    self.scope  = self._build_scope()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct driver object' )
-    self.driver       = self._build_driver()
+    self.driver = self._build_driver()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct repo   object' )
-    self.repo         = self._build_repo()
+    self.repo   = self._build_repo()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct depo   object' )
-    self.depo         = self._build_depo()
+    self.depo   = self._build_depo()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'transfer local <- repo.' )

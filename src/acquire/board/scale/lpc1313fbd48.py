@@ -4,16 +4,16 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire        import share  as share
+from acquire import share  as share
 
-from acquire.device import board  as board
-from acquire.device import scope  as scope
-from acquire        import driver as driver
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
 
-from acquire        import repo   as repo
-from acquire        import depo   as depo
+from acquire import repo   as repo
+from acquire import depo   as depo
 
-from .              import *
+from .       import *
 
 class BoardImp( SCALE ) :
   def __init__( self, job ) :

@@ -4,14 +4,14 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire        import share  as share
+from acquire import share  as share
 
-from acquire.device import board  as board
-from acquire.device import scope  as scope
-from acquire        import driver as driver
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
 
-from acquire        import repo   as repo
-from acquire        import depo   as depo
+from acquire import repo   as repo
+from acquire import depo   as depo
 
 import abc
 
@@ -46,19 +46,19 @@ class DriverAbs( abc.ABC ) :
 
     self.job.log.indent_inc( message = 'open  board' )
 
-    self.job.device_board.program()
-    self.job.device_board.open()
+    self.job.board.program()
+    self.job.board.open()
 
     self.job.log.indent_dec()
 
     self.job.log.indent_inc( message = 'open  scope' )
 
-    self.job.device_scope.open()
+    self.job.scope.open()
 
-    self.job.device_scope.channel_trigger_range     = self.job.device_board.get_channel_trigger_range()
-    self.job.device_scope.channel_trigger_threshold = self.job.device_board.get_channel_trigger_threshold()
-    self.job.device_scope.channel_acquire_range     = self.job.device_board.get_channel_acquire_range()
-    self.job.device_scope.channel_acquire_threshold = self.job.device_board.get_channel_acquire_threshold()
+    self.job.scope.channel_trigger_range     = self.job.board.get_channel_trigger_range()
+    self.job.scope.channel_trigger_threshold = self.job.board.get_channel_trigger_threshold()
+    self.job.scope.channel_acquire_range     = self.job.board.get_channel_acquire_range()
+    self.job.scope.channel_acquire_threshold = self.job.board.get_channel_acquire_threshold()
 
     self.job.log.indent_dec()
 
@@ -71,15 +71,15 @@ class DriverAbs( abc.ABC ) :
     if ( trace_period_id == 'auto' ) :
       l = share.sys.conf.get( 'timeout', section = 'job' )
     
-      t = self.job.device_scope.conf( scope.CONF_MODE_DURATION, 1 * l )
+      t = self.job.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
 
       self.job.log.info( 'before calibration, configuration = %s', t )
 
-      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.device_scope.channel_trigger_threshold ) * self.job.device_scope.signal_interval
-      t = self.job.device_scope.conf( scope.CONF_MODE_DURATION, 2 * l )
+      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval
+      t = self.job.scope.conf( scope.CONF_MODE_DURATION, 2 * l )
 
-      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.device_scope.channel_trigger_threshold ) * self.job.device_scope.signal_interval
-      t = self.job.device_scope.conf( scope.CONF_MODE_DURATION, 1 * l )
+      trace = self._process() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval
+      t = self.job.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
 
       self.job.log.info( 'after  calibration, configuration = %s', t )
 
@@ -87,11 +87,11 @@ class DriverAbs( abc.ABC ) :
       l = trace_period_spec
 
       if   ( trace_period_id == 'interval'  ) :
-        t = self.job.device_scope.conf( scope.CONF_MODE_INTERVAL,  l )
+        t = self.job.scope.conf( scope.CONF_MODE_INTERVAL,  l )
       elif ( trace_period_id == 'frequency' ) :
-        t = self.job.device_scope.conf( scope.CONF_MODE_FREQUENCY, l )
+        t = self.job.scope.conf( scope.CONF_MODE_FREQUENCY, l )
       elif ( trace_period_id == 'duration'  ) :
-        t = self.job.device_scope.conf( scope.CONF_MODE_DURATION,  l )
+        t = self.job.scope.conf( scope.CONF_MODE_DURATION,  l )
 
       self.job.log.info(                     'configuration = %s', t )
 
@@ -121,11 +121,11 @@ class DriverAbs( abc.ABC ) :
 
   def  process_epilogue( self ) :
     self.job.log.indent_inc( message = 'close board' )
-    self.job.device_board.close()
+    self.job.board.close()
     self.job.log.indent_dec()
 
     self.job.log.indent_inc( message = 'close scope' )
-    self.job.device_scope.close()
+    self.job.scope.close()
     self.job.log.indent_dec()
 
     self._process_epilogue()
