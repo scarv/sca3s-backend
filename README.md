@@ -34,8 +34,8 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 ├── example                   - examples (e.g., job manifests)
 └── src                       - source code
     ├── acquire/depo          - depository implementations
-    ├── acquire/device/board  - board      implementations
-    ├── acquire/device/scope  - scope      implementations
+    ├── acquire/board         - board      implementations
+    ├── acquire/scope         - scope      implementations
     ├── acquire/driver        - driver     implementations
     ├── acquire/repo          - repository implementations
     ├── acquire/server        - server functionality
