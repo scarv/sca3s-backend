@@ -19,8 +19,9 @@ class RepoImp( repo.RepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.url = self.repo_spec.get( 'url' )
-    self.tag = self.repo_spec.get( 'tag' )
+    self.url  = self.repo_spec.get( 'url'  )
+    self.tag  = self.repo_spec.get( 'tag'  )
+    self.conf = self.repo_spec.get( 'conf' )
 
   def transfer( self ) :
     env = { 'CACHE' : share.sys.conf.get( 'git', section = 'path' ) }

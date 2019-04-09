@@ -61,7 +61,6 @@ SCHEMA_JOB  = {
        'crop'            : { 'type' : 'boolean', 'default' :   True                                                           }
     }, 'required' : [] }
   },
-  # core
   'type' : 'object', 'default' : {}, 'properties' : {
     'version'     : { 'type' :  'string' },
     'id'          : { 'type' :  'string' },
@@ -160,7 +159,8 @@ SCHEMA_JOB  = {
           'repo-id'   : { 'enum' : [ 'git' ] },
           'repo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
             'url'                     : { 'type' :     'string'                       },
-            'tag'                     : { 'type' :     'string', 'default' : 'master' }
+            'tag'                     : { 'type' :     'string', 'default' : 'master' },
+            'conf'                    : { 'type' :     'object', 'default' : {}       }
         }, 'required' : [ 'url' ] }
       }
     } ] }, { 

@@ -127,7 +127,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
    1. execute the acquisition appliance directly via
 
       ```sh
-      ${REPO_HOME}/bin/acquire.py
+      ${REPO_HOME}/bin/acquire.sh
       ```
 
       to satisfy use-cases such as
@@ -136,21 +136,21 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
          e.g.,
    
          ```sh
-         ${REPO_HOME}/bin/acquire.py --sys:mode=cli         --sys:conf="${REPO_HOME}/example/example.conf" ...
+         ${REPO_HOME}/bin/acquire.sh --sys:mode=cli         --sys:conf="${REPO_HOME}/example/example.conf" ...
          ```
    
       2. fulfilment of a remote job manifest *pushed from* some queue to the server,
          e.g.,
    
          ```sh
-         ${REPO_HOME}/bin/acquire.py --sys:mode=server-push --sys:conf="${REPO_HOME}/example/example.conf" ...
+         ${REPO_HOME}/bin/acquire.sh --sys:mode=server-push --sys:conf="${REPO_HOME}/example/example.conf" ...
          ```
    
       3. fulfilment of a remote job manifest *pulled from* some queue by the server,
          e.g.,
    
          ```sh
-         ${REPO_HOME}/bin/acquire.py --sys:mode=server-pull --sys:conf="${REPO_HOME}/example/example.conf" ...
+         ${REPO_HOME}/bin/acquire.sh --sys:mode=server-pull --sys:conf="${REPO_HOME}/example/example.conf" ...
          ```
 
       or

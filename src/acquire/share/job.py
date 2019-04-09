@@ -73,10 +73,10 @@ class Job( object ) :
     if ( not quiet ) :
       self.log.info( '| cmd : %s', str( cmd ) )
 
-    self.log.debug( '! env     : %s', str( env     ) )
-    self.log.debug( '! timeout : %s', str( timeout ) )
-    self.log.debug( '! quiet   : %s', str( quiet   ) )
-    self.log.debug( '! fail    : %s', str( fail    ) )
+    share.sys.log.debug( '! env     : %s', str( env     ) )
+    share.sys.log.debug( '! timeout : %s', str( timeout ) )
+    share.sys.log.debug( '! quiet   : %s', str( quiet   ) )
+    share.sys.log.debug( '! fail    : %s', str( fail    ) )
 
     try :
       pd = subprocess.run( cmd, cwd = self.path, env = env, timeout = timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )

@@ -6,7 +6,11 @@
 
   "repo-id"    : "git",
   "repo-spec"  : { 
-    "url"           : "git@danpage_lab-target:danpage/lab-target.git"
+    "url"           : "git@danpage_lab-target:danpage/lab-target.git",
+    "conf"          : {
+      "foo" : 1,
+      "bar" : 2
+    }
   },
 
   "depo-id"    : "s3",

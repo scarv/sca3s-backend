@@ -16,3 +16,8 @@ doc      : ${REPO_HOME}/Doxyfile
 
 clean    :
 	@rm -rf ${REPO_HOME}/build/*
+
+spotless : clean
+	@rm -rf ${REPO_HOME}/data/git/*
+	@rm -rf ${REPO_HOME}/data/job/*
+	@rm -rf ${REPO_HOME}/data/log/*
