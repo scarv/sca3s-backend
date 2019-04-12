@@ -6,6 +6,13 @@
 
 from acquire import share
 
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
+
+from acquire import repo   as repo
+from acquire import depo   as depo
+
 import logging, logging.handlers, os, sys
 
 class LogAdapter( logging.LoggerAdapter ):

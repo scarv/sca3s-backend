@@ -6,6 +6,13 @@
 
 from acquire import share
 
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
+
+from acquire import repo   as repo
+from acquire import depo   as depo
+
 import argparse, os, sys
 
 conf = None
@@ -28,9 +35,6 @@ def init() :
   parser.add_argument( '--path:git',          action =   'store', type = str )
   parser.add_argument( '--path:job',          action =   'store', type = str )
   parser.add_argument( '--path:log',          action =   'store', type = str )
-
-  parser.add_argument( '--timeout:extern',    action =   'store', type = int )
-  parser.add_argument( '--timeout:kernel',    action =   'store', type = int )
 
   parser.add_argument( '--job:device-db',     action =   'store', type = str )
 

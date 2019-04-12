@@ -22,4 +22,4 @@ class RepoImp( repo.RepoAbs ) :
     self.path = self.repo_spec.get( 'path' )
 
   def transfer( self ) :
-    self.job.extern( [ 'cp', '--recursive', self.path, os.path.join( self.job.path, 'target' ) ] )
+    self.job.run( [ 'cp', '--recursive', self.path, os.path.join( self.job.path, 'target' ) ] )

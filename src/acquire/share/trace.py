@@ -6,6 +6,13 @@
 
 from acquire import share
 
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
+
+from acquire import repo   as repo
+from acquire import depo   as depo
+
 import abc, binascii, csv, glob, os, pickle, sys, trsfile
 
 class Trace( abc.ABC ) :
@@ -69,7 +76,7 @@ class TracePKL( Trace ) :
   def  close( self ) :
     if ( self.trace_compress ) :
       for f in glob.glob( './trace/*.pkl' ) :
-        self.job.extern( [ 'gzip', '--quiet', f ] )
+        self.job.run( [ 'gzip', '--quiet', f ] )
 
 class TraceCSV( Trace ) :
   def __init__( self, job ) :
@@ -99,7 +106,7 @@ class TraceCSV( Trace ) :
     self.fd.close()
 
     if ( self.trace_compress ) :
-      self.job.extern( [ 'gzip', '--quiet', './trace.csv' ] )
+      self.job.run( [ 'gzip', '--quiet', './trace.csv' ] )
 
 class TraceTRS( Trace ) :
   def __init__( self, job ) :
@@ -132,4 +139,4 @@ class TraceTRS( Trace ) :
     self.fd.close()
 
     if ( self.trace_compress ) :
-      self.job.extern( [ 'gzip', '--quiet', './trace.trs' ] )
+      self.job.run( [ 'gzip', '--quiet', './trace.trs' ] )

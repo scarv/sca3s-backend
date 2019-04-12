@@ -19,7 +19,7 @@ class DriverImp( Block ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-  def _process( self ) :
+  def acquire( self ) :
     k = self.kernel_k
     r = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
     c = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_c ) ] )
@@ -44,4 +44,4 @@ class DriverImp( Block ) :
     self.job.board.interact( '!nop'      )
     tsc_nop = share.util.seq2int( share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
-    return { 'trigger' : trigger, 'signal' : signal, 'tsc' : tsc_enc - tsc_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    
+    return { 'trigger' : trigger, 'signal' : signal, 'tsc' : tsc_dec - tsc_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    

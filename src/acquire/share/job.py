@@ -6,7 +6,14 @@
 
 from acquire import share
 
-import importlib, json, os, subprocess, sys
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
+
+from acquire import repo   as repo
+from acquire import depo   as depo
+
+import importlib, json, more_itertools as mit, os, subprocess, sys
 
 class Job( object ) :
   def __init__( self, conf, path, log ) :
@@ -59,11 +66,97 @@ class Job( object ) :
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
 
-  def extern( self, cmd, env = None, timeout = None, quiet = False, fail = True ) :
+  def _prepare_board( self ) :
+    #def f( stdout, stderr ) :
+    #  self._drain( 'stdout', stdout )
+    #  self._drain( 'stderr', stderr )
+    #
+    #client = docker.from_env()
+    #
+    #vol = { os.path.abspath( './data/git' ) : { 'bind' : '/acquire/git', 'mode' : 'rw' },
+    #        os.path.abspath( './data/job' ) : { 'bind' : '/acquire/job', 'mode' : 'rw' } }
+    #
+    #env = { 'DOCKER_GID' : os.getgid(), 
+    #        'DOCKER_UID' : os.getuid(), 
+    #                
+    #        'REPO_HOME' : '/acquire/job/target', 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ), 'CACHE' : '/acquire/git' }
+    #
+    #container = client.containers.run( 'scarv/lab-target' + share.version.VERSION, 'bash', environment = env, volumes = vol, name = 'acquire', detach = True, tty = True )
+    #
+    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME} deps-fetch'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
+    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME} deps-build'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
+    #
+    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME}      build'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
+    #self.board.program()
+    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME}      clean'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
+    #
+    #container.stop() ; container.remove( force = True )
+
+    env = { 'REPO_HOME' : os.path.join( self.path, 'target' ), 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ), 'CACHE' : share.sys.conf.get( 'git', section = 'path' ) }
+
+    self.run( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-fetch' ], env = env )
+    self.run( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-build' ], env = env )
+    self.run( [ 'make', '-C', 'target', '--no-builtin-rules',      'build' ], env = env )
+
+    self.board.program()
+
+    self.run( [ 'make', '-C', 'target', '--no-builtin-rules',      'clean' ], env = env )
+
+  def _prepare_scope( self ) :
+    trace_spec            = self.conf.get( 'trace-spec' )
+
+    trace_period_id       = trace_spec.get( 'period-id'       )
+    trace_period_spec     = trace_spec.get( 'period-spec'     )
+
+    trace_resolution_id   = trace_spec.get( 'resolution-id'   )
+    trace_resolution_spec = trace_spec.get( 'resolution-spec' )
+
+    self.scope.channel_trigger_range     = self.board.get_channel_trigger_range()
+    self.scope.channel_trigger_threshold = self.board.get_channel_trigger_threshold()
+    self.scope.channel_acquire_range     = self.board.get_channel_acquire_range()
+    self.scope.channel_acquire_threshold = self.board.get_channel_acquire_threshold()
+
+    if ( trace_period_id == 'auto' ) :
+      l = share.sys.conf.get( 'timeout', section = 'job' )
+    
+      t = self.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
+
+      self.log.info( 'before calibration, configuration = %s', t )
+
+      trace = self.driver.acquire() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
+      t = self.scope.conf( scope.CONF_MODE_DURATION, 2 * l )
+
+      trace = self.driver.acquire() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
+      t = self.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
+
+      self.log.info( 'after  calibration, configuration = %s', t )
+
+    else :
+      l = trace_period_spec
+
+      if   ( trace_period_id == 'interval'  ) :
+        t = self.scope.conf( scope.CONF_MODE_INTERVAL,  l )
+      elif ( trace_period_id == 'frequency' ) :
+        t = self.scope.conf( scope.CONF_MODE_FREQUENCY, l )
+      elif ( trace_period_id == 'duration'  ) :
+        t = self.scope.conf( scope.CONF_MODE_DURATION,  l )
+
+      self.log.info(                     'configuration = %s', t )
+
+  def _drain( self, id, lines ) :
+    lines = lines.decode().split( '\n' )
+      
+    if ( ( len( lines ) > 0 ) and ( lines[ -1 ] == '' ) ) :
+      lines.pop()
+      
+    for line in lines :
+      self.log.info( '< %s : %s', id, line )
+
+  def run( self, cmd, env = None, timeout = None, quiet = False, fail = True ) :
     if ( env     == None ) :
-      env     =      share.sys.conf.get( 'env',     section = 'extern' )
+      env     =      share.sys.conf.get( 'env',     section = 'run' )
     if ( timeout == None ) :
-      timeout = int( share.sys.conf.get( 'timeout', section = 'extern' ) )
+      timeout = int( share.sys.conf.get( 'timeout', section = 'run' ) )
 
     env = { **os.environ, **env }
 
@@ -73,35 +166,25 @@ class Job( object ) :
     if ( not quiet ) :
       self.log.info( '| cmd : %s', str( cmd ) )
 
-    share.sys.log.debug( '! env     : %s', str( env     ) )
-    share.sys.log.debug( '! timeout : %s', str( timeout ) )
-    share.sys.log.debug( '! quiet   : %s', str( quiet   ) )
-    share.sys.log.debug( '! fail    : %s', str( fail    ) )
+    self.log.debug( '! env     : %s', str( env     ) )
+    self.log.debug( '! timeout : %s', str( timeout ) )
+    self.log.debug( '! quiet   : %s', str( quiet   ) )
+    self.log.debug( '! fail    : %s', str( fail    ) )
 
     try :
       pd = subprocess.run( cmd, cwd = self.path, env = env, timeout = timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 
       if ( not quiet ) :
-        stdout = pd.stdout.decode().split( '\n' )
-        stderr = pd.stderr.decode().split( '\n' )
-      
-        if ( ( len( stdout ) > 0 ) and ( stdout[ -1 ] == '' ) ) :
-          stdout.pop()
-        if ( ( len( stderr ) > 0 ) and ( stderr[ -1 ] == '' ) ) :
-          stderr.pop()
-      
-        for t in stdout :
-          self.log.info( '< stdout  : %s', t )
-        for t in stderr :
-          self.log.info( '< stderr  : %s', t )
+        self._drain( 'stdout', pd.stdout )
+        self._drain( 'stderr', pd.stderr )
 
       result = pd.returncode ; result_str = 'success' if ( result == 0 ) else 'failure'
 
     except subprocess.TimeoutExpired :
-      result = -1            ; result_str = 'timeout'
+      result =            -1 ; result_str = 'timeout'
 
     if ( not quiet ) :    
-      self.log.info( '| result  : %s (exit status = %d)', result_str, result )
+      self.log.info( '| result : %s (exit status = %d)', result_str, result )
 
     if ( not quiet ) :
       self.log.indent_dec()
@@ -111,8 +194,14 @@ class Job( object ) :
 
     return ( result == 0 )
 
+  # 1. dump configuration
+  # 2. construct board, scope, driver, repository, and depository objects
+  # 3. open  board object
+  # 4. open  scope object
+  # 5. transfer target implementation from repository to local copy 
+
   def process_prologue( self ) :
-    self.log.indent_inc( message = 'configuration' )
+    self.log.indent_inc( message = 'dump configuration' )
 
     n = 0
 
@@ -125,43 +214,72 @@ class Job( object ) :
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct board  object' )
-    self.board  = self._build_board()
+    self.board = self._build_board()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct scope  object' )
-    self.scope  = self._build_scope()
+    self.scope = self._build_scope()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct driver object' )
-    self.driver = self._build_driver()
+    self.driver= self._build_driver()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct repo   object' )
-    self.repo   = self._build_repo()
+    self.repo  = self._build_repo()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct depo   object' )
-    self.depo   = self._build_depo()
+    self.depo  = self._build_depo()
+    self.log.indent_dec()
+
+    self.log.indent_inc( message = 'open  board' )
+    self.board.open()
+    self.log.indent_dec()
+
+    self.log.indent_inc( message = 'open  scope' )
+    self.scope.open()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'transfer local <- repo.' )
     self.repo.transfer()
     self.log.indent_dec()
 
+  # 1. prepare board,  e.g., build and program target implementation
+  # 2. prepare driver, e.g., query target implemention parameters
+  # 3. prepare scope,  e.g., calibrate wrt. target implementation
+  # 4. execute driver, i.e., acquisition process wrt. target implementation
+
   def process( self ) :
-    self.log.indent_inc( message = 'run driver -> process_prologue' )
-    self.driver.process_prologue()
+    self.log.indent_inc( message = 'prepare board'  )
+    self._prepare_board()
     self.log.indent_dec()
 
-    self.log.indent_inc( message = 'run driver -> process'          )
-    self.driver.process()
+    self.log.indent_inc( message = 'prepare driver' )
+    self.driver.prepare()
     self.log.indent_dec()
 
-    self.log.indent_inc( message = 'run driver -> process_epilogue' )
-    self.driver.process_epilogue()
+    self.log.indent_inc( message = 'prepare scope'  )
+    self._prepare_scope()
     self.log.indent_dec()
+
+    self.log.indent_inc( message = 'execute driver' )
+    self.driver.execute()
+    self.log.indent_dec()
+
+  # 1. transfer target implementation from local copy to depository
+  # 2. close scope object
+  # 3. close board object
 
   def process_epilogue( self ) :
     self.log.indent_inc( message = 'transfer local -> depo.' )
     self.depo.transfer()
+    self.log.indent_dec()
+
+    self.log.indent_inc( message = 'close scope' )
+    self.scope.close()
+    self.log.indent_dec()
+
+    self.log.indent_inc( message = 'close board' )
+    self.board.close()
     self.log.indent_dec()

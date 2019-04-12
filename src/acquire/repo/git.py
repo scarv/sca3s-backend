@@ -26,4 +26,4 @@ class RepoImp( repo.RepoAbs ) :
   def transfer( self ) :
     env = { 'CACHE' : share.sys.conf.get( 'git', section = 'path' ) }
 
-    self.job.extern( [ 'git', 'clone', '--verbose', '--depth', '1', '--branch', self.tag, self.url, os.path.join( self.job.path, 'target' ) ], env = env )
+    self.job.run( [ 'git', 'clone', '--verbose', '--depth', '1', '--branch', self.tag, self.url, os.path.join( self.job.path, 'target' ) ], env = env )

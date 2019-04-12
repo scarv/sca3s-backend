@@ -22,4 +22,4 @@ class DepoImp( depo.DepoAbs ) :
     self.path = self.repo_spec.get( 'path' )
 
   def transfer( self ) :
-    self.job.extern( [ 'cp', '--recursive', self.job.path, self.path ] )
+    self.job.run( [ 'cp', '--recursive', self.job.path, self.path ] )

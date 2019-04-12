@@ -13,7 +13,7 @@ from acquire import driver as driver
 from acquire import repo   as repo
 from acquire import depo   as depo
 
-import os, serial, more_itertools as mit
+import os, serial
 
 class SCALE( board.BoardAbs ) :
   def __init__( self, job ) :
@@ -22,6 +22,8 @@ class SCALE( board.BoardAbs ) :
     self.connect_id      =      self.board_spec.get( 'connect-id'      )
     self.connect_timeout = int( self.board_spec.get( 'connect-timeout' ) )
 
+    self.program_mode    =      self.board_spec.get( 'program-mode'    )
+    self.program_id      =      self.board_spec.get( 'program-id'      )
     self.program_timeout = int( self.board_spec.get( 'program-timeout' ) )
 
   def _uart_send( self, x ) :
@@ -40,24 +42,11 @@ class SCALE( board.BoardAbs ) :
 
     return r
 
-  def program( self ) :  
-    env = { 'REPO_HOME' : os.path.join( self.job.path, 'target' ), 'BOARD' : self.job.conf.get( 'board-id' ), 'TARGET' : mit.first( self.job.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.job.repo.conf.items() ] ), 'CACHE' : share.sys.conf.get( 'git', section = 'path' ), 'USB' : self.connect_id }
-
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-fetch' ], env = env )
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-build' ], env = env )
-
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',      'build' ], env = env )
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',     'report' ], env = env )
-
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',    'program' ], env = env, timeout = self.program_timeout )
-
-    self.job.extern( [ 'make', '-C', 'target', '--no-builtin-rules',      'clean' ], env = env )
-
-  def    open( self ) :
+  def  open( self ) :
     self.board_object = serial.Serial( port = self.connect_id, timeout = self.connect_timeout, baudrate = 9600, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE )
 
     if ( self.board_object == None ) :
       raise Exception()
 
-  def   close( self ) :
+  def close( self ) :
     self.board_object.close()

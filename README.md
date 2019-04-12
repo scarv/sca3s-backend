@@ -98,6 +98,12 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       make venv
       ```
 
+      then activate it by executing
+   
+      ```sh
+      source ${REPO_HOME}/build/venv/bin/activate
+      ```
+
    2. Write a configuration file, which captures the static
       configuration of the acquisition appliance, e.g., by
       updating

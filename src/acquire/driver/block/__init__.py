@@ -19,7 +19,7 @@ class Block( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-  def _process_prologue( self ) : 
+  def prepare( self ) : 
     t = self.job.board.interact( '?id' ).split( ':' )
 
     if ( len( t ) != 2 ) :
@@ -47,6 +47,3 @@ class Block( driver.DriverAbs ) :
     self.job.log.info( 'driver sizeof( r ) = %s', self.kernel_sizeof_r )
     self.job.log.info( 'driver sizeof( m ) = %s', self.kernel_sizeof_m )
     self.job.log.info( 'driver sizeof( c ) = %s', self.kernel_sizeof_c )
-
-  def _process_epilogue( self ) : 
-    pass

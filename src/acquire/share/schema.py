@@ -6,6 +6,13 @@
 
 from acquire import share
 
+from acquire import board  as board
+from acquire import scope  as scope
+from acquire import driver as driver
+
+from acquire import repo   as repo
+from acquire import depo   as depo
+
 import json, jsonschema, os, sys, tempfile
 
 SCHEMA_CONF = {
@@ -22,8 +29,8 @@ SCHEMA_CONF = {
     'server-pull:wait'  : { 'type' :  'number', 'default' :               60 },
     'server-pull:ping'  : { 'type' :  'number', 'default' :               10 },
 
-    'extern:env'        : { 'type' :  'object', 'default' : {}               },
-    'extern:timeout'    : { 'type' :  'number', 'default' :               60 },
+    'run:env'           : { 'type' :  'object', 'default' : {}               },
+    'run:timeout'       : { 'type' :  'number', 'default' :               60 },
   
     'job:timeout'       : { 'type' :  'number', 'default' :                1 },
 
@@ -110,19 +117,21 @@ SCHEMA_JOB  = {
       'properties' : {
          'board-id'   : { 'enum' : [ 'scale/lpc1313fbd48' ] },
          'board-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                   'connect-id'      : { 'type' :     'string' },
-                   'connect-timeout' : { 'type' :     'number' },
+                   'connect-id'      : { 'type' : 'string' },
+                   'connect-timeout' : { 'type' : 'number' },
   
-                   'program-timeout' : { 'type' :     'number' }
-        }, 'required' : [ 'connect-id', 'connect-timeout', 'program-timeout' ] }
+                   'program-mode'    : { 'enum' : [ 'usb', 'jlink' ] },
+                   'program-id'      : { 'type' : 'string' },
+                   'program-timeout' : { 'type' : 'number' }
+        }, 'required' : [ 'connect-id', 'connect-timeout', 'program-mode', 'program-id', 'program-timeout' ] }
       }
     } ] }, { 
     'oneOf' : [ { # options:  scope-spec
       'properties' : {
          'scope-id'   : { 'enum' : [ 'picoscope/ps2206b' ] },
          'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                   'connect-id'      : { 'type' :     'string' },
-                   'connect-timeout' : { 'type' :     'number' },
+                   'connect-id'      : { 'type' : 'string' },
+                   'connect-timeout' : { 'type' : 'number' },
 
            'channel-trigger-id'      : { 
              'enum' : [ 'A', 'B' ] 
@@ -130,7 +139,7 @@ SCHEMA_JOB  = {
            'channel-acquire-id'      : {
              'enum' : [ 'A', 'B' ]
             },
-           'channel-disable-id'      : { 'type' :      'array', 'default' : [], 'items' : {
+           'channel-disable-id'      : { 'type' :  'array', 'default' : [], 'items' : {
              'enum' : [ 'A', 'B' ]
            } }
         }, 'required' : [ 'connect-id', 'connect-timeout', 'channel-trigger-id', 'channel-acquire-id' ] }
@@ -139,8 +148,8 @@ SCHEMA_JOB  = {
       'properties' : {
          'scope-id'   : { 'enum' : [ 'picoscope/ps3406b' ] },
          'scope-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                   'connect-id'      : { 'type' :     'string' },
-                   'connect-timeout' : { 'type' :     'number' },
+                   'connect-id'      : { 'type' : 'string' },
+                   'connect-timeout' : { 'type' : 'number' },
   
            'channel-trigger-id'      : { 
              'enum' : [ 'A', 'B', 'C', 'D' ] 
@@ -148,7 +157,7 @@ SCHEMA_JOB  = {
            'channel-acquire-id'      : {
              'enum' : [ 'A', 'B', 'C', 'D' ]
             },
-           'channel-disable-id'      : { 'type' :      'array', 'default' : [], 'items' : {
+           'channel-disable-id'      : { 'type' :  'array', 'default' : [], 'items' : {
              'enum' : [ 'A', 'B', 'C', 'D' ]
            } }
         }, 'required' : [ 'connect-id', 'connect-timeout', 'channel-trigger-id', 'channel-acquire-id' ] }
@@ -158,9 +167,9 @@ SCHEMA_JOB  = {
       'properties' : {
           'repo-id'   : { 'enum' : [ 'git' ] },
           'repo-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-            'url'                     : { 'type' :     'string'                       },
-            'tag'                     : { 'type' :     'string', 'default' : 'master' },
-            'conf'                    : { 'type' :     'object', 'default' : {}       }
+            'url'                     : { 'type' : 'string'                       },
+            'tag'                     : { 'type' : 'string', 'default' : 'master' },
+            'conf'                    : { 'type' : 'object', 'default' : {}       }
         }, 'required' : [ 'url' ] }
       }
     } ] }, { 

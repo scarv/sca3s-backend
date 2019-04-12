@@ -19,7 +19,7 @@ class DriverImp( Block ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-  def _process( self ) :
+  def acquire( self ) :
     k = self.kernel_k
     r = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
     m = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_m ) ] )
