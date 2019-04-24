@@ -66,39 +66,53 @@ class Job( object ) :
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
 
-  # 1. check repo. vs. whitelist
+  # 1. create and initialise git index for repo.
+  # 2. check repo. vs. whitelist
   #    - fetch upstream repo.
   #    - perform diff between origin/master and upstream/master
   #    - for each filename that differs, check vs. pattern
-  # 2. build and program repo. onto board
-  #    - fetch dependencies
-  #    - build dependencies
-  #    - build
-  #    - program
-  #    - clean
 
-  def _prepare_board( self ) :
+  def _prepare_repo( self ) :
+    path              = os.path.join( self.path, 'target' )
+
     whitelist_url     = share.sys.conf.get( 'whitelist-url',     section = 'security' )
     whitelist_pattern = share.sys.conf.get( 'whitelist-pattern', section = 'security' )
 
-    self.log.indent_inc( message = 'checking repo. vs. whitelist => url=%s, pattern=%s' % ( whitelist_url, whitelist_pattern ) )
+    self.log.indent_inc( message = 'building repo.' )
 
-    repo = git.Repo( path = os.path.join( self.path, 'target' ) )
-    repo.create_remote( 'upstream', whitelist_url ).fetch()
+    try :
+      repo = git.Repo( path = path )
+    except git.exc.InvalidGitRepositoryError :
+      repo = git.Repo.init( path = path )
 
-    f = True
+      repo.git.add( all = True )
+      repo.git.commit( message = 'repo. construction', all = True )
+
+    self.log.indent_dec()
+
+    self.log.indent_inc( message = 'checking repo.' )
+
+    repo.create_remote( 'upstream', whitelist_url ).fetch() ; fail = False
 
     for filename in repo.git.diff( 'upstream/master', name_only = True ).split( '\n' ) :
       if( not re.match( whitelist_pattern, filename ) ) :
-        self.log.info( '| failed: ' + filename ) ; f = False
+        self.log.info( '| failed: ' + filename ) ; fail = True
       else :
         self.log.info( '| passed: ' + filename )
 
     self.log.indent_dec()
 
-    if ( not f ) :
+    if ( fail ) :
       raise Exception()
 
+  # 1. build
+  #    - fetch dependencies
+  #    - build dependencies
+  #    - build
+  # 2. program
+  # 3. clean
+
+  def _prepare_board( self ) :
     #def f( stdout, stderr ) :
     #  self._drain( 'stdout', stdout )
     #  self._drain( 'stderr', stderr )
@@ -227,10 +241,10 @@ class Job( object ) :
     return ( result == 0 )
 
   # 1. dump configuration
-  # 2. construct board, scope, driver, repository, and depository objects
+  # 2. construct board, scope, driver, repo., and depo. objects
   # 3. open  board object
   # 4. open  scope object
-  # 5. transfer target implementation from repository to local copy 
+  # 5. transfer target implementation from repo. to local copy 
 
   def process_prologue( self ) :
     self.log.indent_inc( message = 'dump configuration' )
@@ -277,12 +291,17 @@ class Job( object ) :
     self.repo.transfer()
     self.log.indent_dec()
 
+  # 1. prepare repo.,  e.g., check vs. whitelist
   # 1. prepare board,  e.g., build and program target implementation
   # 2. prepare driver, e.g., query target implemention parameters
   # 3. prepare scope,  e.g., calibrate wrt. target implementation
   # 4. execute driver, i.e., acquisition process wrt. target implementation
 
   def process( self ) :
+    self.log.indent_inc( message = 'prepare repo.'  )
+    self._prepare_repo()
+    self.log.indent_dec()
+
     self.log.indent_inc( message = 'prepare board'  )
     self._prepare_board()
     self.log.indent_dec()
@@ -299,7 +318,7 @@ class Job( object ) :
     self.driver.execute()
     self.log.indent_dec()
 
-  # 1. transfer target implementation from local copy to depository
+  # 1. transfer target implementation from local copy to depo.
   # 2. close scope object
   # 3. close board object
 
