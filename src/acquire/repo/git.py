@@ -13,7 +13,7 @@ from acquire import driver as driver
 from acquire import repo   as repo
 from acquire import depo   as depo
 
-import os
+import git, os
 
 class RepoImp( repo.RepoAbs ) :
   def __init__( self, job ) :
@@ -24,6 +24,4 @@ class RepoImp( repo.RepoAbs ) :
     self.conf = self.repo_spec.get( 'conf' )
 
   def transfer( self ) :
-    env = { 'CACHE' : share.sys.conf.get( 'git', section = 'path' ) }
-
-    self.job.run( [ 'git', 'clone', '--verbose', '--depth', '1', '--branch', self.tag, self.url, os.path.join( self.job.path, 'target' ) ], env = env )
+    git.Repo.clone_from( self.url, os.path.join( self.job.path, 'target' ), branch = self.tag, depth = 1 )

@@ -83,7 +83,10 @@ class Job( object ) :
 
     self.log.indent_inc( message = 'checking repo. vs. whitelist => url=%s, pattern=%s' % ( whitelist_url, whitelist_pattern ) )
 
-    repo = git.Repo( path = 'target' ) ; repo.create_remote( 'upstream', whitelist_url ).fetch() ; f = True
+    repo = git.Repo( path = os.path.join( self.path, 'target' ) )
+    repo.create_remote( 'upstream', whitelist_url ).fetch()
+
+    f = True
 
     for filename in repo.git.diff( 'upstream/master', name_only = True ).split( '\n' ) :
       if( not re.match( whitelist_pattern, filename ) ) :
