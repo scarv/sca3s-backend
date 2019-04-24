@@ -73,10 +73,10 @@ class Job( object ) :
   #    - for each filename that differs, check vs. pattern
 
   def _prepare_repo( self ) :
-    path              = os.path.join( self.path, 'target' )
-
     whitelist_url     = share.sys.conf.get( 'whitelist-url',     section = 'security' )
     whitelist_pattern = share.sys.conf.get( 'whitelist-pattern', section = 'security' )
+
+    path              = os.path.join( self.path, 'target' )
 
     self.log.indent_inc( message = 'building repo.' )
 
