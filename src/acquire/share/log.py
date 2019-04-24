@@ -41,7 +41,7 @@ class LogAdapter( logging.LoggerAdapter ):
 
   def log( self, level, message, *args, **kwargs ):
     if ( self.logger.isEnabledFor( level ) ) :
-      message = ( ' ' * self.indent ) + message
+      message = ( '  ' * self.indent ) + message
   
       for ( src, dst ) in self.replace.items() :
         message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )

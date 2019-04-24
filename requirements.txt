@@ -1,6 +1,7 @@
 boto3
 docker
 Flask
+gitpython
 jsonschema
 more-itertools
 picoscope

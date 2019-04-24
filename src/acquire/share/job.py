@@ -13,7 +13,7 @@ from acquire import driver as driver
 from acquire import repo   as repo
 from acquire import depo   as depo
 
-import importlib, json, more_itertools as mit, os, subprocess, sys
+import git, importlib, json, more_itertools as mit, os, re, subprocess, sys
 
 class Job( object ) :
   def __init__( self, conf, path, log ) :
@@ -66,7 +66,36 @@ class Job( object ) :
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
 
+  # 1. check repo. vs. whitelist
+  #    - fetch upstream repo.
+  #    - perform diff between origin/master and upstream/master
+  #    - for each filename that differs, check vs. pattern
+  # 2. build and program repo. onto board
+  #    - fetch dependencies
+  #    - build dependencies
+  #    - build
+  #    - program
+  #    - clean
+
   def _prepare_board( self ) :
+    whitelist_url     = share.sys.conf.get( 'whitelist-url',     section = 'security' )
+    whitelist_pattern = share.sys.conf.get( 'whitelist-pattern', section = 'security' )
+
+    self.log.indent_inc( message = 'checking repo. vs. whitelist => url=%s, pattern=%s' % ( whitelist_url, whitelist_pattern ) )
+
+    repo = git.Repo( path = 'target' ) ; repo.create_remote( 'upstream', whitelist_url ).fetch() ; f = True
+
+    for filename in repo.git.diff( 'upstream/master', name_only = True ).split( '\n' ) :
+      if( not re.match( whitelist_pattern, filename ) ) :
+        self.log.info( '| failed: ' + filename ) ; f = False
+      else :
+        self.log.info( '| passed: ' + filename )
+
+    self.log.indent_dec()
+
+    if ( not f ) :
+      raise Exception()
+
     #def f( stdout, stderr ) :
     #  self._drain( 'stdout', stdout )
     #  self._drain( 'stderr', stderr )

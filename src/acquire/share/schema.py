@@ -17,29 +17,32 @@ import json, jsonschema, os, sys, tempfile
 
 SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
-    'path:git'          : { 'type' :  'string', 'default' : tempfile.tempdir },
-    'path:job'          : { 'type' :  'string', 'default' : tempfile.tempdir },
-    'path:log'          : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:git'                   : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:job'                   : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:log'                   : { 'type' :  'string', 'default' : tempfile.tempdir },
 
-    'creds'             : { 'type' :  'object', 'default' : {}               },
+    'security:creds'             : { 'type' :  'object', 'default' : {}               },
 
-    'server-push:host'  : { 'type' :  'string', 'default' :      '127.0.0.1' },
-    'server-push:port'  : { 'type' :  'number', 'default' :             1234 },
+    'security:whitelist-url'     : { 'type' :  'string', 'default' : 'git@scarv_lab-target:scarv/lab-target.git' },
+    'security:whitelist-pattern' : { 'type' :  'string', 'default' : 'src/kernel/.*'                             },
 
-    'server-pull:wait'  : { 'type' :  'number', 'default' :               60 },
-    'server-pull:ping'  : { 'type' :  'number', 'default' :               10 },
+    'server-push:host'           : { 'type' :  'string', 'default' :      '127.0.0.1' },
+    'server-push:port'           : { 'type' :  'number', 'default' :             1234 },
 
-    'run:env'           : { 'type' :  'object', 'default' : {}               },
-    'run:timeout'       : { 'type' :  'number', 'default' :               60 },
+    'server-pull:wait'           : { 'type' :  'number', 'default' :               60 },
+    'server-pull:ping'           : { 'type' :  'number', 'default' :               10 },
+
+    'run:env'                    : { 'type' :  'object', 'default' : {}               },
+    'run:timeout'                : { 'type' :  'number', 'default' :               60 },
   
-    'job:timeout'       : { 'type' :  'number', 'default' :                1 },
+    'job:timeout'                : { 'type' :  'number', 'default' :                1 },
 
-    'job:manifest-file' : { 'type' :  'string'                               },
-    'job:manifest-data' : { 'type' :  'string'                               },
+    'job:manifest-file'          : { 'type' :  'string'                               },
+    'job:manifest-data'          : { 'type' :  'string'                               },
 
-    'job:clean'         : { 'type' : 'boolean', 'default' : False            },
+    'job:clean'                  : { 'type' : 'boolean', 'default' : False            },
 
-    'job:device-db'     : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
+    'job:device-db'              : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
         'board-desc' : { 'type' : 'string' },
         'board-id'   : { 'type' : 'string' },
