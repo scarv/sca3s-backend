@@ -1,27 +1,27 @@
-# [`lab.scarv.org`](https://github.com/scarv/lab.scarv.org): acquisition appliance
+# [SCA3S](https://github.com/scarv/sca3s): acquisition server
 
 <!--- -------------------------------------------------------------------- --->
 
-[![Build Status](https://travis-ci.com/scarv/lab-acquire.svg)](https://travis-ci.com/scarv/lab-acquire)
-[![Documentation](https://codedocs.xyz/scarv/lab-acquire.svg)](https://codedocs.xyz/scarv/lab-acquire)
+[![Build Status](https://travis-ci.com/scarv/sca3s-acquire.svg)](https://travis-ci.com/scarv/sca3s-acquire)
+[![Documentation](https://codedocs.xyz/scarv/sca3s-acquire.svg)](https://codedocs.xyz/scarv/sca3s-acquire)
 
 <!--- -------------------------------------------------------------------- --->
 
 *Acting as a component part of the
 [SCARV](https://www.scarv.org)
 project,
-`lab.scarv.org` is a collection of resources that support the
-development and analysis of cryptographic implementations wrt.
+SCA3S is a collection of resources that support the development 
+and analysis of cryptographic implementations wrt.
 [side-channel attack](https://en.wikipedia.org/wiki/Side-channel_attack):
 it places particular emphasis on analogue side-channels (e.g.,
 power and EM) stemming from
 [RISC-V](https://riscv.org)-based
 platforms.
 The main
-[repository](https://github.com/scarv/lab.scarv.org)
+[repository](https://github.com/scarv/sca3s)
 acts as a general container for associated resources;
 this specific submodule houses
-the acquisition appliance, which is, for example, tasked with orchestrating the acquisition of trace sets.*
+the acquisition server, which is, for example, tasked with orchestrating the acquisition of trace sets.*
 
 <!--- -------------------------------------------------------------------- --->
 
@@ -46,13 +46,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
 
 ## Quickstart
 
-1. The main `lab.scarv.org`
-   [repository](https://github.com/scarv/lab.scarv.org)
-   houses some overarching documentation, which offers some
-   context and explanation: it *might* be sensible to start
-   by reading that.
-
-2. Install any associated pre-requisites, e.g.,
+1. Install any associated pre-requisites, e.g.,
 
    - a
      [Python 3](https://www.python.org)
@@ -74,11 +68,11 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
      [Doxygen](http://www.doxygen.nl)
      documentation generation system.
 
-3. Execute
+2. Execute
 
    ```sh
-   git clone https://github.com/scarv/lab-acquire.git
-   cd ./lab-acquire
+   git clone https://github.com/scarv/sca3s-acquire.git
+   cd ./sca3s-acquire
    source ./bin/conf.sh
    ```
 
@@ -88,7 +82,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
    `REPO_HOME`
    is set appropriately.
 
-4. Perform various preparatory steps:
+3. Perform various preparatory steps:
 
    1. Create and populate a suitable Python
       [virtual environment](https://docs.python.org/library/venv.html)
@@ -128,7 +122,7 @@ the acquisition appliance, which is, for example, tasked with orchestrating the 
       can significantly improve efficiency wrt. repeated
       download of common repositories.
 
-5. Either
+4. Either
 
    1. execute the acquisition appliance directly via
 
