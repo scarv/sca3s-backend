@@ -86,7 +86,7 @@ class Job( object ) :
       repo = git.Repo.init( path = path )
 
       repo.git.add( all = True )
-      repo.git.commit( message = 'repo. construction', all = True )
+      repo.git.commit( message = ' constructed repo. from non-repo. source', all = True )
 
     self.log.indent_dec()
 
@@ -95,7 +95,10 @@ class Job( object ) :
     repo.create_remote( 'upstream', whitelist_url ).fetch() ; fail = False
 
     for filename in repo.git.diff( 'upstream/master', name_only = True ).split( '\n' ) :
-      if( None != re.match( whitelist_pattern, filename ) ) :
+      if ( not filename.strip() ) :
+        continue
+
+      if( None == re.match( whitelist_pattern, filename ) ) :
         self.log.info( '| failed: ' + filename ) ; fail = True
       else :
         self.log.info( '| passed: ' + filename )
