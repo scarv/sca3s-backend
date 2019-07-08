@@ -73,8 +73,8 @@ class Job( object ) :
   #    - for each filename that differs, check vs. pattern
 
   def _prepare_repo( self ) :
-    whitelist_url     = share.sys.conf.get( 'whitelist-url',     section = 'security' )
-    whitelist_pattern = share.sys.conf.get( 'whitelist-pattern', section = 'security' )
+    diff_url     = share.sys.conf.get( 'diff-url',     section = 'security' )
+    diff_pattern = share.sys.conf.get( 'diff-pattern', section = 'security' )
 
     path              = os.path.join( self.path, 'target' )
 
@@ -92,13 +92,13 @@ class Job( object ) :
 
     self.log.indent_inc( message = 'checking repo.' )
 
-    repo.create_remote( 'upstream', whitelist_url ).fetch() ; fail = False
+    repo.create_remote( 'upstream', diff_url ).fetch() ; fail = False
 
     for filename in repo.git.diff( 'upstream/master', name_only = True ).split( '\n' ) :
       if ( not filename.strip() ) :
         continue
 
-      if( None == re.match( whitelist_pattern, filename ) ) :
+      if( None == re.match( diff_pattern, filename ) ) :
         self.log.info( '| failed: ' + filename ) ; fail = True
       else :
         self.log.info( '| passed: ' + filename )
@@ -294,7 +294,7 @@ class Job( object ) :
     self.repo.transfer()
     self.log.indent_dec()
 
-  # 1. prepare repo.,  e.g., check vs. whitelist
+  # 1. prepare repo.,  e.g., check vs. diff
   # 1. prepare board,  e.g., build and program target implementation
   # 2. prepare driver, e.g., query target implemention parameters
   # 3. prepare scope,  e.g., calibrate wrt. target implementation

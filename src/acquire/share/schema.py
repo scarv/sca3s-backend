@@ -17,32 +17,32 @@ import json, jsonschema, os, sys, tempfile
 
 SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
-    'path:git'                   : { 'type' :  'string', 'default' : tempfile.tempdir },
-    'path:job'                   : { 'type' :  'string', 'default' : tempfile.tempdir },
-    'path:log'                   : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:git'              : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:job'              : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:log'              : { 'type' :  'string', 'default' : tempfile.tempdir },
 
-    'security:creds'             : { 'type' :  'object', 'default' : {}               },
+    'security:creds'        : { 'type' :  'object', 'default' : {}               },
 
-    'security:whitelist-url'     : { 'type' :  'string', 'default' : 'git@scarv_lab-target:scarv/lab-target.git' },
-    'security:whitelist-pattern' : { 'type' :  'string', 'default' : 'src/kernel/.*'                             },
+    'security:diff-url'     : { 'type' :  'string', 'default' : 'git@scarv_sca3s-target:scarv/sca3s-target.git' },
+    'security:diff-pattern' : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                       },
 
-    'server-push:host'           : { 'type' :  'string', 'default' :      '127.0.0.1' },
-    'server-push:port'           : { 'type' :  'number', 'default' :             1234 },
+    'server-push:host'      : { 'type' :  'string', 'default' :      '127.0.0.1' },
+    'server-push:port'      : { 'type' :  'number', 'default' :             1234 },
 
-    'server-pull:wait'           : { 'type' :  'number', 'default' :               60 },
-    'server-pull:ping'           : { 'type' :  'number', 'default' :               10 },
+    'server-pull:wait'      : { 'type' :  'number', 'default' :               60 },
+    'server-pull:ping'      : { 'type' :  'number', 'default' :               10 },
 
-    'run:env'                    : { 'type' :  'object', 'default' : {}               },
-    'run:timeout'                : { 'type' :  'number', 'default' :               60 },
+    'run:env'               : { 'type' :  'object', 'default' : {}               },
+    'run:timeout'           : { 'type' :  'number', 'default' :               60 },
   
-    'job:timeout'                : { 'type' :  'number', 'default' :                1 },
+    'job:timeout'           : { 'type' :  'number', 'default' :                1 },
 
-    'job:manifest-file'          : { 'type' :  'string'                               },
-    'job:manifest-data'          : { 'type' :  'string'                               },
+    'job:manifest-file'     : { 'type' :  'string'                               },
+    'job:manifest-data'     : { 'type' :  'string'                               },
 
-    'job:clean'                  : { 'type' : 'boolean', 'default' : False            },
+    'job:clean'             : { 'type' : 'boolean', 'default' : False            },
 
-    'job:device-db'              : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
+    'job:device-db'         : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
         'board-desc' : { 'type' : 'string' },
         'board-id'   : { 'type' : 'string' },
@@ -91,7 +91,7 @@ SCHEMA_JOB  = {
       'properties' : {
         'driver-id'   : { 'enum' : [ 'block/enc' ] },
         'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-
+          'verify' : { 'type' : 'boolean', 'default' : True }
         } },
          'trace-spec' : { 
            'allOf' : [ { '$ref' : '#/definitions/trace-spec' }, { 'properties' : { # extend trace-spec w. driver-specific content options
@@ -105,7 +105,7 @@ SCHEMA_JOB  = {
       'properties' : {
         'driver-id'   : { 'enum' : [ 'block/dec' ] },
         'driver-spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-
+          'verify' : { 'type' : 'boolean', 'default' : True }
         } },
          'trace-spec' : { 
            'allOf' : [ { '$ref' : '#/definitions/trace-spec' }, { 'properties' : { # extend trace-spec w. driver-specific content options

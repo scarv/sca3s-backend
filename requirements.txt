@@ -2,9 +2,11 @@ boto3
 docker
 Flask
 gitpython
+h5py
 jsonschema
 more-itertools
 picoscope
+pycrypto
 PyJWT
 pyserial
 requests

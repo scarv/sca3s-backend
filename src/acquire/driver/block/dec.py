@@ -21,8 +21,8 @@ class DriverImp( Block ) :
 
   def acquire( self ) :
     k = self.kernel_k
-    r = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
-    c = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_c ) ] )
+    r = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
+    c = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_c ) ] )
 
     if ( len( k ) > 0 ) :
       self.job.board.interact( '>reg k %s' % share.util.str2octetstr( k ).upper() )
@@ -39,6 +39,17 @@ class DriverImp( Block ) :
     ( trigger, signal ) = self.job.scope.acquire( scope.ACQUIRE_MODE_COLLECT )
   
     m = share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
+
+    if ( self.driver_spec.get( 'verify' ) ) :
+      if   ( self.kernel_id == 'aes-128' ) :
+        if ( m != AES.new( k ).decrypt( c ) ) :
+          raise Exception()  
+      elif ( self.kernel_id == 'aes-192' ) :
+        if ( m != AES.new( k ).decrypt( c ) ) :
+          raise Exception()  
+      elif ( self.kernel_id == 'aes-256' ) :
+        if ( m != AES.new( k ).decrypt( c ) ) :
+          raise Exception()  
 
     tsc_dec = share.util.seq2int( share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )

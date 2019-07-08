@@ -15,14 +15,16 @@ from acquire import depo   as depo
 
 from .       import *
 
+import Crypto.Cipher.AES as AES
+
 class DriverImp( Block ) :
   def __init__( self, job ) :
     super().__init__( job )
 
   def acquire( self ) :
     k = self.kernel_k
-    r = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
-    m = bytearray( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_m ) ] )
+    r = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
+    m = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_m ) ] )
 
     if ( len( k ) > 0 ) :
       self.job.board.interact( '>reg k %s' % share.util.str2octetstr( k ).upper() )
@@ -39,6 +41,17 @@ class DriverImp( Block ) :
     ( trigger, signal ) = self.job.scope.acquire( scope.ACQUIRE_MODE_COLLECT )
   
     c = share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
+
+    if ( self.driver_spec.get( 'verify' ) ) :
+      if   ( self.kernel_id == 'aes-128' ) :
+        if ( c != AES.new( k ).encrypt( m ) ) :
+          raise Exception()  
+      elif ( self.kernel_id == 'aes-192' ) :
+        if ( c != AES.new( k ).encrypt( m ) ) :
+          raise Exception() 
+      elif ( self.kernel_id == 'aes-256' ) :
+        if ( c != AES.new( k ).encrypt( m ) ) :
+          raise Exception()  
 
     tsc_enc = share.util.seq2int( share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
