@@ -15,7 +15,7 @@ from acquire import depo   as depo
 
 from acquire import server as server
 
-import flask, os, queue, shutil, tempfile, threading, time
+import flask, os, queue, shutil, signal, tempfile, threading, time
 
 STATUS_SUCCESS                = 0
 
@@ -117,7 +117,20 @@ def mode_server_pull() :
   server_pull_wait = int( share.sys.conf.get( 'wait', section = 'server-pull' ) )
   server_pull_ping = int( share.sys.conf.get( 'ping', section = 'server-pull' ) )
 
-  ping = 0 ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+  term = False ; ping = 0 ; db = list( share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+
+  def signalHandler( signum, frame ) :
+    nonlocal term
+
+    if   ( signum == signal.SIGABRT ) :
+      term = True
+    elif ( signum == signal.SIGTERM ) :
+      term = True
+
+    return
+
+  signal.signal( signal.SIGABRT, signalHandler )
+  signal.signal( signal.SIGTERM, signalHandler )
 
   while( True ) :
     manifest = server_pull.receive_job( db )
@@ -142,6 +155,9 @@ def mode_server_pull() :
         share.sys.log.info( 'polled queue %d times ... no jobs', server_pull_ping ) 
 
       ping += 1
+
+    if ( term ) :
+      share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
 
     time.sleep( server_pull_wait )
 
