@@ -25,18 +25,16 @@ class Block( driver.DriverAbs ) :
     if ( len( t ) != 3 ) :
       raise Exception()
 
-    self.driver_version = t[ 0 ]
-    self.driver_id      = t[ 1 ]
-    self.kernel_id      = t[ 2 ]
+    self.job.log.info( 'driver version     = %s', t[ 0 ] )
+    self.job.log.info( 'driver id          = %s', t[ 1 ] )
+    self.job.log.info( 'kernel id          = %s', t[ 2 ] )
 
-    self.job.log.info( 'driver version     = %s', self.driver_version  )
-    self.job.log.info( 'driver id          = %s', self.driver_id       )
-    self.job.log.info( 'kernel id          = %s', self.kernel_id       )
+    if ( t[ 0 ] != share.version.VERSION ) :
+      raise Exception()
+    if ( t[ 1 ] != 'block'               ) :
+      raise Exception()
 
-    if ( self.driver_version != share.version.VERSION ) :
-      raise Exception()
-    if ( self.driver_id      != 'block'               ) :
-      raise Exception()
+    self.kernel_id       = t[ 2 ]
 
     self.kernel_sizeof_k = int( self.job.board.interact( '?reg k' ), 16 )
     self.kernel_sizeof_r = int( self.job.board.interact( '?reg r' ), 16 )

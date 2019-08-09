@@ -52,13 +52,12 @@ class Remote():
         """
         Retrieves pending jobs from the SCARV API.
         """
-        self._authorize()
+        #self._authorize()
         params = { 'device-db' : devices }
-        headers = {"Authorization": "Bearer " + self._access_token}
+        #headers = {"Authorization": "Bearer " + self._access_token}
         for i in range(3):
             res = requests.get("https://lab.scarv.org/api/acquisition/job",
-                               params = params,
-                               headers = headers)
+                               params = params )
             if res.status_code == 200:
                 job = res.json()
                 if job["status"] == JSONStatus.SUCCESS:
@@ -79,14 +78,13 @@ class Remote():
         :param job_id: Job ID to finish.
         :param error_code: If an error has occured, specify it here (JSONStatus enum only).
         """
-        self._authorize()
+        #self._authorize()
         remark = "archiving"
         if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
             remark = "failed:" + str(error_code)
-        headers = {"Authorization": "Bearer " + self._access_token}
+        #headers = {"Authorization": "Bearer " + self._access_token}
         for i in range(3):
             res = requests.patch("https://lab.scarv.org/api/acquisition/job/" + job_id,
-                                 headers = headers,
                                  json={
                                      "remark" : remark
                                  })

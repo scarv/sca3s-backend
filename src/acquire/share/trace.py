@@ -59,7 +59,7 @@ class TracePKL( Trace ) :
   def __init__( self, job ) :
     super().__init__( job )  
 
-  def   open( self ) :
+  def   open( self, n ) :
     if ( not os.path.exists( './trace' ) ) :
       os.mkdir( './trace' )
 
@@ -82,7 +82,7 @@ class TraceCSV( Trace ) :
   def __init__( self, job ) :
     super().__init__( job )  
 
-  def   open( self ) :
+  def   open( self, n ) :
     self.fd = open( './trace.csv', 'w' ) ; self.writer = csv.writer( self.fd, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_ALL )
 
   def update( self, trace, i, n ) :
@@ -112,7 +112,7 @@ class TraceTRS( Trace ) :
   def __init__( self, job ) :
     super().__init__( job )  
 
-  def   open( self ) :
+  def   open( self, n ) :
     self.fd = trsfile.open( './trace.trs', 'w', padding_mode = trsfile.TracePadding.AUTO )
 
   def update( self, trace, i, n ) :

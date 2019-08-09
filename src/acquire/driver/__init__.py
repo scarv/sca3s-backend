@@ -45,7 +45,7 @@ class DriverAbs( abc.ABC ) :
     elif ( trace_format == 'trs' ) :
       trace = share.trace.TraceTRS( self.job )
 
-    trace.open()
+    trace.open( trace_count )
 
     for i in range( trace_count ) :
       self.job.log.indent_inc( message = 'started  acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )

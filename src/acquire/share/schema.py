@@ -186,7 +186,7 @@ SCHEMA_JOB  = {
               'bucket-id'             : { 'type' :     'string', 'default' : 'scarv-lab-traces' },
   
             'verify'                  : { 'type' :    'boolean', 'default' : True               }
-        }, 'required' : [ 'identity_id' ] }
+        }, 'required' : [] }
       }
     } ] }
   ]
