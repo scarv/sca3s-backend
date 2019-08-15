@@ -22,6 +22,7 @@ class Job( object ) :
     self.conf    = conf
     self.version = self.conf.get( 'version' )
     self.id      = self.conf.get(      'id' )
+    self.user_id = self.conf.get( 'user_id' )
 
     self.path    = path
     self.log     = log
