@@ -20,12 +20,12 @@ class Job( object ) :
     super().__init__()  
 
     self.conf    = conf
-    self.version = self.conf.get( 'version' )
-    self.id      = self.conf.get(      'id' )
-    self.user_id = self.conf.get( 'user_id' )
-
     self.path    = path
     self.log     = log
+
+    self.version =      self.conf.get( 'version' )
+    self.id      =      self.conf.get(      'id' )
+    self.user_id = str( self.conf.get( 'user_id' ) )
 
   def _build_board( self ) :
     t = self.conf.get(  'board-id' )
@@ -74,6 +74,8 @@ class Job( object ) :
   #    - for each filename that differs, check vs. pattern
 
   def _prepare_repo( self ) :
+    return # TODO: reinstance this once upstream repo. is public, otherwise auth. fails
+
     diff_url     = share.sys.conf.get( 'diff-url',     section = 'security' )
     diff_pattern = share.sys.conf.get( 'diff-pattern', section = 'security' )
 

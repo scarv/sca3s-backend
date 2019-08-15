@@ -74,6 +74,7 @@ SCHEMA_JOB  = {
   'type' : 'object', 'default' : {}, 'properties' : {
     'version'     : { 'type' :  'string' },
     'id'          : { 'type' :  'string' },
+    'user_id'     : { 'type' :  'number' },
 
     'remark'      : { 'type' :  'string' },
     'status'      : { 'type' :  'number' },
@@ -85,7 +86,7 @@ SCHEMA_JOB  = {
       'depo-id'   : { 'type' :  'string' },
 
      'trace-spec' : { '$ref' : '#/definitions/trace-spec' }
-  }, 'required' : [ 'version', 'id', 'repo-id', 'depo-id', 'driver-id', 'device-id', 'trace-spec' ],
+  }, 'required' : [ 'version', 'id', 'user_id', 'repo-id', 'depo-id', 'driver-id', 'device-id', 'trace-spec' ],
   'allOf' : [ {
     'oneOf' : [ { # options: driver-spec
       'properties' : {

@@ -46,6 +46,8 @@ def process( manifest ) :
     except Exception as e :
       result = STATUS_FAILURE_VALIDATING_JOB ; raise e
 
+    share.sys.log.info( '|< validating job' )
+
     share.sys.log.info( '|> allocating job' )
 
     try :
@@ -58,6 +60,8 @@ def process( manifest ) :
 
     except Exception as e :
       result = STATUS_FAILURE_ALLOCATING_JOB ; raise e
+
+    share.sys.log.info( '|< allocating job' )
 
     share.sys.log.info( '|> processing job' )
 
@@ -74,6 +78,8 @@ def process( manifest ) :
 
   except Exception as e :
     share.exception.dump( e, log = share.sys.log )
+
+    share.sys.log.info( '|< processing job' )
 
   return ( id, result )
 
