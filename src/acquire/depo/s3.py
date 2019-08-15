@@ -20,9 +20,7 @@ class DepoImp( depo.DepoAbs ) :
     super().__init__( job )
 
     self.access_key_id = share.sys.conf.get( 'creds', section = 'security' ).get( 'access-key-id', section = 'aws' )
-    self.access_key    = share.sys.conf.get( 'creds', section = 'security' ).get( 'access-key',    section = 'aws' ) 
-
-    self.identity_id   =       self.depo_spec.get( 'identity_id' )
+    self.access_key    = share.sys.conf.get( 'creds', section = 'security' ).get( 'access-key',    section = 'aws' )
 
     self.region_id     =       self.depo_spec.get( 'region-id'   )
     self.bucket_id     =       self.depo_spec.get( 'bucket-id'   )
@@ -35,7 +33,7 @@ class DepoImp( depo.DepoAbs ) :
     bucket   = resource.Bucket( self.bucket_id )
 
     def copy( src, quiet = False ) :
-      dst = os.path.join( self.identity_id, self.job.id, os.path.relpath( src, start = self.job.path ) )
+      dst = os.path.join( self.job.user_id, self.job.id, os.path.relpath( src, start = self.job.path ) )
 
       if ( not quiet ) :
         self.job.log.debug( '[src=%s] --> [dst=%s]' % ( os.path.relpath( src, start = self.job.path ), dst ) )
