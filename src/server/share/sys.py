@@ -25,12 +25,14 @@ def init() :
 
   parser = argparse.ArgumentParser( add_help = False )
   
-  parser.add_argument( '--sys:help',          action =    'help'                                                                                                      )
-  parser.add_argument( '--sys:version',       action = 'version',                                                    version = share.version.VERSION                  )
-  parser.add_argument( '--sys:debug',         action =   'count',                                                    default = 0                                      )
+  parser.add_argument( '--sys:help',          action =    'help'                                                                                       )
+  parser.add_argument( '--sys:version',       action = 'version',                                     version = share.version.VERSION                  )
+  parser.add_argument( '--sys:debug',         action =   'count',                                     default = 0                                      )
 
-  parser.add_argument( '--sys:conf',          action =   'store',                                                    default = os.path.expandvars( '${HOME}/.scarv' ) )
-  parser.add_argument( '--sys:mode',          action =   'store', choices = [ 'cli', 'server-push', 'server-pull' ], default = 'cli'                                  )
+  parser.add_argument( '--sys:type',          action =   'store', choices = [ 'acquire', 'analyse' ], default = 'acquire'                              )
+  parser.add_argument( '--sys:mode',          action =   'store', choices = [ 'cli', 'api'         ], default = 'cli'                                  )
+
+  parser.add_argument( '--sys:conf',          action =   'store',                                     default = os.path.expandvars( '${HOME}/.scarv' ) )
 
   parser.add_argument( '--path:git',          action =   'store', type = str )
   parser.add_argument( '--path:job',          action =   'store', type = str )
@@ -43,14 +45,14 @@ def init() :
 
   args = { key.replace( '_', '-' ) : value for ( key, value ) in vars( parser.parse_args() ).items() if ( value != None ) }
 
-  # initialise system configuration
+  # initialise system configuration, from configuration file *then* command line arguments
 
   conf = share.conf.Conf()
 
   conf.populate( args[ 'sys:conf' ] )
   conf.populate( args               )
 
-  share.schema.validate( conf, share.schema.SCHEMA_CONF )
+  share.schema.validate( conf, share.conf.SCHEMA )
 
   # initialise system logger
 

@@ -4,16 +4,17 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share  as share
+import spec         as spec
+import server.share as share
 
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
+import server.acquire.board  as board
+import server.acquire.scope  as scope
+import server.acquire.driver as driver
 
-from acquire import repo   as repo
-from acquire import depo   as depo
+import server.acquire.repo   as repo
+import server.acquire.depo   as depo
 
-from acquire import server as server
+import server.acquire.server as server
 
 import flask, os, queue, shutil, signal, tempfile, threading, time
 
@@ -41,7 +42,7 @@ def process( manifest ) :
         else :
           raise share.exception.ConfigurationException()
     
-      share.schema.validate( manifest, share.schema.SCHEMA_JOB )
+      share.schema.validate( manifest, spec.acquire.SCHEMA )
   
     except Exception as e :
       result = STATUS_FAILURE_VALIDATING_JOB ; raise e
@@ -76,48 +77,24 @@ def process( manifest ) :
     if ( share.sys.conf.get( 'clean', section = 'job' ) ) :
       shutil.rmtree( path, ignore_errors = True )
 
+    share.sys.log.info( '|< processing job' )
+
   except Exception as e :
     share.exception.dump( e, log = share.sys.log )
 
-    share.sys.log.info( '|< processing job' )
-
   return ( id, result )
 
-def mode_cli() :
+def run_cli() :
   if   ( share.sys.conf.has( 'manifest-file', section = 'job' ) ) :
     manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-file', section = 'job' ) )
   elif ( share.sys.conf.has( 'manifest-data', section = 'job' ) ) :
     manifest = share.conf.Conf( conf = share.sys.conf.get( 'manifest-data', section = 'job' ) )
+  else :
+    raise share.exception.ConfigurationException()
 
   process( manifest )
 
-def mode_server_push() :
-  server_push_host  =      share.sys.conf.get( 'host', section = 'server-push' )
-  server_push_port  = int( share.sys.conf.get( 'port', section = 'server-push' ) )
-
-  server_push       = flask.Flask( __name__, host = server_push_host, port = server_push_port ) 
-      
-  @server_push.route( '/api/device', methods = [ 'GET', 'POST' ] )
-  def server_push_api_device() :
-    t = dict()
-      
-    for ( key, value ) in share.sys.conf.get( 'device-db', section = 'job' ).items() :
-      t[ key ] = { 'board-desc' : value[ 'board-desc' ],
-                   'scope-desc' : value[ 'scope-desc' ] }
-      
-    return flask.jsonify( t )
-      
-  @server_push.route( '/api/submit', methods = [ 'GET', 'POST' ] )
-  def server_push_api_submit() :
-    manifest = flask.request.get_json()
-
-    process( share.conf.Conf( conf = manifest ) )
-
-    return ''
-      
-  server_push.run()
-
-def mode_server_pull() :
+def run_api() :
   server_pull      = server.remote.Remote()
       
   server_pull_wait = int( share.sys.conf.get( 'wait', section = 'server-pull' ) )
@@ -171,12 +148,19 @@ if ( __name__ == '__main__' ) :
   try :
     share.sys.init()
 
-    if   ( share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'         ) :
-      mode_cli()
-    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'server-push' ) :
-      mode_server_push()
-    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'server-pull' ) :
-      mode_server_pull()
+    if   ( share.sys.conf.get( 'type', section = 'sys' ) == 'acquire' ) :
+      pass
+    elif ( share.sys.conf.get( 'type', section = 'sys' ) == 'analyse' ) :
+      pass
+    else :
+      raise share.exception.ConfigurationException()
+
+    if   ( share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'     ) :
+      do_cli()
+    elif ( share.sys.conf.get( 'mode', section = 'sys' ) == 'api'     ) :
+      do_api()
+    else :
+      raise share.exception.ConfigurationException()
 
   except Exception as e :
     raise e

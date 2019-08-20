@@ -4,9 +4,6 @@ if [ -z ${REPO_HOME} ] ; then
   echo "REPO_HOME environment variable undefined: aborting" ; exit
 fi
 
-python3 -m venv --clear ${REPO_HOME}/build/venv
-
 source ${REPO_HOME}/build/venv/bin/activate
 
-python3 -m pip install --upgrade pip
-python3 -m pip install -r ${REPO_HOME}/requirements.txt
+PYTHONPATH="${PYTHONPATH}:${REPO_HOME}/src:${REPO_HOME}/extern/sca3s-spec/src" python3 -m server.main --sys:type="analyse" "${@}"

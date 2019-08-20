@@ -4,8 +4,6 @@ if [ -z ${REPO_HOME} ] ; then
   echo "REPO_HOME environment variable undefined: aborting" ; exit
 fi
 
-# activate virtual environment
 source ${REPO_HOME}/build/venv/bin/activate
 
-# execute
-PYTHONPATH="${PYTHONPATH}:${REPO_HOME}/src" python3 -m acquire.main "${@}"
+PYTHONPATH="${PYTHONPATH}:${REPO_HOME}/src:${REPO_HOME}/extern/sca3s-spec/src" python3 -m server.main --sys:type="acquire" "${@}"
