@@ -4,14 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share
-
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
-
-from acquire import repo   as repo
-from acquire import depo   as depo
+import sca3s_backend as be
+import sca3s_spec    as spec
 
 import binascii, hashlib
 
@@ -92,9 +86,9 @@ def measure( mode, samples, threshold ) :
     if ( (     done ) and ( sample < threshold ) ) :
       done = False ; edge_neg = i ; break
 
-  if   ( mode == share.util.MEASURE_MODE_DURATION    ) :
+  if   ( mode == MEASURE_MODE_DURATION    ) :
     return edge_neg - edge_pos
-  elif ( mode == share.util.MEASURE_MODE_TRIGGER_POS ) :
+  elif ( mode == MEASURE_MODE_TRIGGER_POS ) :
     return            edge_pos
-  elif ( mode == share.util.MEASURE_MODE_TRIGGER_NEG ) :
+  elif ( mode == MEASURE_MODE_TRIGGER_NEG ) :
     return edge_neg

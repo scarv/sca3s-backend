@@ -4,14 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share
-
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
-
-from acquire import repo   as repo
-from acquire import depo   as depo
+import sca3s_backend as be
+import sca3s_spec    as spec
 
 import sys, traceback
 

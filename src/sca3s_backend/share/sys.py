@@ -4,14 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share
-
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
-
-from acquire import repo   as repo
-from acquire import depo   as depo
+import sca3s_backend as be
+import sca3s_spec    as spec
 
 import argparse, os, sys
 
@@ -26,10 +20,10 @@ def init() :
   parser = argparse.ArgumentParser( add_help = False )
   
   parser.add_argument( '--sys:help',          action =    'help'                                                                                       )
-  parser.add_argument( '--sys:version',       action = 'version',                                     version = share.version.VERSION                  )
+  parser.add_argument( '--sys:version',       action = 'version',                                     version = be.share.version.VERSION               )
   parser.add_argument( '--sys:debug',         action =   'count',                                     default = 0                                      )
 
-  parser.add_argument( '--sys:type',          action =   'store', choices = [ 'acquire', 'analyse' ], default = 'acquire'                              )
+  parser.add_argument( '--sys:task',          action =   'store', choices = [ 'acquire', 'analyse' ], default = 'acquire'                              )
   parser.add_argument( '--sys:mode',          action =   'store', choices = [ 'cli', 'api'         ], default = 'cli'                                  )
 
   parser.add_argument( '--sys:conf',          action =   'store',                                     default = os.path.expandvars( '${HOME}/.scarv' ) )
@@ -47,13 +41,13 @@ def init() :
 
   # initialise system configuration, from configuration file *then* command line arguments
 
-  conf = share.conf.Conf()
+  conf = be.share.conf.Conf()
 
   conf.populate( args[ 'sys:conf' ] )
   conf.populate( args               )
 
-  share.schema.validate( conf, share.conf.SCHEMA )
+  spec.share.schema.validate( conf, be.share.conf.SCHEMA_CONF )
 
   # initialise system logger
 
-  log  = share.log.build_log_sys()
+  log  = be.share.log.build_log_sys()

@@ -4,14 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share
-
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
-
-from acquire import repo   as repo
-from acquire import depo   as depo
+import sca3s_backend as be
+import sca3s_spec    as spec
 
 import logging, logging.handlers, os, sys
 
@@ -55,10 +49,10 @@ def build_log_sys( name = '', path = 'acquire.log', replace = dict() ) :
   handler = logging.StreamHandler( sys.stdout )
   handler.setFormatter( formatter ) ; logger.addHandler( handler )
 
-  handler = logging.handlers.RotatingFileHandler( os.path.join( share.sys.conf.get( 'log', section = 'path' ), path ), maxBytes = 1 << 20, backupCount = 100 )
+  handler = logging.handlers.RotatingFileHandler( os.path.join( be.share.sys.conf.get( 'log', section = 'path' ), path ), maxBytes = 1 << 20, backupCount = 100 )
   handler.setFormatter( formatter ) ; logger.addHandler( handler )
 
-  debug = int( share.sys.conf.get( 'debug', section = 'sys' ) )
+  debug = int( be.share.sys.conf.get( 'debug', section = 'sys' ) )
 
   if   ( debug == 0 ) :
     logger.setLevel( logging.INFO  )

@@ -4,18 +4,12 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share
-
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
-
-from acquire import repo   as repo
-from acquire import depo   as depo
+import sca3s_backend as be
+import sca3s_spec    as spec
 
 import json, jsonschema, os, sys, tempfile
 
-SCHEMA = {
+SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
     'path:git'              : { 'type' :  'string', 'default' : tempfile.tempdir },
     'path:job'              : { 'type' :  'string', 'default' : tempfile.tempdir },
@@ -102,7 +96,7 @@ class Conf( dict ) :
     for ( key, value ) in self.items() :
       if ( value != None ) :
         if   ( isinstance( value, dict ) ) :
-          value = share.conf.Conf( conf = value )
+          value = be.share.conf.Conf( conf = value )
         elif ( isinstance( value, str  ) ) :
           value = os.path.expandvars( value )
 

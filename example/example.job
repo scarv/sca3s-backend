@@ -1,5 +1,6 @@
 { "version"    : "0.1.0",
   "id"         : "foo",
+  "user_id"    : 1234,
 
   "device-id"  : "scale-m3/ps2206b",
   "driver-id"  : "block/enc",

@@ -4,14 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share
-
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
-
-from acquire import repo   as repo
-from acquire import depo   as depo
+import sca3s_backend as be
+import sca3s_spec    as spec
 
 import abc, binascii, csv, glob, os, pickle, sys, trsfile
 
@@ -28,14 +22,14 @@ class Trace( abc.ABC ) :
     self.trace_compress = bool( self.trace_spec.get( 'compress' ) )
 
   def _prepare( self, trace ) :
-    l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold )
+    l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold )
 
     self.job.log.info( 'measure via TSC    => {0:d}'.format( trace[ 'tsc' ] ) )
     self.job.log.info( 'measure via signal => {0:g}'.format( l              ) )
 
     if ( self.trace_crop ) :
-      edge_pos = share.util.measure( share.util.MEASURE_MODE_TRIGGER_POS, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold )
-      edge_neg = share.util.measure( share.util.MEASURE_MODE_TRIGGER_NEG, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold )
+      edge_pos = be.share.util.measure( be.share.util.MEASURE_MODE_TRIGGER_POS, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold )
+      edge_neg = be.share.util.measure( be.share.util.MEASURE_MODE_TRIGGER_NEG, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold )
 
       self.job.log.info( 'crop wrt. +ve trigger edge @ {0:d}'.format( edge_pos ) )
       self.job.log.info( 'crop wrt. -ve trigger edge @ {0:d}'.format( edge_neg ) )

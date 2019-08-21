@@ -4,24 +4,14 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share
+import sca3s_backend as be
+import sca3s_spec    as spec
 
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
+import git, importlib, json, more_itertools as mit, os, re, sys
 
-from acquire import repo   as repo
-from acquire import depo   as depo
-
-import git, importlib, json, more_itertools as mit, os, re, subprocess, sys
-
-class Job( object ) :
+class JobImp( be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
-    super().__init__()  
-
-    self.conf    = conf
-    self.path    = path
-    self.log     = log
+    super().__init__( conf, path, log )  
 
     self.version =      self.conf.get( 'version' )
     self.id      =      self.conf.get(      'id' )
@@ -31,7 +21,7 @@ class Job( object ) :
     t = self.conf.get(  'board-id' )
 
     try :
-      return importlib.import_module( 'acquire.board'  + '.' + t.replace( '/', '.' ) ).BoardImp( self )
+      return importlib.import_module( 'sca3s_backend.acquire.board'  + '.' + t.replace( '/', '.' ) ).BoardImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (  'board', t ) )
   
@@ -39,7 +29,7 @@ class Job( object ) :
     t = self.conf.get(  'scope-id' )
   
     try :
-      return importlib.import_module( 'acquire.scope'  + '.' + t.replace( '/', '.' ) ).ScopeImp( self )  
+      return importlib.import_module( 'sca3s_backend.acquire.scope'  + '.' + t.replace( '/', '.' ) ).ScopeImp( self )  
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (  'scope', t ) )
   
@@ -47,7 +37,7 @@ class Job( object ) :
     t = self.conf.get( 'driver-id' )
   
     try :
-      return importlib.import_module( 'acquire.driver' + '.' + t.replace( '/', '.' ) ).DriverImp( self )
+      return importlib.import_module( 'sca3s_backend.acquire.driver' + '.' + t.replace( '/', '.' ) ).DriverImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'driver', t ) )
 
@@ -55,7 +45,7 @@ class Job( object ) :
     t = self.conf.get(   'repo-id' )
 
     try :
-      return importlib.import_module( 'acquire.repo'   + '.' + t.replace( '/', '.' ) ).RepoImp( self )
+      return importlib.import_module( 'sca3s_backend.acquire.repo'   + '.' + t.replace( '/', '.' ) ).RepoImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'repo', t ) )
 
@@ -63,7 +53,7 @@ class Job( object ) :
     t = self.conf.get(   'depo-id' )
 
     try :
-      return importlib.import_module( 'acquire.depo'   + '.' + t.replace( '/', '.' ) ).DepoImp( self )
+      return importlib.import_module( 'sca3s_backend.acquire.depo'   + '.' + t.replace( '/', '.' ) ).DepoImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
 
@@ -194,57 +184,6 @@ class Job( object ) :
         t = self.scope.conf( scope.CONF_MODE_DURATION,  l )
 
       self.log.info(                     'configuration = %s', t )
-
-  def _drain( self, id, lines ) :
-    lines = lines.decode().split( '\n' )
-      
-    if ( ( len( lines ) > 0 ) and ( lines[ -1 ] == '' ) ) :
-      lines.pop()
-      
-    for line in lines :
-      self.log.info( '< %s : %s', id, line )
-
-  def run( self, cmd, env = None, timeout = None, quiet = False, fail = True ) :
-    if ( env     == None ) :
-      env     =      share.sys.conf.get( 'env',     section = 'run' )
-    if ( timeout == None ) :
-      timeout = int( share.sys.conf.get( 'timeout', section = 'run' ) )
-
-    env = { **os.environ, **env }
-
-    if ( not quiet ) :
-      self.log.indent_inc( message = 'execute' )
-
-    if ( not quiet ) :
-      self.log.info( '| cmd : %s', str( cmd ) )
-
-    self.log.debug( '! env     : %s', str( env     ) )
-    self.log.debug( '! timeout : %s', str( timeout ) )
-    self.log.debug( '! quiet   : %s', str( quiet   ) )
-    self.log.debug( '! fail    : %s', str( fail    ) )
-
-    try :
-      pd = subprocess.run( cmd, cwd = self.path, env = env, timeout = timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
-
-      if ( not quiet ) :
-        self._drain( 'stdout', pd.stdout )
-        self._drain( 'stderr', pd.stderr )
-
-      result = pd.returncode ; result_str = 'success' if ( result == 0 ) else 'failure'
-
-    except subprocess.TimeoutExpired :
-      result =            -1 ; result_str = 'timeout'
-
-    if ( not quiet ) :    
-      self.log.info( '| result : %s (exit status = %d)', result_str, result )
-
-    if ( not quiet ) :
-      self.log.indent_dec()
-
-    if ( ( fail == True ) and ( result != 0 ) ) :
-      raise Exception()
-
-    return ( result == 0 )
 
   # 1. dump configuration
   # 2. construct board, scope, driver, repo., and depo. objects

@@ -6,4 +6,4 @@ fi
 
 source ${REPO_HOME}/build/venv/bin/activate
 
-PYTHONPATH="${PYTHONPATH}:${REPO_HOME}/src:${REPO_HOME}/extern/sca3s-spec/src" python3 -m server.main --sys:type="acquire" "${@}"
+PYTHONPATH="${PYTHONPATH}:${REPO_HOME}/src:${REPO_HOME}/extern/sca3s-spec/src" python3 -m sca3s_backend.main --sys:task="acquire" "${@}"
