@@ -7,6 +7,13 @@
 import sca3s_backend as be
 import sca3s_spec    as spec
 
+from sca3s_backend.acquire import board  as board
+from sca3s_backend.acquire import scope  as scope
+from sca3s_backend.acquire import driver as driver
+
+from sca3s_backend.acquire import repo   as repo
+from sca3s_backend.acquire import depo   as depo
+
 import git, importlib, json, more_itertools as mit, os, re, sys
 
 class JobImp( be.share.job.JobAbs ) :
@@ -66,8 +73,8 @@ class JobImp( be.share.job.JobAbs ) :
   def _prepare_repo( self ) :
     return # TODO: reinstance this once upstream repo. is public, otherwise auth. fails
 
-    diff_url     = share.sys.conf.get( 'diff-url',     section = 'security' )
-    diff_pattern = share.sys.conf.get( 'diff-pattern', section = 'security' )
+    diff_url     = be.share.sys.conf.get( 'diff-url',     section = 'security' )
+    diff_pattern = be.share.sys.conf.get( 'diff-pattern', section = 'security' )
 
     path              = os.path.join( self.path, 'target' )
 
@@ -123,7 +130,7 @@ class JobImp( be.share.job.JobAbs ) :
     #                
     #        'REPO_HOME' : '/acquire/job/target', 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ), 'CACHE' : '/acquire/git' }
     #
-    #container = client.containers.run( 'scarv/lab-target' + share.version.VERSION, 'bash', environment = env, volumes = vol, name = 'acquire', detach = True, tty = True )
+    #container = client.containers.run( 'scarv/lab-target' + be.share.version.VERSION, 'bash', environment = env, volumes = vol, name = 'acquire', detach = True, tty = True )
     #
     #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME} deps-fetch'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
     #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME} deps-build'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
@@ -134,7 +141,7 @@ class JobImp( be.share.job.JobAbs ) :
     #
     #container.stop() ; container.remove( force = True )
 
-    env = { 'REPO_HOME' : os.path.join( self.path, 'target' ), 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ), 'CACHE' : share.sys.conf.get( 'git', section = 'path' ) }
+    env = { 'REPO_HOME' : os.path.join( self.path, 'target' ), 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ), 'CACHE' : be.share.sys.conf.get( 'git', section = 'path' ) }
 
     self.run( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-fetch' ], env = env )
     self.run( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-build' ], env = env )
@@ -159,16 +166,16 @@ class JobImp( be.share.job.JobAbs ) :
     self.scope.channel_acquire_threshold = self.board.get_channel_acquire_threshold()
 
     if ( trace_period_id == 'auto' ) :
-      l = share.sys.conf.get( 'timeout', section = 'job' )
+      l = be.share.sys.conf.get( 'timeout', section = 'job' )
     
       t = self.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
 
       self.log.info( 'before calibration, configuration = %s', t )
 
-      trace = self.driver.acquire() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
+      trace = self.driver.acquire() ; l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
       t = self.scope.conf( scope.CONF_MODE_DURATION, 2 * l )
 
-      trace = self.driver.acquire() ; l = share.util.measure( share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
+      trace = self.driver.acquire() ; l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
       t = self.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
 
       self.log.info( 'after  calibration, configuration = %s', t )

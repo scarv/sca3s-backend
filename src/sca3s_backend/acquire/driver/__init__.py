@@ -4,14 +4,15 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share  as share
+import sca3s_backend as be
+import sca3s_spec    as spec
 
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
+from sca3s_backend.acquire import board  as board
+from sca3s_backend.acquire import scope  as scope
+from sca3s_backend.acquire import driver as driver
 
-from acquire import repo   as repo
-from acquire import depo   as depo
+from sca3s_backend.acquire import repo   as repo
+from sca3s_backend.acquire import depo   as depo
 
 import abc
 
@@ -39,11 +40,11 @@ class DriverAbs( abc.ABC ) :
     trace_format =       trace_spec.get( 'format'   )
 
     if   ( trace_format == 'pkl' ) :
-      trace = share.trace.TracePKL( self.job )
+      trace = be.share.trace.TracePKL( self.job )
     elif ( trace_format == 'csv' ) :
-      trace = share.trace.TraceCSV( self.job )
+      trace = be.share.trace.TraceCSV( self.job )
     elif ( trace_format == 'trs' ) :
-      trace = share.trace.TraceTRS( self.job )
+      trace = be.share.trace.TraceTRS( self.job )
 
     trace.open( trace_count )
 

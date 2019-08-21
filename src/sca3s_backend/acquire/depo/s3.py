@@ -4,14 +4,15 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share  as share
+import sca3s_backend as be
+import sca3s_spec    as spec
 
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
+from sca3s_backend.acquire import board  as board
+from sca3s_backend.acquire import scope  as scope
+from sca3s_backend.acquire import driver as driver
 
-from acquire import repo   as repo
-from acquire import depo   as depo
+from sca3s_backend.acquire import repo   as repo
+from sca3s_backend.acquire import depo   as depo
 
 import boto3, os
 
@@ -19,8 +20,8 @@ class DepoImp( depo.DepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.access_key_id = share.sys.conf.get( 'creds', section = 'security' ).get( 'access-key-id', section = 's3' )
-    self.access_key    = share.sys.conf.get( 'creds', section = 'security' ).get( 'access-key',    section = 's3' ) 
+    self.access_key_id = be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access-key-id', section = 's3' )
+    self.access_key    = be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access-key',    section = 's3' ) 
 
     self.region_id     =       self.depo_spec.get( 'region-id'   )
     self.bucket_id     =       self.depo_spec.get( 'bucket-id'   )
@@ -41,7 +42,7 @@ class DepoImp( depo.DepoAbs ) :
       with open( src, 'rb' ) as data :
         r = bucket.put_object( Key = dst, Body = data )
 
-        if ( ( self.verify ) and ( r.e_tag.strip( '"' ) != share.util.MD5( src ) ) ) :
+        if ( ( self.verify ) and ( r.e_tag.strip( '"' ) != be.share.util.MD5( src ) ) ) :
           raise Exception()
 
     log = os.path.join( self.job.path, 'job.log' )

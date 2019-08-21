@@ -4,14 +4,15 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share  as share
+import sca3s_backend as be
+import sca3s_spec    as spec
 
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
+from sca3s_backend.acquire import board  as board
+from sca3s_backend.acquire import scope  as scope
+from sca3s_backend.acquire import driver as driver
 
-from acquire import repo   as repo
-from acquire import depo   as depo
+from sca3s_backend.acquire import repo   as repo
+from sca3s_backend.acquire import depo   as depo
 
 import random
 
@@ -29,9 +30,9 @@ class Block( driver.DriverAbs ) :
     self.job.log.info( 'driver id          = %s', t[ 1 ] )
     self.job.log.info( 'kernel id          = %s', t[ 2 ] )
 
-    if ( t[ 0 ] != share.version.VERSION ) :
+    if ( t[ 0 ] != be.share.version.VERSION ) :
       raise Exception()
-    if ( t[ 1 ] != 'block'               ) :
+    if ( t[ 1 ] != 'block'                  ) :
       raise Exception()
 
     self.kernel_id       = t[ 2 ]

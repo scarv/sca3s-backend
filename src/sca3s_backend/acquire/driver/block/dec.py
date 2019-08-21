@@ -4,16 +4,19 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from acquire import share  as share
+import sca3s_backend as be
+import sca3s_spec    as spec
 
-from acquire import board  as board
-from acquire import scope  as scope
-from acquire import driver as driver
+from sca3s_backend.acquire import board  as board
+from sca3s_backend.acquire import scope  as scope
+from sca3s_backend.acquire import driver as driver
 
-from acquire import repo   as repo
-from acquire import depo   as depo
+from sca3s_backend.acquire import repo   as repo
+from sca3s_backend.acquire import depo   as depo
 
-from .       import *
+from .                     import *
+
+import Crypto.Cipher.AES as AES
 
 class DriverImp( Block ) :
   def __init__( self, job ) :
@@ -25,11 +28,11 @@ class DriverImp( Block ) :
     c = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_c ) ] )
 
     if ( len( k ) > 0 ) :
-      self.job.board.interact( '>reg k %s' % share.util.str2octetstr( k ).upper() )
+      self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
     if ( len( r ) > 0 ) :
-      self.job.board.interact( '>reg r %s' % share.util.str2octetstr( r ).upper() )
+      self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
     if ( len( c ) > 0 ) :
-      self.job.board.interact( '>reg c %s' % share.util.str2octetstr( c ).upper() )
+      self.job.board.interact( '>reg c %s' % be.share.util.str2octetstr( c ).upper() )
   
     _                                  = self.job.scope.acquire( scope.ACQUIRE_MODE_PREPARE )
   
@@ -38,7 +41,7 @@ class DriverImp( Block ) :
   
     ( trigger, signal ) = self.job.scope.acquire( scope.ACQUIRE_MODE_COLLECT )
   
-    m = share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
+    m = be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
 
     if ( self.driver_spec.get( 'verify' ) ) :
       if   ( self.kernel_id == 'aes-128' ) :
@@ -51,8 +54,8 @@ class DriverImp( Block ) :
         if ( m != AES.new( k ).decrypt( c ) ) :
           raise Exception()  
 
-    tsc_dec = share.util.seq2int( share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    tsc_dec = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
-    tsc_nop = share.util.seq2int( share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    tsc_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
     return { 'trigger' : trigger, 'signal' : signal, 'tsc' : tsc_dec - tsc_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    

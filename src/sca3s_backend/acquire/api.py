@@ -6,3 +6,10 @@
 
 import sca3s_backend as be
 import sca3s_spec    as spec
+
+from sca3s_backend.acquire import board  as board
+from sca3s_backend.acquire import scope  as scope
+from sca3s_backend.acquire import driver as driver
+
+from sca3s_backend.acquire import repo   as repo
+from sca3s_backend.acquire import depo   as depo
