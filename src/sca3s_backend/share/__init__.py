@@ -4,8 +4,9 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-__all__ = [ 'conf', 'exception', 'job', 'log', 'sys', 'trace', 'util', 'version' ]
+__all__ = [ 'api', 'conf', 'exception', 'job', 'log', 'sys', 'trace', 'util', 'version' ]
 
+from . import api
 from . import conf
 from . import exception
 from . import job

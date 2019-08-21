@@ -86,56 +86,58 @@ def run_mode_cli() :
   process( manifest )
 
 def run_mode_api() :
-  pass
+  api      = task_be.api.APIImp()
+      
+  api_wait = int( be.share.sys.conf.get( 'wait', section = 'api' ) )
+  api_ping = int( be.share.sys.conf.get( 'ping', section = 'api' ) )
 
-#  server_pull      = server.remote.Remote()
-#      
-#  server_pull_wait = int( be.share.sys.conf.get( 'wait', section = 'server-pull' ) )
-#  server_pull_ping = int( be.share.sys.conf.get( 'ping', section = 'server-pull' ) )
-#
-#  term = False ; ping = 0 ; db = list( be.share.sys.conf.get( 'device-db', section = 'job' ).keys() )
-#
-#  def signalHandler( signum, frame ) :
-#    nonlocal term
-#
-#    if   ( signum == signal.SIGABRT ) :
-#      term = True
-#    elif ( signum == signal.SIGTERM ) :
-#      term = True
-#
-#    return
-#
-#  signal.signal( signal.SIGABRT, signalHandler )
-#  signal.signal( signal.SIGTERM, signalHandler )
-#
-#  while( True ) :
-#    manifest = server_pull.receive_job( db )
-#  
-#    if ( manifest != None ) :
-#      ( id, result ) = process( be.share.conf.Conf( conf = manifest ) )
-#
-#      if ( id != None ) :
-#        if   ( result == STATUS_SUCCESS                ) :
-#          server_pull.complete_job( id, error_code = server.status.JSONStatus.SUCCESS                )
-#        elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
-#          server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_VALIDATING_JOB )
-#        elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
-#          server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_ALLOCATING_JOB )
-#        elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
-#          server_pull.complete_job( id, error_code = server.status.JSONStatus.FAILURE_PROCESSING_JOB )
-#
-#      ping  = 0
-#
-#    else :
-#      if ( ( ping > 0 ) and ( ( ping % server_pull_ping ) == 0 ) ) :
-#        be.share.sys.log.info( 'polled queue %d times ... no jobs', server_pull_ping ) 
-#
-#      ping += 1
-#
-#    if ( term ) :
-#      be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
-#
-#    time.sleep( server_pull_wait )
+  ping = 0 ; term = False ; db = list( be.share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+
+  def signalHandler( signum, frame ) :
+    nonlocal term
+
+    if   ( signum == signal.SIGABRT ) :
+      term = True
+    elif ( signum == signal.SIGTERM ) :
+      term = True
+
+    return
+
+  signal.signal( signal.SIGABRT, signalHandler )
+  signal.signal( signal.SIGTERM, signalHandler )
+
+  while( True ) :
+    try :
+      manifest = api.receive_job( db )
+  
+      if ( manifest == None ) :
+        ping += 1
+
+        if ( ( ping % api_ping ) == 0 ) :
+          be.share.sys.log.info( 'polled queue %d times ... no jobs', api_ping ) 
+      
+      else :  
+        ping  = 0
+
+        ( id, result ) = process( be.share.conf.Conf( conf = manifest ) )
+
+        if ( id != None ) :
+          if   ( result == STATUS_SUCCESS                ) :
+            api.complete_job( id, error_code = task_be.api.JSONStatus.SUCCESS                )
+          elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
+            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_VALIDATING_JOB )
+          elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
+            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_ALLOCATING_JOB )
+          elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
+            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_PROCESSING_JOB )
+  
+      if ( term ) :
+        be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
+  
+      time.sleep( api_wait )
+
+    except Exception as e :
+      be.share.exception.dump( e, log = be.share.sys.log )
 
 if ( __name__ == '__main__' ) :
   try :

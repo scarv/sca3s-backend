@@ -4,7 +4,11 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-__all__ = [ 'remote', 'status' ]
+import sca3s_backend as be
+import sca3s_spec    as spec
 
-from . import remote
-from . import status
+import abc
+
+class APIAbs( abc.ABC ) :
+  def __init__( self ) :
+    super().__init__()  
