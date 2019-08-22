@@ -49,59 +49,6 @@ class Trace( abc.ABC ) :
   def  close( self ) :
     raise NotImplementedError()
 
-class TracePKL( Trace ) :
-  def __init__( self, job ) :
-    super().__init__( job )  
-
-  def   open( self, n ) :
-    if ( not os.path.exists( './trace' ) ) :
-      os.mkdir( './trace' )
-
-  def update( self, trace, i, n ) :
-    self._prepare( trace )
-
-    fd = open( os.path.join( './trace', '%08X.pkl' % ( i ) ), 'wb' )
-
-    for item in self.trace_content :      
-      pickle.dump( trace[ item ], fd )
-
-    fd.close()
-
-  def  close( self ) :
-    if ( self.trace_compress ) :
-      for f in glob.glob( './trace/*.pkl' ) :
-        self.job.run( [ 'gzip', '--quiet', f ] )
-
-class TraceCSV( Trace ) :
-  def __init__( self, job ) :
-    super().__init__( job )  
-
-  def   open( self, n ) :
-    self.fd = open( './trace.csv', 'w' ) ; self.writer = csv.writer( self.fd, delimiter = ',', quotechar = '"', quoting = csv.QUOTE_ALL )
-
-  def update( self, trace, i, n ) :
-    self._prepare( trace )
-
-    data = list()
-
-    for item in self.trace_content :
-      if   ( item == 'trigger' ) :
-        data += [ x for x in        trace[ item ] ]
-      elif ( item == 'signal'  ) :
-        data += [ x for x in        trace[ item ] ]
-      elif ( item == 'tsc'     ) :
-        data += [                   trace[ item ] ]
-      else :
-        data += [ binascii.b2a_hex( trace[ item ] ).decode() ]
-
-    self.writer.writerow( data )
-
-  def  close( self ) :
-    self.fd.close()
-
-    if ( self.trace_compress ) :
-      self.job.run( [ 'gzip', '--quiet', './trace.csv' ] )
-
 class TraceTRS( Trace ) :
   def __init__( self, job ) :
     super().__init__( job )  

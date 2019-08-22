@@ -37,14 +37,8 @@ class DriverAbs( abc.ABC ) :
     trace_spec   = self.job.conf.get( 'trace-spec' )
 
     trace_count  =  int( trace_spec.get( 'count'    ) )
-    trace_format =       trace_spec.get( 'format'   )
 
-    if   ( trace_format == 'pkl' ) :
-      trace = be.share.trace.TracePKL( self.job )
-    elif ( trace_format == 'csv' ) :
-      trace = be.share.trace.TraceCSV( self.job )
-    elif ( trace_format == 'trs' ) :
-      trace = be.share.trace.TraceTRS( self.job )
+    trace        = be.share.trace.TraceTRS( self.job )
 
     trace.open( trace_count )
 
