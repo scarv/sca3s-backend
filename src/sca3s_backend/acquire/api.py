@@ -75,7 +75,7 @@ class APIImp( be.share.api.APIAbs ):
         :param job_id: Job ID to finish.
         :param error_code: If an error has occured, specify it here (JSONStatus enum only).
         """
-        remark = "archiving"
+        remark = "complete"
         if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
             remark = "failed:" + str(error_code)
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
