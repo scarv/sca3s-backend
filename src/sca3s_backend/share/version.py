@@ -7,6 +7,8 @@
 import sca3s_backend as be
 import sca3s_spec    as spec
 
+import os
+
 VERSION_MAJOR = os.environ[ 'REPO_VERSION_MAJOR' ]
 VERSION_MINOR = os.environ[ 'REPO_VERSION_MINOR' ]
 VERSION_PATCH = os.environ[ 'REPO_VERSION_PATCH' ]
