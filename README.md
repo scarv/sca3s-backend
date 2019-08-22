@@ -2,8 +2,8 @@
 
 <!--- -------------------------------------------------------------------- --->
 
-[![Build Status](https://travis-ci.com/scarv/sca3s-acquire.svg)](https://travis-ci.com/scarv/sca3s-acquire)
-[![Documentation](https://codedocs.xyz/scarv/sca3s-acquire.svg)](https://codedocs.xyz/scarv/sca3s-acquire)
+[![Build Status](https://travis-ci.com/scarv/sca3s-backend.svg)](https://travis-ci.com/scarv/sca3s-backend)
+[![Documentation](https://codedocs.xyz/scarv/sca3s-backend.svg)](https://codedocs.xyz/scarv/sca3s-backend)
 
 <!--- -------------------------------------------------------------------- --->
 
@@ -71,8 +71,8 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
 2. Execute
 
    ```sh
-   git clone https://github.com/scarv/sca3s-acquire.git
-   cd ./sca3s-acquire
+   git clone https://github.com/scarv/sca3s-backend.git
+   cd ./sca3s-backend
    source ./bin/conf.sh
    ```
 

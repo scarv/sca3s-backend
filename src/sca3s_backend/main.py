@@ -33,7 +33,7 @@ def process( manifest ) :
         else :
           raise be.share.exception.ConfigurationException()
     
-      spec.share.schema.validate( manifest, task_spec.schema.MANIFEST )
+      spec.share.schema.validate( manifest, task_spec.schema.SCHEMA_MANIFEST )
   
     except Exception as e :
       result = STATUS_FAILURE_VALIDATING_JOB ; raise e
