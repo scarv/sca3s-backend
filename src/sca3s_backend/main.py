@@ -46,9 +46,9 @@ def process( manifest ) :
       id = manifest.get( 'id' ) ; 
 
       path = tempfile.mkdtemp( prefix = id + '.', dir = be.share.sys.conf.get( 'job', section = 'path' ) )
-      os.chdir( path ) 
-      log = be.share.log.build_log_job( name = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
-      job = task_be.job.JobImp( manifest, path, log )
+      log  = be.share.log.build_log( be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
+
+      job  = task_be.job.JobImp( manifest, path, log )
 
     except Exception as e :
       result = STATUS_FAILURE_ALLOCATING_JOB ; raise e

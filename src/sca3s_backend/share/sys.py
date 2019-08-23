@@ -50,4 +50,4 @@ def init() :
 
   # initialise system logger
 
-  log  = be.share.log.build_log_sys()
+  log  = be.share.log.build_log( be.share.log.TYPE_SYS, path = be.share.sys.conf.get( 'log', section = 'path' ) )

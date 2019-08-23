@@ -9,6 +9,9 @@ import sca3s_spec    as spec
 
 import logging, logging.handlers, os, sys
 
+TYPE_SYS = 0
+TYPE_JOB = 1
+
 class LogAdapter( logging.LoggerAdapter ):
   def __init__( self, logger, args, indent = 0, replace = dict() ) :
     super().__init__( logger, args ) ; self.indent = indent ; self.replace = replace
@@ -42,32 +45,45 @@ class LogAdapter( logging.LoggerAdapter ):
   
       self.logger._log( level, message, args )
 
-def build_log_sys( name = '', path = 'acquire.log', replace = dict() ) :
-  logger = logging.getLogger( name )
+# Enforcing, e.g., a uniform format, either build
+#
+# 1. a system logger object:
+#
+#    - output directs to file *and* console (i.e., stdout)
+#    - output produced by adaptor that supports indentation and replacement
+#    - threshold depends on debug option (e.g., can include information- and debug-level output)
+#
+# 2. a job    logger object:
+#
+#    - output directs to file
+#    - output produced by adaptor that supports indentation and replacement
+#    - threshold fixed to avoid any debug-level output
+#
+# in a given path, with a file name matching the backend task.
+
+def build_log( type, path, id = None, replace = dict() ) :
+  name = be.share.sys.conf.get( 'task', section = 'sys' ) + '.log'
+
+  logger = logging.getLogger( id )
   formatter = logging.Formatter( '[%(asctime)s]: %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
 
-  handler = logging.StreamHandler( sys.stdout )
-  handler.setFormatter( formatter ) ; logger.addHandler( handler )
+  handler = logging.handlers.RotatingFileHandler( os.path.join( path, name ), maxBytes = 1 << 20, backupCount = 100 )
+  handler.setFormatter( formatter )
+  logger.addHandler( handler )
 
-  handler = logging.handlers.RotatingFileHandler( os.path.join( be.share.sys.conf.get( 'log', section = 'path' ), path ), maxBytes = 1 << 20, backupCount = 100 )
-  handler.setFormatter( formatter ) ; logger.addHandler( handler )
+  if   ( type == TYPE_SYS ) :
+    handler = logging.StreamHandler( sys.stdout )
+    handler.setFormatter( formatter ) 
+    logger.addHandler( handler )
 
-  debug = int( be.share.sys.conf.get( 'debug', section = 'sys' ) )
+    debug = int( be.share.sys.conf.get( 'debug', section = 'sys' ) )
 
-  if   ( debug == 0 ) :
-    logger.setLevel( logging.INFO  )
-  elif ( debug >  0 ) :
-    logger.setLevel( logging.DEBUG )
+    if   ( debug == 0 ) :
+      logger.setLevel( logging.INFO  )
+    elif ( debug >  0 ) :
+      logger.setLevel( logging.DEBUG )
 
-  return LogAdapter( logger, {}, indent = 0, replace = replace )
-
-def build_log_job( name = '', path =     'job.log', replace = dict() ) :
-  logger = logging.getLogger( name )
-  formatter = logging.Formatter( '[%(asctime)s]: %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
-
-  handler = logging.FileHandler( path )
-  handler.setFormatter( formatter ) ; logger.addHandler( handler )
-
-  logger.setLevel( logging.INFO )
+  elif ( type == TYPE_JOB ) :
+    logger.setLevel( logging.INFO )
 
   return LogAdapter( logger, {}, indent = 0, replace = replace )

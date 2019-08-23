@@ -58,21 +58,6 @@ def seq2int( x, b, endian = +1 ) :
 def closest( x, xs ) :
   return min( xs, key = lambda t : abs( t - x ) )
 
-def MD5( f ) :
-  H = hashlib.md5() ; fd = open( f, 'rb' )
-  
-  while( True ) :
-    data = fd.read( 2 ** 10 )
-  
-    if ( len( data ) == 0 ):
-      break
-    else :
-      H.update( data )
-  
-  fd.close()
-  
-  return H.hexdigest()
-
 MEASURE_MODE_DURATION    = 0
 MEASURE_MODE_TRIGGER_POS = 1
 MEASURE_MODE_TRIGGER_NEG = 2

@@ -192,6 +192,8 @@ class JobImp( be.share.job.JobAbs ) :
 
       self.log.info(                     'configuration = %s', t )
 
+  # Execute job process prologue (i.e., *before* process):
+  #
   # 1. dump configuration
   # 2. construct board, scope, driver, repo., and depo. objects
   # 3. open  board object
@@ -243,6 +245,8 @@ class JobImp( be.share.job.JobAbs ) :
     self.repo.transfer()
     self.log.indent_dec()
 
+  # Execute job process:
+  #
   # 1. prepare repo.,  e.g., check vs. diff
   # 1. prepare board,  e.g., build and program target implementation
   # 2. prepare driver, e.g., query target implemention parameters
@@ -270,6 +274,8 @@ class JobImp( be.share.job.JobAbs ) :
     self.driver.execute()
     self.log.indent_dec()
 
+  # Execute job process epilogue (i.e., *after*  process):
+  #
   # 1. transfer target implementation from local copy to depo.
   # 2. close scope object
   # 3. close board object

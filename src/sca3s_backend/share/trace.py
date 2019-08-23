@@ -19,7 +19,6 @@ class Trace( abc.ABC ) :
 
     self.trace_content  =       self.trace_spec.get( 'content'  )
     self.trace_crop     = bool( self.trace_spec.get( 'crop'     ) )
-    self.trace_compress = bool( self.trace_spec.get( 'compress' ) )
 
   def _prepare( self, trace ) :
     l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.job.scope.channel_trigger_threshold )
@@ -54,7 +53,7 @@ class TraceTRS( Trace ) :
     super().__init__( job )  
 
   def   open( self, n ) :
-    self.fd = trsfile.open( './trace.trs', 'w', padding_mode = trsfile.TracePadding.AUTO )
+    self.fd = trsfile.open( os.path.join( self.job.path, 'acquire.trs' ), 'w', padding_mode = trsfile.TracePadding.AUTO )
 
   def update( self, trace, i, n ) :
     self._prepare( trace )
@@ -79,5 +78,4 @@ class TraceTRS( Trace ) :
   def  close( self ) :
     self.fd.close()
 
-    if ( self.trace_compress ) :
-      self.job.run( [ 'gzip', '--quiet', './trace.trs' ] )
+    self.job.run( [ 'gzip', '--quiet', os.path.join( self.job.path, 'acquire.trs' ) ] )
