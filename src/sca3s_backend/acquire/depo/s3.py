@@ -32,5 +32,8 @@ class DepoImp( depo.DepoAbs ) :
     
     self.job.log.shutdown()
 
-    bucket.upload_file( os.path.join( self.job.path, 'acquire.log'    ), self.job.id[ : 10 ] + '.log'    )
-    bucket.upload_file( os.path.join( self.job.path, 'acquire.trs.gz' ), self.job.id[ : 10 ] + '.trs.gz' )
+    def upload( name, ext ) :
+      bucket.upload_file( os.path.join( self.job.path, name ), os.path.join( self.job.user_id, self.job.id[ : 10 ] + ext ) )
+
+    upload( 'acquire.log',    '.log'    )
+    upload( 'acquire.trs.gz', '.trs.gz' )
