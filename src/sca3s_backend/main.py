@@ -19,7 +19,7 @@ def process( manifest ) :
   id = None ; result = STATUS_SUCCESS
 
   try :
-    be.share.sys.log.info( '|> validating job' )
+    be.share.sys.log.info( 'validating job' )
   
     try :
       db = be.share.sys.conf.get( 'device-db', section = 'job' )
@@ -38,9 +38,7 @@ def process( manifest ) :
     except Exception as e :
       result = STATUS_FAILURE_VALIDATING_JOB ; raise e
 
-    be.share.sys.log.info( '|< validating job' )
-
-    be.share.sys.log.info( '|> allocating job' )
+    be.share.sys.log.info( 'allocating job' )
 
     try :
       id = manifest.get( 'id' ) ; 
@@ -53,9 +51,7 @@ def process( manifest ) :
     except Exception as e :
       result = STATUS_FAILURE_ALLOCATING_JOB ; raise e
 
-    be.share.sys.log.info( '|< allocating job' )
-
-    be.share.sys.log.info( '|> processing job' )
+    be.share.sys.log.info( 'processing job' )
 
     try :    
       job.process_prologue()
@@ -67,8 +63,6 @@ def process( manifest ) :
 
     if ( be.share.sys.conf.get( 'clean', section = 'job' ) ) :
       shutil.rmtree( path, ignore_errors = True )
-
-    be.share.sys.log.info( '|< processing job' )
 
   except Exception as e :
     be.share.exception.dump( e, log = be.share.sys.log )

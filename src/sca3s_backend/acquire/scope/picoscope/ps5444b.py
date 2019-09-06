@@ -33,7 +33,20 @@ class ScopeImp( PicoScope ) :
   def __init__( self, job ) :
     super().__init__( job, api.PS5000a )
 
-  def _interval2timebase( self, x, resolution ) :
+  def _resolutions( self ) :
+    return [ 8, 12, 14, 15 ]
+
+  def _maxSamples( self, resolution ) :
+    if   ( resolution ==  8 ) :
+      return 256.0e6
+    elif ( resolution == 12 ) :
+      return 128.0e6
+    elif ( resolution == 14 ) :
+      return 128.0e6
+    elif ( resolution == 15 ) :
+      return 128.0e6
+
+  def _interval2timebase( self, resolution, x ) :
     if   ( resolution ==  8 ) :
       if   ( x <   2.0e-9 ) :
         t = 1
@@ -68,7 +81,7 @@ class ScopeImp( PicoScope ) :
 
     return round( t )
 
-  def _timebase2interval( self, x, resolution ) :
+  def _timebase2interval( self, resolution, x ) :
     if   ( resolution ==  8 ) :
     elif ( resolution == 12 ) :
     elif ( resolution == 14 ) :
@@ -85,27 +98,3 @@ class ScopeImp( PicoScope ) :
       return 2
     elif ( x == PICOSCOPE_DOWNSAMPLE_MODE_AVERAGE   ) :
       return 4
-
-  def conf( self, mode, x, resolution ) :  
-    resolution = share.util.closest( resolution, [ 8, 12, 14, 15, 16 ] )
-
-    if   ( mode == scope.CONF_MODE_INTERVAL  ) :
-      interval =     x
-      timebase = self._interval2timebase( interval, resolution )
-      interval = self._timebase2interval( timebase, resolution ) ; duration =         interval * 16e6  
-  
-    elif ( mode == scope.CONF_MODE_FREQUENCY ) :
-      interval = 1 / x
-      timebase = self._interval2timebase( interval, resolution )
-      interval = self._timebase2interval( timebase, resolution ) ; duration =         interval * 16e6  
-  
-    elif ( mode == scope.CONF_MODE_DURATION  ) :
-      interval =     x / 16e6
-      timebase = self._interval2timebase( interval, resolution )
-      interval = self._timebase2interval( timebase, resolution ) ; duration = min( x, interval * 16e6 )
-
-    self.signal_resolution = resolution
-    self.signal_interval   = interval
-    self.signal_duration   = duration
-
-    return { 'resolution' : self.signal_resolution, 'interval' : self.signal_interval, 'duration' : self.signal_duration }

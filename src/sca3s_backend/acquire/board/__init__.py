@@ -20,11 +20,15 @@ class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
     super().__init__()  
 
-    self.job          = job
+    self.job            = job
 
-    self.board_object = None
-    self.board_id     = self.job.conf.get( 'board-id'   )
-    self.board_spec   = self.job.conf.get( 'board-spec' )
+    self.board_object   = None
+    self.board_id       = self.job.conf.get( 'board-id'   )
+    self.board_spec     = self.job.conf.get( 'board-spec' )
+
+    self.driver_version = None
+    self.driver_id      = None
+    self.kernel_id      = None
 
   @abc.abstractmethod
   def get_channel_trigger_range( self ) :
@@ -63,6 +67,23 @@ class BoardAbs( abc.ABC ) :
       raise Exception()
     else :
       raise Exception()
+
+  def inspect( self ) :
+    t = self.interact( '?id' ).split( ':' )
+
+    if ( len( t ) != 3 ) :
+      raise Exception()
+
+    self.driver_version = t[ 0 ]
+    self.driver_id      = t[ 1 ]
+    self.kernel_id      = t[ 2 ]
+
+    if ( self.driver_version != be.share.version.VERSION ) :
+      raise Exception()
+
+    self.job.log.info( '?id -> driver version = %s', self.driver_version )
+    self.job.log.info( '?id -> driver id      = %s', self.driver_id      )
+    self.job.log.info( '?id -> kernel id      = %s', self.kernel_id      )
 
   @abc.abstractmethod
   def program( self ) :

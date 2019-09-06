@@ -14,6 +14,8 @@ from sca3s_backend.acquire import driver as driver
 from sca3s_backend.acquire import repo   as repo
 from sca3s_backend.acquire import depo   as depo
 
+import numpy
+
 PICOSCOPE_DOWNSAMPLE_MODE_NONE      = 0 
 PICOSCOPE_DOWNSAMPLE_MODE_AGGREGATE = 1
 PICOSCOPE_DOWNSAMPLE_MODE_DECIMATE  = 2
@@ -44,46 +46,67 @@ class PicoScope( scope.ScopeAbs ) :
   def close( self ) :
     self.scope_object.close()
 
-  def acquire( self, mode ) :
-    if ( self.scope_object == None ) :
-      raise Exception()
+  def calibrate( self, mode, x, resolution = 8, dtype = '<f8' ) :  
+    resolution = be.share.util.closest( resolution, self._resolutions() )
 
-    if ( mode & scope.ACQUIRE_MODE_PREPARE ) :
-      # configure segments   (if supported)
-      if ( hasattr( self.scope_object, '_lowLevelMemorySegments'      ) ) :
-        self.scope_object.memorySegments( 1 )
+    if   ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
+      interval =     x
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) ; duration =         interval * self._maxSamples( resolution )
+  
+    elif ( mode == scope.CALIBRATE_MODE_FREQUENCY ) :
+      interval = 1 / x
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) ; duration =         interval * self._maxSamples( resolution )
+  
+    elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
+      interval =     x / self._maxSamples( resolution )
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) ; duration = min( x, interval * self._maxSamples( resolution ) )
 
-      # configure resolution (if supported)
-      if ( hasattr( self.scope_object, '_lowLevelSetDeviceResolution' ) ) :
-        self.scope_object.setResolution( self.signal_resolution )
+    # configure segments   (if supported)
+    if ( hasattr( self.scope_object, '_lowLevelMemorySegments'      ) ) :
+      self.scope_object.memorySegments( 1 )
+  
+    # configure resolution (if supported)
+    if ( hasattr( self.scope_object, '_lowLevelSetDeviceResolution' ) ) :
+      self.scope_object.setResolution( resolution )
+  
+    # configure channels
+    self.scope_object.setChannel( channel = self.channel_trigger_id, enabled = True, coupling = 'DC', VRange = self.channel_trigger_range )
+    self.scope_object.setChannel( channel = self.channel_acquire_id, enabled = True, coupling = 'DC', VRange = self.channel_acquire_range )
+  
+    for channel in self.channel_disable_id :
+      self.scope_object.setChannel( channel = channel, enabled = False )
+  
+    # configure timebase
+    ( _, samples, samples_max ) = self.scope_object.setSamplingInterval( interval, duration )
 
-      # configure channels
-      self.scope_object.setChannel( channel = self.channel_trigger_id, enabled = True, coupling = 'DC', VRange = self.channel_trigger_range )
-      self.scope_object.setChannel( channel = self.channel_acquire_id, enabled = True, coupling = 'DC', VRange = self.channel_acquire_range )
+    self.signal_interval   = interval
+    self.signal_duration   = duration
 
-      for channel in self.channel_disable_id :
-        self.scope_object.setChannel( channel = channel, enabled = False )
+    self.signal_resolution = resolution
+    self.signal_type       = dtype
+    self.signal_length     = samples
 
-      # configure timebase
-      ( _, samples, samples_max ) = self.scope_object.setSamplingInterval( self.signal_interval, self.signal_duration )
+    return { 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'resolution' : self.signal_resolution, 'type' : self.signal_type, 'length' : self.signal_length }
 
-      # configure trigger
-      self.scope_object.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.connect_timeout )
+  def   prepare( self ) :
+    # configure trigger
+    self.scope_object.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.connect_timeout )
     
-      # start acquisition
-      self.scope_object.runBlock()
+    # start acquisition
+    self.scope_object.runBlock()
 
-    if ( mode & scope.ACQUIRE_MODE_COLLECT ) :
-      # wait for acquisition to complete  
-      self.scope_object.waitReady()
+  def   acquire( self ) :
+    # wait for acquisition to complete  
+    self.scope_object.waitReady()
     
-      # configure buffers, then transfer
-      signal_trigger = self.scope_object.getDataV( channel = self.channel_trigger_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ) )
-      signal_acquire = self.scope_object.getDataV( channel = self.channel_acquire_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ) )
+    # configure buffers, then transfer
+    signal_trigger = self.scope_object.getDataV( channel = self.channel_trigger_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
+    signal_acquire = self.scope_object.getDataV( channel = self.channel_acquire_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
 
-      # stop  acquisition
-      self.scope_object.stop()
+    # stop  acquisition
+    self.scope_object.stop()
 
-      return ( signal_trigger, signal_acquire )
-
-    return None
+    return ( signal_trigger, signal_acquire )

@@ -22,40 +22,40 @@ class DriverImp( Block ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-  def acquire( self ) :
-    k = self.kernel_k
-    r = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
-    m = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_m ) ] )
+  def acquire( self, k = None, r = None, m = None ) :
+    if ( k == None ) :
+      k = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_k ) ] )
+    if ( r == None ) :
+      r = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
+    if ( m == None ) :
+      m = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_m ) ] )
 
-    if ( len( k ) > 0 ) :
-      self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
-    if ( len( r ) > 0 ) :
-      self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
-    if ( len( m ) > 0 ) :
-      self.job.board.interact( '>reg m %s' % be.share.util.str2octetstr( m ).upper() )
+    self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>reg m %s' % be.share.util.str2octetstr( m ).upper() )
   
-    _                                  = self.job.scope.acquire( scope.ACQUIRE_MODE_PREPARE )
+    _                   = self.job.scope.prepare()
 
     self.job.board.interact( '!enc_init' )
     self.job.board.interact( '!enc'      )
   
-    ( trigger, signal ) = self.job.scope.acquire( scope.ACQUIRE_MODE_COLLECT )
+    ( trigger, signal ) = self.job.scope.acquire()
   
     c = be.share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
 
     if ( self.driver_spec.get( 'verify' ) ) :
-      if   ( self.kernel_id == 'aes-128' ) :
+      if   ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 16 ) ) :
         if ( c != AES.new( k ).encrypt( m ) ) :
           raise Exception()  
-      elif ( self.kernel_id == 'aes-192' ) :
+      elif ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 24 ) ) :
         if ( c != AES.new( k ).encrypt( m ) ) :
           raise Exception() 
-      elif ( self.kernel_id == 'aes-256' ) :
+      elif ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 32 ) ) :
         if ( c != AES.new( k ).encrypt( m ) ) :
           raise Exception()  
 
-    tsc_enc = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_enc = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
-    tsc_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
-    return { 'trigger' : trigger, 'signal' : signal, 'tsc' : tsc_enc - tsc_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'perf/cycle' : cycle_enc - cycle_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }

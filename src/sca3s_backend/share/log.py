@@ -38,7 +38,7 @@ class LogAdapter( logging.LoggerAdapter ):
 
   def log( self, level, message, *args, **kwargs ):
     if ( self.logger.isEnabledFor( level ) ) :
-      message = ( '  ' * self.indent ) + message
+      message = ( '|  ' * self.indent ) + message
   
       for ( src, dst ) in self.replace.items() :
         message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )
@@ -65,7 +65,7 @@ def build_log( type, path, id = None, replace = dict() ) :
   name = be.share.sys.conf.get( 'task', section = 'sys' ) + '.log'
 
   logger = logging.getLogger( id )
-  formatter = logging.Formatter( '[%(asctime)s]: %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
+  formatter = logging.Formatter( '[%(asctime)s] {%(name)s} : %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
 
   handler = logging.handlers.RotatingFileHandler( os.path.join( path, name ), maxBytes = 1 << 20, backupCount = 100 )
   handler.setFormatter( formatter )

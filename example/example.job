@@ -7,7 +7,7 @@
 
   "repo-id"    : "git",
   "repo-spec"  : { 
-    "url"           : "git@github.com:danpage/sca3s-target.git",
+    "url"           : "git@github.com:danpage/sca3s-harness.git",
     "conf"          : {
       "foo" : 1,
       "bar" : 2
@@ -21,11 +21,10 @@
 
   "trace-spec" : {
         "period-id" : "auto",
-    "resolution-id" : "auto",
+    "resolution-id" :  "max",
 
     "count"         : 10,
-    "format"        : "trs",
-    "content"       : [ "signal", "m", "c" ]
+    "content"       : [ "trace/signal", "crop/signal", "m", "c", "k" ]
   }
 }
 

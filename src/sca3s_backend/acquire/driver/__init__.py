@@ -25,6 +25,25 @@ class DriverAbs( abc.ABC ) :
     self.driver_id   = self.job.conf.get( 'driver-id'   )
     self.driver_spec = self.job.conf.get( 'driver-spec' )
 
+  def calibrate( self, resolution = 8, dtype = '<f8' ) :
+    l = be.share.sys.conf.get( 'timeout', section = 'job' )
+
+    t = self.job.scope.calibrate( scope.CALIBRATE_MODE_DURATION, 1 * l, resolution = resolution, dtype = dtype )
+
+    self.job.log.info( 'auto-calibration step #1, conf = %s', t )
+
+    trace = self.acquire() ; l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trace/trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval
+    t = self.job.scope.calibrate( scope.CALIBRATE_MODE_DURATION, 2 * l, resolution = resolution, dtype = dtype )
+
+    self.job.log.info( 'auto-calibration step #2, conf = %s', t )
+
+    trace = self.acquire() ; l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trace/trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval
+    t = self.job.scope.calibrate( scope.CALIBRATE_MODE_DURATION, 1 * l, resolution = resolution, dtype = dtype )
+
+    self.job.log.info( 'auto-calibration step #3, conf = %s', t )
+
+    return t
+
   @abc.abstractmethod
   def prepare( self ) :
     raise NotImplementedError()
@@ -33,18 +52,6 @@ class DriverAbs( abc.ABC ) :
   def acquire( self ) :
     raise NotImplementedError()
 
-  def  execute( self ) :
-    trace_spec   = self.job.conf.get( 'trace-spec' )
-
-    trace_count  =  int( trace_spec.get( 'count'    ) )
-
-    trace        = be.share.trace.TraceTRS( self.job )
-
-    trace.open( trace_count )
-
-    for i in range( trace_count ) :
-      self.job.log.indent_inc( message = 'started  acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
-      trace.update( self.acquire(), i, trace_count )
-      self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
-
-    trace.close()
+  @abc.abstractmethod
+  def execute( self ) :
+    raise NotImplementedError()

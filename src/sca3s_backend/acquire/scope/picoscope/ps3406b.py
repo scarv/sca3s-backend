@@ -30,23 +30,32 @@ class ScopeImp( PicoScope ) :
   def __init__( self, job ) :
     super().__init__( job, api.PS3000a )    
 
-  def _interval2timebase( self, x ) :
-    if   ( x <   4.0e-9 ) :
-      t = 1
-    elif ( x <   8.0e-9 ) :
-      t = math.log( x *   1.0e9, 2 )
-    else :
-      t = ( x * 125.0e6 ) + 2
+  def _resolutions( self ) :
+    return [ 8 ]
+
+  def _maxSamples( self, resolution ) :
+    if ( resolution ==  8 ) :
+      return  64.0e6
+
+  def _interval2timebase( self, resolution, x ) :
+    if ( resolution ==  8 ) :
+      if   ( x <   4.0e-9 ) :
+        t = 1
+      elif ( x <   8.0e-9 ) :
+        t = math.log( x *   1.0e9, 2 )
+      else :
+        t = ( x * 125.0e6 ) + 2
 
     return round( t )
 
-  def _timebase2interval( self, x ) :
-    if   ( x <  2 ) :
-      t = 2.0e-9
-    elif ( x <  3 ) :
-      t = math.pow( 2, x ) /   1.0e9
-    else :
-      t = ( x - 2 ) / 125.0e6
+  def _timebase2interval( self, resolution, x ) :
+    if ( resolution ==  8 ) :
+      if   ( x <  2 ) :
+        t = 2.0e-9
+      elif ( x <  3 ) :
+        t = math.pow( 2, x ) /   1.0e9
+      else :
+        t = ( x - 2 ) / 125.0e6
 
     return        t
 
@@ -59,27 +68,3 @@ class ScopeImp( PicoScope ) :
       return 2
     elif ( x == PICOSCOPE_DOWNSAMPLE_MODE_AVERAGE   ) :
       return 4
-
-  def conf( self, mode, x, resolution = None ) :    
-    maxSamples = 64.0e6
-
-    if   ( mode == scope.CONF_MODE_INTERVAL  ) :
-      interval =     x
-      timebase = self._interval2timebase( interval )
-      interval = self._timebase2interval( timebase ) ; duration =         interval * maxSamples  
-  
-    elif ( mode == scope.CONF_MODE_FREQUENCY ) :
-      interval = 1 / x
-      timebase = self._interval2timebase( interval )
-      interval = self._timebase2interval( timebase ) ; duration =         interval * maxSamples  
-  
-    elif ( mode == scope.CONF_MODE_DURATION  ) :
-      interval =     x / maxSamples
-      timebase = self._interval2timebase( interval )
-      interval = self._timebase2interval( timebase ) ; duration = min( x, interval * maxSamples )
-
-    self.signal_resolution = 8
-    self.signal_interval   = interval
-    self.signal_duration   = duration
-
-    return { 'resolution' : self.signal_resolution, 'interval' : self.signal_interval, 'duration' : self.signal_duration }

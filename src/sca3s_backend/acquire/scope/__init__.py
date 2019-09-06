@@ -16,12 +16,12 @@ from sca3s_backend.acquire import depo   as depo
 
 import abc
 
-CONF_MODE_INTERVAL    = 0
-CONF_MODE_FREQUENCY   = 1
-CONF_MODE_DURATION    = 2
+CALIBRATE_MODE_INTERVAL  =    0
+CALIBRATE_MODE_FREQUENCY =    1
+CALIBRATE_MODE_DURATION  =    2
 
-ACQUIRE_MODE_PREPARE  = 0b01
-ACQUIRE_MODE_COLLECT  = 0b10
+RESOLUTION_MIN           =    0
+RESOLUTION_MAX           = 1024
 
 class ScopeAbs( abc.ABC ) :
   def __init__( self, job ) :
@@ -38,9 +38,12 @@ class ScopeAbs( abc.ABC ) :
     self.channel_acquire_range     = None
     self.channel_acquire_threshold = None
 
-    self.signal_resolution         = None
     self.signal_interval           = None
     self.signal_duration           = None
+
+    self.signal_resolution         = None
+    self.signal_type               = None
+    self.signal_length             = None
 
   @abc.abstractmethod
   def  open( self ) :
@@ -48,4 +51,16 @@ class ScopeAbs( abc.ABC ) :
 
   @abc.abstractmethod
   def close( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def calibrate( self, mode, x, resolution = 8, dtype = '<f8' ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def   prepare( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def   acquire( self ) :
     raise NotImplementedError()

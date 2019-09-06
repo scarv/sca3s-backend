@@ -10,4 +10,4 @@ if [ -z ${REPO_HOME} ] ; then
   echo "REPO_HOME environment variable undefined: aborting" ; exit
 fi
 
-PYTHONPATH="${PYTHONPATH}:${REPO_HOME}/src:${REPO_HOME}/extern/sca3s-spec/src" python3 -m sca3s_backend.main --sys:task="analyse" "${@}"
+PYTHONPATH="${PYTHONPATH}:${REPO_HOME}/src:${REPO_HOME}/extern/sca3s-spec/src" python3 -m sca3s_backend.main --sys:task="analyse" ${@}

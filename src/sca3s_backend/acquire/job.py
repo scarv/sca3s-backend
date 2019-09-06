@@ -21,6 +21,7 @@ class JobImp( be.share.job.JobAbs ) :
     super().__init__( conf, path, log )  
 
     self.version =      self.conf.get( 'version' )
+
     self.id      =      self.conf.get(      'id' )
     self.user_id = str( self.conf.get( 'user_id' ) )
 
@@ -148,49 +149,46 @@ class JobImp( be.share.job.JobAbs ) :
     self.run( [ 'make', '-C', 'target', '--no-builtin-rules',      'build' ], env = env )
 
     self.board.program()
+    self.board.inspect()
 
     self.run( [ 'make', '-C', 'target', '--no-builtin-rules',      'clean' ], env = env )
+
+  # 1. transfer board parameters
+  # 2. calibrate
 
   def _prepare_scope( self ) :
     trace_spec            = self.conf.get( 'trace-spec' )
 
-    trace_period_id       = trace_spec.get( 'period-id'       )
-    trace_period_spec     = trace_spec.get( 'period-spec'     )
+    trace_resolution_id   =      trace_spec.get( 'resolution-id'   )
+    trace_resolution_spec = int( trace_spec.get( 'resolution-spec' ) )
 
-    trace_resolution_id   = trace_spec.get( 'resolution-id'   )
-    trace_resolution_spec = trace_spec.get( 'resolution-spec' )
+    trace_period_id       =      trace_spec.get( 'period-id'       )
+    trace_period_spec     = int( trace_spec.get( 'period-spec'     ) )
+
+    trace_type            =      trace_spec.get( 'type'            )
 
     self.scope.channel_trigger_range     = self.board.get_channel_trigger_range()
     self.scope.channel_trigger_threshold = self.board.get_channel_trigger_threshold()
     self.scope.channel_acquire_range     = self.board.get_channel_acquire_range()
     self.scope.channel_acquire_threshold = self.board.get_channel_acquire_threshold()
 
-    if ( trace_period_id == 'auto' ) :
-      l = be.share.sys.conf.get( 'timeout', section = 'job' )
-    
-      t = self.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
+    if   ( trace_resolution_id == 'bit'  ) :
+      trace_resolution = trace_resolution_spec
+    elif ( trace_resolution_id == 'min'  ) :
+      trace_resolution = scope.RESOLUTION_MIN
+    elif ( trace_resolution_id == 'max'  ) :
+      trace_resolution = scope.RESOLUTION_MAX
 
-      self.log.info( 'before calibration, configuration = %s', t )
+    if   ( trace_period_id == 'auto'      ) :
+      t = self.driver.calibrate( resolution = trace_resolution, dtype = trace_type)
+    elif ( trace_period_id == 'interval'  ) :
+      t = self.scope.calibrate( scope.CALIBRATE_MODE_INTERVAL,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    elif ( trace_period_id == 'frequency' ) :
+      t = self.scope.calibrate( scope.CALIBRATE_MODE_FREQUENCY, trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    elif ( trace_period_id == 'duration'  ) :
+      t = self.scope.calibrate( scope.CALIBRATE_MODE_DURATION,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
 
-      trace = self.driver.acquire() ; l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
-      t = self.scope.conf( scope.CONF_MODE_DURATION, 2 * l )
-
-      trace = self.driver.acquire() ; l = be.share.util.measure( be.share.util.MEASURE_MODE_DURATION, trace[ 'trigger' ], self.scope.channel_trigger_threshold ) * self.scope.signal_interval
-      t = self.scope.conf( scope.CONF_MODE_DURATION, 1 * l )
-
-      self.log.info( 'after  calibration, configuration = %s', t )
-
-    else :
-      l = trace_period_spec
-
-      if   ( trace_period_id == 'interval'  ) :
-        t = self.scope.conf( scope.CONF_MODE_INTERVAL,  l )
-      elif ( trace_period_id == 'frequency' ) :
-        t = self.scope.conf( scope.CONF_MODE_FREQUENCY, l )
-      elif ( trace_period_id == 'duration'  ) :
-        t = self.scope.conf( scope.CONF_MODE_DURATION,  l )
-
-      self.log.info(                     'configuration = %s', t )
+    self.log.info( 'conf = %s', t )
 
   # Execute job process prologue (i.e., *before* process):
   #
