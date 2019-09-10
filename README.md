@@ -1,4 +1,4 @@
-# [SCA3S](https://github.com/scarv/sca3s): acquisition server
+# [SCA3S](https://github.com/scarv/sca3s): back-end infrastructure
 
 <!--- -------------------------------------------------------------------- --->
 
