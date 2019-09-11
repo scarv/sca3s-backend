@@ -68,7 +68,7 @@ class BoardAbs( abc.ABC ) :
     else :
       raise Exception()
 
-  def inspect( self ) :
+  def prepare( self ) :
     t = self.interact( '?id' ).split( ':' )
 
     if ( len( t ) != 3 ) :
@@ -84,10 +84,6 @@ class BoardAbs( abc.ABC ) :
     self.job.log.info( '?id -> driver version = %s', self.driver_version )
     self.job.log.info( '?id -> driver id      = %s', self.driver_id      )
     self.job.log.info( '?id -> kernel id      = %s', self.kernel_id      )
-
-  @abc.abstractmethod
-  def program( self ) :
-    raise NotImplementedError()
 
   @abc.abstractmethod
   def    open( self ) :

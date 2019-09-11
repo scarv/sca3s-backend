@@ -23,7 +23,6 @@ class SCALE( board.BoardAbs ) :
     self.connect_id      =      self.board_spec.get( 'connect-id'      )
     self.connect_timeout = int( self.board_spec.get( 'connect-timeout' ) )
 
-    self.program_mode    =      self.board_spec.get( 'program-mode'    )
     self.program_id      =      self.board_spec.get( 'program-id'      )
     self.program_timeout = int( self.board_spec.get( 'program-timeout' ) )
 

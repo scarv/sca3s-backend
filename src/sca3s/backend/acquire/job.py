@@ -14,7 +14,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import git, importlib, json, more_itertools as mit, os, re, sys
+import docker, git, importlib, json, more_itertools as mit, os, re, sys
 
 class JobImp( be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
@@ -117,41 +117,36 @@ class JobImp( be.share.job.JobAbs ) :
   # 3. clean
 
   def _prepare_board( self ) :
-    #def f( stdout, stderr ) :
-    #  self._drain( 'stdout', stdout )
-    #  self._drain( 'stderr', stderr )
-    #
-    #client = docker.from_env()
-    #
-    #vol = { os.path.abspath( './data/git' ) : { 'bind' : '/acquire/git', 'mode' : 'rw' },
-    #        os.path.abspath( './data/job' ) : { 'bind' : '/acquire/job', 'mode' : 'rw' } }
-    #
-    #env = { 'DOCKER_GID' : os.getgid(), 
-    #        'DOCKER_UID' : os.getuid(), 
-    #                
-    #        'REPO_HOME' : '/acquire/job/target', 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ), 'CACHE' : '/acquire/git' }
-    #
-    #container = client.containers.run( 'scarv/lab-target' + be.share.version.VERSION, 'bash', environment = env, volumes = vol, name = 'acquire', detach = True, tty = True )
-    #
-    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME} deps-fetch'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
-    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME} deps-build'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
-    #
-    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME}      build'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
-    #self.board.program()
-    #f( container.exec_run( "gosu %d:%d bash -c 'make -C ${REPO_HOME}      clean'" % ( os.getuid(), os.getgid() ), environment = env, demux = True ) )
-    #
-    #container.stop() ; container.remove( force = True )
+    client = docker.from_env()
 
-    env = { 'REPO_HOME' : os.path.join( self.path, 'target' ), 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ), 'CACHE' : be.share.sys.conf.get( 'git', section = 'path' ) }
+    img = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board-id' ).replace( '/', '-' ) + ':' + be.share.version.VERSION
+    
+    vol = { os.path.join( self.path, 'target' ) : { 'bind' : '/mnt/scarv/sca3s/harness', 'mode' : 'rw' } }
+    
+    env = { 'DOCKER_GID' : os.getgid(), 
+            'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
 
-    self.run( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-fetch' ], env = env )
-    self.run( [ 'make', '-C', 'target', '--no-builtin-rules', 'deps-build' ], env = env )
-    self.run( [ 'make', '-C', 'target', '--no-builtin-rules',      'build' ], env = env )
+    self.log.info( 'docker image       = %s' % ( img ) )
+    self.log.info( 'docker volume      = %s' % ( vol ) )
+    self.log.info( 'docker environment = %s' % ( env ) )
+    
+    def run_docker( cmd, privileged = False ) :
+      self.log.indent_inc( message = 'docker build context => %s' % ( cmd ) )
+      self.drain( 'stdout', client.containers.run( img, command = cmd, environment = env, volumes = vol, privileged = privileged, detach = False, auto_remove = True, stdout = True, stderr = True ) )
+      self.log.indent_dec()
 
-    self.board.program()
-    self.board.inspect()
+    run_docker( 'deps-fetch-harness', privileged = False )
+    run_docker( 'deps-build-harness', privileged = False )
+    
+    run_docker(      'build-harness', privileged = False )
+    run_docker(     'report-harness', privileged = False )
+    run_docker(    'program-harness', privileged = True  )
 
-    self.run( [ 'make', '-C', 'target', '--no-builtin-rules',      'clean' ], env = env )
+    run_docker(      'clean-harness', privileged = False )
+
+    self.log.indent_inc( message = 'post-preparation configuration' )
+    self.board.prepare()
+    self.log.indent_dec()
 
   # 1. transfer board parameters
   # 2. calibrate

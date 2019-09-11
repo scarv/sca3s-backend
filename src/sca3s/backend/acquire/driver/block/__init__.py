@@ -29,10 +29,10 @@ class Block( driver.DriverAbs ) :
     self.kernel_sizeof_m = int( self.job.board.interact( '?reg m' ), 16 )
     self.kernel_sizeof_c = int( self.job.board.interact( '?reg c' ), 16 )
 
-    self.job.log.info( 'kernel sizeof( k ) = %s', self.kernel_sizeof_k )
-    self.job.log.info( 'kernel sizeof( r ) = %s', self.kernel_sizeof_r )
-    self.job.log.info( 'kernel sizeof( m ) = %s', self.kernel_sizeof_m )
-    self.job.log.info( 'kernel sizeof( c ) = %s', self.kernel_sizeof_c )
+    self.job.log.info( '?reg k -> kernel sizeof( k ) = %s', self.kernel_sizeof_k )
+    self.job.log.info( '?reg r -> kernel sizeof( r ) = %s', self.kernel_sizeof_r )
+    self.job.log.info( '?reg m -> kernel sizeof( m ) = %s', self.kernel_sizeof_m )
+    self.job.log.info( '?reg c -> kernel sizeof( c ) = %s', self.kernel_sizeof_c )
 
   def execute( self ) :
     trace_spec    = self.job.conf.get( 'trace-spec' )

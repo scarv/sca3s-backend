@@ -1,6 +1,5 @@
 boto3
 docker
-Flask
 gitpython
 h5py
 jsonschema
@@ -10,5 +9,4 @@ pycrypto
 PyJWT
 pyserial
 requests
-trsfile
 

@@ -7,7 +7,7 @@
 from sca3s import backend as be
 from sca3s import spec    as spec
 
-import flask, importlib, os, queue, shutil, signal, tempfile, threading, time
+import importlib, os, shutil, signal, tempfile, time
 
 STATUS_SUCCESS                = 0
 
@@ -138,11 +138,11 @@ if ( __name__ == '__main__' ) :
     be.share.sys.init()
 
     if   ( be.share.sys.conf.get( 'task', section = 'sys' ) == 'acquire' ) :
-      task_be   = importlib.import_module( 'sca3s_backend.acquire' )
-      task_spec = importlib.import_module( 'sca3s_spec.acquire' )
+      task_be   = importlib.import_module( 'sca3s.backend.acquire' )
+      task_spec = importlib.import_module( 'sca3s.spec.acquire' )
     elif ( be.share.sys.conf.get( 'task', section = 'sys' ) == 'analyse' ) :
-      task_be   = importlib.import_module( 'sca3s_backend.analyse' )
-      task_spec = importlib.import_module( 'sca3s_spec.analyse' )
+      task_be   = importlib.import_module( 'sca3s.backend.analyse' )
+      task_spec = importlib.import_module( 'sca3s.spec.analyse' )
     else :
       raise be.share.exception.ConfigurationException()
 
