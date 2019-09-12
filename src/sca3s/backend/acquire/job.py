@@ -74,10 +74,11 @@ class JobImp( be.share.job.JobAbs ) :
   def _prepare_repo( self ) :
     return # TODO: reinstance this once upstream repo. is public, otherwise auth. fails
 
-    diff_url     = be.share.sys.conf.get( 'diff-url',     section = 'security' )
-    diff_pattern = be.share.sys.conf.get( 'diff-pattern', section = 'security' )
+    template_url     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'url'     )
+    template_tag     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'tag'     )
+    template_pattern = be.share.sys.conf.get( 'template', section = 'security' ).get( 'pattern' )
 
-    path              = os.path.join( self.path, 'target' )
+    path             = os.path.join( self.path, 'target' )
 
     self.log.indent_inc( message = 'building repo.' )
 
@@ -93,13 +94,13 @@ class JobImp( be.share.job.JobAbs ) :
 
     self.log.indent_inc( message = 'checking repo.' )
 
-    repo.create_remote( 'upstream', diff_url ).fetch() ; fail = False
+    repo.create_remote( 'upstream', template_url ).fetch() ; fail = False
 
-    for filename in repo.git.diff( 'upstream/master', name_only = True ).split( '\n' ) :
+    for filename in repo.git.diff( 'upstream' + '/' + template_tag, name_only = True ).split( '\n' ) :
       if ( not filename.strip() ) :
         continue
 
-      if( None == re.match( diff_pattern, filename ) ) :
+      if( None == re.match( template_pattern, filename ) ) :
         self.log.info( '| failed: ' + filename ) ; fail = True
       else :
         self.log.info( '| passed: ' + filename )

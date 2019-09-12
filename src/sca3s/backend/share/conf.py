@@ -17,8 +17,11 @@ SCHEMA_CONF = {
 
     'security:creds'        : { 'type' :  'object', 'default' : {}               },
 
-    'security:diff-url'     : { 'type' :  'string', 'default' : 'git@github.com/scarv/sca3s-harness.git' },
-    'security:diff-pattern' : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                },
+    'security:template'     : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
+      'url'          : { 'type' : 'string', 'default' : 'git@github.com/scarv/sca3s-harness.git' },
+      'tag'          : { 'type' : 'string', 'default' : 'master'                                 },
+      'pattern'      : { 'type' : 'string', 'default' : 'README.md|src/kernel/.*'                }
+     } },
 
     'api:wait'              : { 'type' :  'number', 'default' :               60 },
     'api:ping'              : { 'type' :  'number', 'default' :               10 },
