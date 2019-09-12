@@ -54,6 +54,14 @@ class BoardAbs( abc.ABC ) :
   def _uart_recv( self    ) :
     raise NotImplementedError()
 
+  @abc.abstractmethod
+  def docker_vol( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def docker_env( self ) :
+    raise NotImplementedError()
+
   def interact( self, x ) :
     self.job.log.debug( '> uart : %s', x )
     self._uart_send( x ) ; t = self._uart_recv()
@@ -86,9 +94,9 @@ class BoardAbs( abc.ABC ) :
     self.job.log.info( '?id -> kernel id      = %s', self.kernel_id      )
 
   @abc.abstractmethod
-  def    open( self ) :
+  def  open( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def   close( self ) :
+  def close( self ) :
     raise NotImplementedError()

@@ -109,12 +109,14 @@ class JobImp( be.share.job.JobAbs ) :
     if ( fail ) :
       raise Exception()
 
-  # 1. build
+  # 1. define parameters
+  # 2. build
   #    - fetch dependencies
   #    - build dependencies
   #    - build
-  # 2. program
-  # 3. clean
+  # 3. report
+  # 4. program
+  # 5. clean
 
   def _prepare_board( self ) :
     client = docker.from_env()
@@ -125,6 +127,9 @@ class JobImp( be.share.job.JobAbs ) :
     
     env = { 'DOCKER_GID' : os.getgid(), 
             'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
+
+    vol = { **vol, **self.board.docker_vol() }
+    env = { **env, **self.board.docker_env() }
 
     self.log.info( 'docker image       = %s' % ( img ) )
     self.log.info( 'docker volume      = %s' % ( vol ) )
