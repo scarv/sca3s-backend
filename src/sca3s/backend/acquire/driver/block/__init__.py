@@ -14,11 +14,36 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import h5py, numpy, os, random
+import binascii, h5py, numpy, os, random
 
 class Block( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
+
+  def _format( self, x ) :
+    r = ''
+  
+    for t in re.split( '({[^}]*})', x ) :
+      if ( ( not t.startswith( '{' ) ) or ( not t.endswith( '}' ) ) ) :
+        r += t ; continue
+    
+      ( c, n ) = tuple( t.strip( '{}' ).split( '*' ) )
+    
+      c = c.strip()
+      n = n.strip()
+  
+      if   ( n == '|k|' ) :
+        r += c * self.kernel_sizeof_k
+      elif ( n == '|r|' ) :
+        r += c * self.kernel_sizeof_r
+      elif ( n == '|m|' ) :
+        r += c * self.kernel_sizeof_m
+      elif ( n == '|c|' ) :
+        r += c * self.kernel_sizeof_c
+      else :
+        r += c * int( n )
+
+    return r
 
   def prepare( self ) : 
     if ( self.job.board.driver_id != 'block' ) :
