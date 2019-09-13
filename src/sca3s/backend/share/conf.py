@@ -7,7 +7,7 @@
 from sca3s import backend as be
 from sca3s import spec    as spec
 
-import json, jsonschema, os, sys, tempfile
+import json, jsonschema, logging, os, sys, tempfile
 
 SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
@@ -101,3 +101,12 @@ class Conf( dict ) :
           value = os.path.expandvars( value )
 
       self[ key ] = value
+
+  def dump( self, logger, level = logging.INFO ) :
+    n = 0
+
+    for ( key, value ) in sorted( self.items() ) : 
+      n = max( n, len( key ) )
+
+    for ( key, value ) in sorted( self.items() ) :
+      logger.log( level, '{0:<{width}} = {1}'.format( key, json.dumps( value ), width = n ) )

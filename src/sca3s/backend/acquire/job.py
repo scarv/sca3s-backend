@@ -14,7 +14,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import docker, git, importlib, json, more_itertools as mit, os, re, sys
+import docker, git, importlib, json, logging, more_itertools as mit, os, re, sys
 
 class JobImp( be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
@@ -200,16 +200,8 @@ class JobImp( be.share.job.JobAbs ) :
   # 5. transfer target implementation from repo. to local copy 
 
   def process_prologue( self ) :
-    self.log.indent_inc( message = 'dump configuration' )
-
-    n = 0
-
-    for ( key, value ) in sorted( self.conf.items() ) : 
-      n = max( n, len( key ) )
-
-    for ( key, value ) in sorted( self.conf.items() ) :
-      self.log.info( '{0:<{width}} = {1}'.format( key, json.dumps( value ), width = n ) )
-
+    self.log.indent_inc( message = 'dump job configuration' )
+    self.conf.dump( self.log, level = logging.INFO )
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'construct board  object' )

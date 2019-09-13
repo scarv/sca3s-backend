@@ -7,7 +7,7 @@
 from sca3s import backend as be
 from sca3s import spec    as spec
 
-import argparse, os, sys
+import argparse, logging, os, sys
 
 conf = None
 log  = None
@@ -55,3 +55,14 @@ def init() :
   # initialise system logger
 
   log  = be.share.log.build_log( be.share.log.TYPE_SYS, path = be.share.sys.conf.get( 'log', section = 'path' ) )
+
+  # dump 
+
+  log.debug( 'dump env  = {0}'.format( os.environ      ) ) 
+
+  log.debug( 'dump argc = {0}'.format( len( sys.argv ) ) )
+  log.debug( 'dump argv = {0}'.format(      sys.argv   ) )
+
+  log.indent_inc( message = 'dump sys configuration', level = logging.DEBUG )
+  conf.dump( log, level = logging.DEBUG )
+  log.indent_dec()  
