@@ -15,15 +15,6 @@ log  = None
 def init() :
   global conf, log
 
-
-
-  print( 'dump env  = {0}'.format( os.environ      ) ) 
-
-  print( 'dump argc = {0}'.format( len( sys.argv ) ) )
-  print( 'dump argv = {0}'.format(      sys.argv   ) )
-
-
-
   # parse command line arguments
 
   parser = argparse.ArgumentParser( add_help = False )
@@ -51,16 +42,6 @@ def init() :
   # initialise system configuration, from configuration file *then* command line arguments
 
   conf = be.share.conf.Conf()
-
-
-
-  
-  print( 'sys:conf' in args )
-  print( args[ 'sys:conf' ] )
-  print( os.path.isfile( args[ 'sys:conf' ] ) )
-
-
-
 
   if ( ( 'sys:conf' in args ) and ( os.path.isfile( args[ 'sys:conf' ] ) ) ) :
     conf.populate( args[ 'sys:conf' ] )
