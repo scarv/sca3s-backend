@@ -17,6 +17,6 @@ doc   : ${REPO_HOME}/Doxyfile
 	@doxygen ${<}
 
 clean :
-	@rm --force --recursive ${REPO_HOME}/build/* ${REPO_HOME}/example/data/{job,log}/*
+	@rm --force --recursive ${REPO_HOME}/build/*
 
 # =============================================================================
