@@ -15,6 +15,15 @@ log  = None
 def init() :
   global conf, log
 
+
+
+  logging.info( 'dump env  = {0}'.format( os.environ      ) ) 
+
+  logging.info( 'dump argc = {0}'.format( len( sys.argv ) ) )
+  logging.info( 'dump argv = {0}'.format(      sys.argv   ) )
+
+
+
   # parse command line arguments
 
   parser = argparse.ArgumentParser( add_help = False )
