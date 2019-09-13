@@ -58,10 +58,21 @@ def init() :
 
   # dump 
 
-  log.debug( 'dump env  = {0}'.format( os.environ      ) ) 
+  log.indent_inc( message = 'dump env configuration', level = logging.DEBUG )
 
-  log.debug( 'dump argc = {0}'.format( len( sys.argv ) ) )
-  log.debug( 'dump argv = {0}'.format(      sys.argv   ) )
+  log.debug( 'env    = {0}'.format( os.environ      ) ) 
+
+  log.debug( 'argc   = {0}'.format( len( sys.argv ) ) )
+  log.debug( 'argv   = {0}'.format(      sys.argv   ) )
+
+  log.debug( 'cwd    = {0}'.format( os.getcwd()     ) )
+
+  log.debug( 'uid    = {0} => {1}'.format( os.getuid(), os.geteuid() ) )
+  log.debug( 'gid    = {0} => {1}'.format( os.getgid(), os.getegid() ) )
+
+  log.debug( 'groups = {0}'.format( os.getgroups()  ) )
+
+  log.indent_dec()  
 
   log.indent_inc( message = 'dump sys configuration', level = logging.DEBUG )
   conf.dump( log, level = logging.DEBUG )
