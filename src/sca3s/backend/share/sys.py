@@ -23,15 +23,15 @@ def init() :
   parser.add_argument( '--sys:version',       action = 'version',                                     version = be.share.version.VERSION )
   parser.add_argument( '--sys:debug',         action =   'count',                                     default = 0                        )
 
-  parser.add_argument( '--sys:conf',          action =   'store', type = str )
+  parser.add_argument( '--sys:conf',          action =   'store', type = str                                                             )
 
   parser.add_argument( '--sys:task',          action =   'store', choices = [ 'acquire', 'analyse' ], default = 'acquire'                )
   parser.add_argument( '--sys:mode',          action =   'store', choices = [ 'cli', 'api'         ], default = 'cli'                    )
 
   parser.add_argument( '--sys:volume',        action =  'append', type = str,                         default = list()                   )
 
-  parser.add_argument( '--job:manifest-file', action =   'store', type = str )
-  parser.add_argument( '--job:manifest-json', action =   'store', type = str )
+  parser.add_argument( '--job:manifest-file', action =   'store', type = str                                                             )
+  parser.add_argument( '--job:manifest-json', action =   'store', type = str                                                             )
 
   args = { key.replace( '_', '-' ) : value for ( key, value ) in vars( parser.parse_args() ).items() if ( value != None ) }
 
