@@ -138,9 +138,9 @@ class JobImp( be.share.job.JobAbs ) :
         if ( os.path.commonpath( [ k, dst ] ) == dst ) :
           del vol[ k ] ; vol[ os.path.join( src, os.path.relpath( k, dst ) ) ] = v
 
-    self.log.info( 'docker image',       img )
-    self.log.info( 'docker volume',      vol )
-    self.log.info( 'docker environment', img )
+    self.log.info( 'docker image       = %s', img )
+    self.log.info( 'docker volume      = %s', vol )
+    self.log.info( 'docker environment = %s', env )
 
     def step( cmd, privileged = False ) :
       self.log.indent_inc( message = 'docker build context => %s' % ( cmd ) )
