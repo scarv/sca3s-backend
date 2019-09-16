@@ -133,7 +133,7 @@ class JobImp( be.share.job.JobAbs ) :
     vol = { **vol, **self.board.get_build_context_vol() }
     env = { **env, **self.board.get_build_context_env() }
 
-    for ( src, dst ) in [ x.split( ':' ) for x in self.conf.get( 'volume', section = 'docker' ) ] :
+    for ( src, dst ) in [ x.split( ':' ) for x in self.conf.get( 'volume', section = 'sys' ) ] :
       for ( k, v ) in vol.items() :
         if ( os.path.commonpath( [ k, dst ] ) == dst ) :
           del vol[ k ] ; vol[ os.path.join( src, os.path.relpath( k, dst ) ) ] = v

@@ -23,8 +23,6 @@ SCHEMA_CONF = {
       'pattern'      : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                }
      } },
 
-    'docker:volume'         : { 'type' :   'array', 'default' : [], "items": { 'type' : 'string' } },
-
     'api:wait'              : { 'type' :  'number', 'default' :               60 },
     'api:ping'              : { 'type' :  'number', 'default' :               10 },
 
