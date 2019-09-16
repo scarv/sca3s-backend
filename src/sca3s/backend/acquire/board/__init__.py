@@ -47,19 +47,19 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
+  def get_build_context_vol( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def get_build_context_env( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
   def _uart_send( self, x ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
   def _uart_recv( self    ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def docker_vol( self ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def docker_env( self ) :
     raise NotImplementedError()
 
   def interact( self, x ) :

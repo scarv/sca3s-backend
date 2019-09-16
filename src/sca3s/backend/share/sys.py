@@ -45,8 +45,6 @@ def init() :
 
   if ( ( 'sys:conf' in args ) and ( os.path.isfile( args[ 'sys:conf' ] ) ) ) :
     conf.populate( args[ 'sys:conf' ] )
-  else :
-    raise Exception()
 
   conf.populate( args )
 
@@ -56,7 +54,7 @@ def init() :
 
   log  = be.share.log.build_log( be.share.log.TYPE_SYS, path = be.share.sys.conf.get( 'log', section = 'path' ) )
 
-  # dump 
+  # dump configuration
 
   log.indent_inc( message = 'dump env configuration', level = logging.DEBUG )
 

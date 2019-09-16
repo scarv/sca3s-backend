@@ -111,6 +111,9 @@ class JobImp( be.share.job.JobAbs ) :
       raise Exception()
 
   # 1. define parameters
+  #    - construct the image name
+  #    - construct the volume and environment mappings
+  #    - remap volume mappings to reflect configuration (e.g., for Docker-by-Docker)
   # 2. build
   #    - fetch dependencies
   #    - build dependencies
@@ -120,8 +123,6 @@ class JobImp( be.share.job.JobAbs ) :
   # 5. clean
 
   def _prepare_board( self ) :
-    client = docker.from_env()
-
     img = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board-id' ).replace( '/', '-' ) + ':' + be.share.version.VERSION
     
     vol = { os.path.join( self.path, 'target' ) : { 'bind' : '/mnt/scarv/sca3s/harness', 'mode' : 'rw' } }
@@ -129,26 +130,31 @@ class JobImp( be.share.job.JobAbs ) :
     env = { 'DOCKER_GID' : os.getgid(), 
             'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
 
-    vol = { **vol, **self.board.docker_vol() }
-    env = { **env, **self.board.docker_env() }
+    vol = { **vol, **self.board.get_build_context_vol() }
+    env = { **env, **self.board.get_build_context_env() }
 
-    self.log.info( 'docker image       = %s' % ( img ) )
-    self.log.info( 'docker volume      = %s' % ( vol ) )
-    self.log.info( 'docker environment = %s' % ( env ) )
-    
-    def run_docker( cmd, privileged = False ) :
+    for ( src, dst ) in [ x.split( ':' ) for x in self.conf.get( 'volume', section = 'docker' ) ] :
+      for ( k, v ) in vol.items() :
+        if ( os.path.commonpath( [ k, dst ] ) == dst ) :
+          del vol[ k ] ; vol[ os.path.join( src, os.path.relpath( k, dst ) ) ] = v
+
+    self.log.info( 'docker image',       img )
+    self.log.info( 'docker volume',      vol )
+    self.log.info( 'docker environment', img )
+
+    def step( cmd, privileged = False ) :
       self.log.indent_inc( message = 'docker build context => %s' % ( cmd ) )
-      self.drain( 'stdout', client.containers.run( img, command = cmd, environment = env, volumes = vol, privileged = privileged, detach = False, auto_remove = True, stdout = True, stderr = True ) )
+      self.drain( 'stdout', docker.from_env().containers.run( img, command = cmd, environment = env, volumes = vol, privileged = privileged, detach = False, auto_remove = True, stdout = True, stderr = True ) )
       self.log.indent_dec()
 
-    run_docker( 'deps-fetch-harness', privileged = False )
-    run_docker( 'deps-build-harness', privileged = False )
+    step( 'deps-fetch-harness', privileged = False )
+    step( 'deps-build-harness', privileged = False )
     
-    run_docker(      'build-harness', privileged = False )
-    run_docker(     'report-harness', privileged = False )
-    run_docker(    'program-harness', privileged = True  )
+    step(      'build-harness', privileged = False )
+    step(     'report-harness', privileged = False )
+    step(    'program-harness', privileged = True  )
 
-    run_docker(      'clean-harness', privileged = False )
+    step(      'clean-harness', privileged = False )
 
     self.log.indent_inc( message = 'post-preparation configuration' )
     self.board.prepare()
@@ -197,10 +203,9 @@ class JobImp( be.share.job.JobAbs ) :
   # 2. construct board, scope, driver, repo., and depo. objects
   # 3. open  board object
   # 4. open  scope object
-  # 5. transfer target implementation from repo. to local copy 
 
   def process_prologue( self ) :
-    self.log.indent_inc( message = 'dump job configuration' )
+    self.log.indent_inc( message = 'dump configuration' )
     self.conf.dump( self.log, level = logging.INFO )
     self.log.indent_dec()
 
@@ -232,19 +237,21 @@ class JobImp( be.share.job.JobAbs ) :
     self.scope.open()
     self.log.indent_dec()
 
+  # Execute job process:
+  #
+  # 1. transfer target implementation from repo. to local copy 
+  # 2. prepare repo.,  e.g., check vs. diff
+  # 3. prepare board,  e.g., build and program target implementation
+  # 4. prepare driver, e.g., query target implemention parameters
+  # 5. prepare scope,  e.g., calibrate wrt. target implementation
+  # 6. execute driver, i.e., acquisition process wrt. target implementation
+  # 7. transfer target implementation from local copy to depo.
+
+  def process( self ) :
     self.log.indent_inc( message = 'transfer local <- repo.' )
     self.repo.transfer()
     self.log.indent_dec()
 
-  # Execute job process:
-  #
-  # 1. prepare repo.,  e.g., check vs. diff
-  # 1. prepare board,  e.g., build and program target implementation
-  # 2. prepare driver, e.g., query target implemention parameters
-  # 3. prepare scope,  e.g., calibrate wrt. target implementation
-  # 4. execute driver, i.e., acquisition process wrt. target implementation
-
-  def process( self ) :
     self.log.indent_inc( message = 'prepare repo.'  )
     self._prepare_repo()
     self.log.indent_dec()
@@ -265,17 +272,16 @@ class JobImp( be.share.job.JobAbs ) :
     self.driver.execute()
     self.log.indent_dec()
 
-  # Execute job process epilogue (i.e., *after*  process):
-  #
-  # 1. transfer target implementation from local copy to depo.
-  # 2. close scope object
-  # 3. close board object
-
-  def process_epilogue( self ) :
     self.log.indent_inc( message = 'transfer local -> depo.' )
     self.depo.transfer()
     self.log.indent_dec()
 
+  # Execute job process epilogue (i.e., *after*  process):
+  #
+  # 1. close scope object
+  # 2. close board object
+
+  def process_epilogue( self ) :
     self.log.indent_inc( message = 'close scope' )
     self.scope.close()
     self.log.indent_dec()
