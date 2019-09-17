@@ -43,7 +43,7 @@ class Block( driver.DriverAbs ) :
       else :
         r += c * int( n )
 
-    return r
+    return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
 
   def prepare( self ) : 
     if ( self.job.board.driver_id != 'block' ) :

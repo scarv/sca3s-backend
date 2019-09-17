@@ -28,18 +28,20 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
 ## Organisation
 
 ```
-├── bin                       - scripts (e.g., environment configuration)
-├── build                     - working directory for build
-├── data                      - working directory for data
-├── example                   - examples (e.g., job manifests)
-└── src                       - source code
-    ├── acquire/depo          - depository implementations
-    ├── acquire/board         - board      implementations
-    ├── acquire/scope         - scope      implementations
-    ├── acquire/driver        - driver     implementations
-    ├── acquire/repo          - repository implementations
-    ├── acquire/server        - server functionality
-    └── acquire/share         - shared functionality
+├── bin                     - scripts (e.g., environment configuration)
+├── build                   - working directory for build
+├── example                 - working directory for examples
+└── src
+    └── sca3s               - source code for SCA3S
+        └── spec            - source code for SCA3S specification
+            ├── acquire       - acquire-specific functionality
+            │   ├── depo        - depository implementations
+            │   ├── board       - board      implementations
+            │   ├── scope       - scope      implementations
+            │   ├── driver      - driver     implementations
+            │   └── repo        - repository implementations
+            ├── analyse       - analyse-specific functionality
+            └── share         - shared           functionality
 ```
 
 <!--- -------------------------------------------------------------------- --->
@@ -179,10 +181,16 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
 
 ## Acknowledgements
 
-This work has been supported in part by EPSRC via grant 
-[EP/R012288/1](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/R012288/1),
-under the [RISE](https://www.ukrise.org) programme, and by the
-[AWS Cloud Credits for Research](https://aws.amazon.com/research-credits)
-program.
+This work has been supported in part 
+
+- by EPSRC via grant 
+  [EP/R012288/1](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/R012288/1)
+  under the 
+  [RISE](https://www.ukrise.org) 
+  programme, 
+  and 
+- by the
+  [AWS Cloud Credits for Research](https://aws.amazon.com/research-credits)
+  programme.
 
 <!--- -------------------------------------------------------------------- --->
