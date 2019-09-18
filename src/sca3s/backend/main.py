@@ -41,7 +41,7 @@ def process( manifest ) :
     be.share.sys.log.info( 'allocating job' )
 
     try :
-      id = manifest.get( 'id' ) ; 
+      id   = manifest.get( 'id' ) ; 
 
       path = tempfile.mkdtemp( prefix = id + '.', dir = be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = be.share.log.build_log( be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
@@ -56,10 +56,12 @@ def process( manifest ) :
     try :    
       job.process_prologue()
       job.process()
-      job.process_epilogue()
   
     except Exception as e :
       result = STATUS_FAILURE_PROCESSING_JOB ; raise e
+
+    finally :
+      job.process_epilogue()
 
     if ( be.share.sys.conf.get( 'clean', section = 'job' ) ) :
       shutil.rmtree( path, ignore_errors = True )

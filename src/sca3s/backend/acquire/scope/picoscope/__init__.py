@@ -44,7 +44,8 @@ class PicoScope( scope.ScopeAbs ) :
       self.job.log.info( t )
 
   def close( self ) :
-    self.scope_object.close()
+    if ( self.scope_object != None ) :
+      self.scope_object.close()
 
   def calibrate( self, mode, x, resolution = 8, dtype = '<f8' ) :  
     resolution = be.share.util.closest( resolution, self._resolutions() )
