@@ -21,7 +21,7 @@ The main
 [repository](https://github.com/scarv/sca3s)
 acts as a general container for associated resources;
 this specific submodule houses
-the acquisition server, which is, for example, tasked with orchestrating the acquisition of trace sets.*
+the back-end infrastructure, which is, for example, tasked with orchestrating the acquisition and analysis of trace sets.*
 
 <!--- -------------------------------------------------------------------- --->
 
@@ -30,10 +30,10 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
 ```
 ├── bin                     - scripts (e.g., environment configuration)
 ├── build                   - working directory for build
-├── example                 - working directory for examples
+├── example                 - working directory for example configuration(s) and data
 └── src
     └── sca3s               - source code for SCA3S
-        └── spec            - source code for SCA3S specification
+        └── backend         - source code for SCA3S back-end infrastructure
             ├── acquire       - acquire-specific functionality
             │   ├── depo        - depository implementations
             │   ├── board       - board      implementations
@@ -88,12 +88,14 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
 
    1. Create and populate a suitable Python
       [virtual environment](https://docs.python.org/library/venv.html)
-      based on `${REPO_HOME}/requirements.txt` by executing
-
+      based on 
+      [`${REPO_HOME}/requirements.txt`](./requirements.txt) 
+      by executing
+   
       ```sh
       make venv
       ```
-
+   
       then activate it by executing
    
       ```sh
@@ -105,7 +107,7 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
       updating
 
       ```sh
-      ${REPO_HOME}/example/example.conf
+      ${REPO_HOME}/example/conf/example.conf
       ```
 
       so the database of hardware (namely board and scope)
@@ -118,7 +120,7 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
       preparing such a cache somewhere, e.g., in
 
       ```sh
-      ${REPO_HOME}/data/git
+      ${REPO_HOME}/example/data/cache
       ```
 
       can significantly improve efficiency wrt. repeated
@@ -126,7 +128,16 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
 
 4. Either
 
-   1. execute the acquisition appliance directly via
+   1. use targets in the top-level `Makefile` to drive a set of
+      common tasks, e.g.,
+
+      | Command                  | Description
+      | :----------------------- | :----------------------------------------------------------------------------------- |
+      | `make doc`               | build the [Doxygen](http://www.doxygen.nl)-based documentation                       |
+      | `make venv`              | build the Python [virtual environment](https://docs.python.org/library/venv.html)    |
+      | `make    clean`          | clean-up (e.g., remove everything built in `${REPO_HOME}/build`)                     |
+
+   2. execute the back-end infrastructure appliance directly via
 
       ```sh
       ${REPO_HOME}/bin/acquire.sh
@@ -153,29 +164,6 @@ the acquisition server, which is, for example, tasked with orchestrating the acq
    
          ```sh
          ${REPO_HOME}/bin/acquire.sh --sys:mode=server-pull --sys:conf="${REPO_HOME}/example/example.conf" ...
-         ```
-
-      or
-
-   2. use targets in the top-level `Makefile` to drive a set of
-      common tasks, e.g.,
-
-      - execute
-   
-        ```sh
-        make doc
-        ```
-   
-        to build the documentation,
-   
-      - execute
-   
-        ```sh
-        make clean
-        ```
-   
-        to clean-up
-        (e.g., remove everything built in `${REPO_HOME}/build`, and data in `${REPO_HOME}/data`).
 
 <!--- -------------------------------------------------------------------- --->
 
