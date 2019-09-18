@@ -49,4 +49,5 @@ class SCALE( board.BoardAbs ) :
       raise Exception()
 
   def close( self ) :
-    self.board_object.close()
+    if ( self.board_object != None ) :
+      self.board_object.close()
