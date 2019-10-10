@@ -133,11 +133,6 @@ class JobImp( be.share.job.JobAbs ) :
     vol = { **vol, **self.board.get_build_context_vol() }
     env = { **env, **self.board.get_build_context_env() }
 
-    for ( src, dst ) in [ x.split( ':' ) for x in be.share.sys.conf.get( 'volume', section = 'sys' ) ] :
-      for ( k, v ) in vol.items() :
-        if ( os.path.commonpath( [ k, dst ] ) == dst ) :
-          del vol[ k ] ; vol[ os.path.join( src, os.path.relpath( k, dst ) ) ] = v
-
     self.log.info( 'docker image       = %s', img )
     self.log.info( 'docker volume      = %s', vol )
     self.log.info( 'docker environment = %s', env )
@@ -152,13 +147,11 @@ class JobImp( be.share.job.JobAbs ) :
     
     step(      'build-harness', privileged = False )
     step(     'report-harness', privileged = False )
-    step(    'program-harness', privileged = True  )
+
+    self.board.program()
+    self.board.prepare()
 
     step(      'clean-harness', privileged = False )
-
-    self.log.indent_inc( message = 'post-preparation configuration' )
-    self.board.prepare()
-    self.log.indent_dec()
 
   # 1. transfer board parameters
   # 2. calibrate

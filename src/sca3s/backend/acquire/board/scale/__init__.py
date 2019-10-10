@@ -25,6 +25,7 @@ class SCALE( board.BoardAbs ) :
 
     self.program_id      =      self.board_spec.get( 'program-id'      )
     self.program_timeout = int( self.board_spec.get( 'program-timeout' ) )
+    self.program_mode    =      self.board_spec.get( 'program-mode'    )
 
   def _uart_send( self, x ) :
     self.board_object.write( ( x + '\x0D' ).encode() )

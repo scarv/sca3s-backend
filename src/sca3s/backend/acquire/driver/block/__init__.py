@@ -67,6 +67,7 @@ class Block( driver.DriverAbs ) :
 
     fd = h5py.File( os.path.join( self.job.path, 'acquire.hdf5' ), 'a' )
 
+    # << GENERIC
     fd.attrs.create( 'driver_version',    self.job.board.driver_version,    dtype = h5py.special_dtype( vlen = str ) )
     fd.attrs.create( 'driver_id',         self.job.board.driver_id,         dtype = h5py.special_dtype( vlen = str ) )
     fd.attrs.create( 'kernel_id',         self.job.board.kernel_id,         dtype = h5py.special_dtype( vlen = str ) )
@@ -82,7 +83,9 @@ class Block( driver.DriverAbs ) :
     fd.attrs.create( 'signal_resolution', self.job.scope.signal_resolution, dtype = '<u8'                            )
     fd.attrs.create( 'signal_type',       self.job.scope.signal_type,       dtype = h5py.special_dtype( vlen = str ) )
     fd.attrs.create( 'signal_length',     self.job.scope.signal_length,     dtype = '<u8'                            )
+    # >> GENERIC
 
+    # << GENERIC
     if ( 'trace/trigger'  in trace_content ) :
       fd.create_dataset( 'trace/trigger', ( trace_count, self.job.scope.signal_length ), dtype = self.job.scope.signal_type )
     if ( 'trace/signal'   in trace_content ) :
@@ -96,7 +99,9 @@ class Block( driver.DriverAbs ) :
       fd.create_dataset(  'perf/cycle',   ( trace_count,                              ), dtype = '<u8' )
     if (  'perf/duration' in trace_content ) :
       fd.create_dataset(  'perf/time',    ( trace_count,                              ), dtype = '<f8' )
+    # >> GENERIC
 
+    # >> SPECIFIC
     if ( 'k'              in trace_content ) :
       fd.create_dataset( 'k',             ( trace_count, self.kernel_sizeof_k         ), dtype =   'B' )
     if ( 'r'              in trace_content ) :
@@ -105,6 +110,7 @@ class Block( driver.DriverAbs ) :
       fd.create_dataset( 'm',             ( trace_count, self.kernel_sizeof_k         ), dtype =   'B' )
     if ( 'c'              in trace_content ) :
       fd.create_dataset( 'c',             ( trace_count, self.kernel_sizeof_k         ), dtype =   'B' )
+    # >> SPECIFIC
 
     k = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_k ) ] )
 
@@ -124,6 +130,7 @@ class Block( driver.DriverAbs ) :
       self.job.log.info( '        +ve edge @ {0:d}'.format( trigger_edge_lo  ) )
       self.job.log.info( '        -ve edge @ {0:d}'.format( trigger_edge_hi  ) )
 
+      # >> GENERIC
       if ( 'trace/trigger' in trace_content ) :
         fd[ 'trace/trigger'  ][ i ] = trace[ 'trace/trigger' ]
       if ( 'trace/signal'  in trace_content ) :
@@ -138,7 +145,9 @@ class Block( driver.DriverAbs ) :
         fd[  'perf/cycle'    ][ i ] = trigger_cycle
       if (  'perf/duration'          in trace_content ) :
         fd[  'perf/duration' ][ i ] = trigger_duration
+      # << GENERIC
 
+      # >> SPECIFIC
       if ( 'k'            in trace_content ) :
         fd[ 'k'              ][ i ] = numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 )
       if ( 'r'            in trace_content ) :
@@ -147,6 +156,7 @@ class Block( driver.DriverAbs ) :
         fd[ 'm'              ][ i ] = numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 )
       if ( 'c'            in trace_content ) :
         fd[ 'c'              ][ i ] = numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 )
+      # << SPECIFIC
 
       self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d}'.format( i, trace_count, width = len( str( trace_count ) ) ) )
 

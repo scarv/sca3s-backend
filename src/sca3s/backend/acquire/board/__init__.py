@@ -94,6 +94,10 @@ class BoardAbs( abc.ABC ) :
     self.job.log.info( '?id -> kernel id      = %s', self.kernel_id      )
 
   @abc.abstractmethod
+  def program( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
   def  open( self ) :
     raise NotImplementedError()
 
