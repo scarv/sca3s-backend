@@ -72,6 +72,8 @@ class JobImp( be.share.job.JobAbs ) :
   #    - for each filename that differs, check vs. pattern
 
   def _prepare_repo( self ) :
+    return # TODO: reinstance this once upstream repo. is public, otherwise auth. fails
+
     template_url     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'url'     )
     template_tag     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'tag'     )
     template_pattern = be.share.sys.conf.get( 'template', section = 'security' ).get( 'pattern' )
