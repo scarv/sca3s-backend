@@ -39,7 +39,7 @@ class BoardImp( SCALE ) :
     return { 'CACHE' : '/mnt/scarv/sca3s/cache', 'JLINK' : self.program_id }
 
   def program( self ) :  
-    target = os.path.join( self.job.path, 'target', 'build', 'target.hex' )
+    target = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
 
     if ( not os.path.isfile( target ) ) :
       raise Exception()
