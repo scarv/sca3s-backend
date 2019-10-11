@@ -16,6 +16,8 @@ from sca3s.backend.acquire import depo   as depo
 
 from .                     import *
 
+import os
+
 class BoardImp( SCALE ) :
   def __init__( self, job ) :
     super().__init__( job )
@@ -51,4 +53,4 @@ class BoardImp( SCALE ) :
     else :
       raise Exception()
 
-    self.job.run( cmd, timeout = self.program_timeout )
+    self.job.run( cmd, env = { 'PATH' : os.environ[ 'PATH' ] + ( ''.join( [ ( os.pathsep + t ) for t in self.board_path ] ) ) }, timeout = self.program_timeout )

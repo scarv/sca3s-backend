@@ -25,6 +25,7 @@ class BoardAbs( abc.ABC ) :
     self.board_object   = None
     self.board_id       = self.job.conf.get( 'board-id'   )
     self.board_spec     = self.job.conf.get( 'board-spec' )
+    self.board_path     = self.job.conf.get( 'board-path' )
 
     self.driver_version = None
     self.driver_id      = None

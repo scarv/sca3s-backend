@@ -32,6 +32,7 @@ class ScopeAbs( abc.ABC ) :
     self.scope_object              = None
     self.scope_id                  = self.job.conf.get( 'scope-id'   )
     self.scope_spec                = self.job.conf.get( 'scope-spec' )
+    self.scope_path                = self.job.conf.get( 'scope-path' )
 
     self.channel_trigger_range     = None
     self.channel_trigger_threshold = None
