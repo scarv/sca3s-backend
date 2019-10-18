@@ -64,9 +64,9 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   def interact( self, x ) :
-    self.job.log.debug( '> uart : %s', x )
+    be.share.sys.log.debug( '> uart : %s', x )
     self._uart_send( x ) ; t = self._uart_recv()
-    self.job.log.debug( '< uart : %s', t )
+    be.share.sys.log.debug( '< uart : %s', t )
 
     if   ( t[ 0 ] == '+' ) :
       return t[ 1 : ]

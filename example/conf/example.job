@@ -6,7 +6,7 @@
 
   "driver-id"   : "block/enc",
   "driver-spec" : {
-    "policy"        : "custom",
+    "policy"        : "tvla-fvr-d",
     "verify"        : true,
 
     "custom-select" : { 
@@ -14,8 +14,8 @@
       "m" : "each"
     },
     "custom-value"  : { 
-      "k" : "{$ * |k|}",
-      "m" : "{$ * |m|}"
+      "k" : "{$*|k|}",
+      "m" : "{$*|m|}"
     }
   },
 
@@ -38,7 +38,7 @@
     "resolution-id" :  "max",
 
     "count"         : 10,
-    "content"       : [ "trace/signal", "crop/signal", "m", "c", "k" ]
+    "content"       : [ "trace/signal", "crop/signal", "m", "c", "k", "tvla/lhs", "tvla/rhs" ]
   }
 }
 

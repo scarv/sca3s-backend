@@ -44,6 +44,12 @@ class DriverAbs( abc.ABC ) :
 
     return t
 
+  def _measure( self, trigger ) :
+    edge_lo = be.share.util.measure( be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
+    edge_hi = be.share.util.measure( be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
+      
+    return ( edge_hi, edge_lo, float( edge_hi - edge_lo ) * self.job.scope.signal_interval )
+
   @abc.abstractmethod
   def prepare( self ) :
     raise NotImplementedError()
