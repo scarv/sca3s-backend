@@ -6,16 +6,21 @@
 
   "driver-id"   : "block/enc",
   "driver-spec" : {
-    "policy"        : "tvla-fvr-d",
-    "verify"        : true,
+    "verify"      : true,
 
-    "custom-select" : { 
-      "k" :  "all",
-      "m" : "each"
-    },
-    "custom-value"  : { 
-      "k" : "{$*|k|}",
-      "m" : "{$*|m|}"
+    "policy-id"   : "tvla",
+    "policy-spec" : {
+      "tvla-mode"   : "fvr-d",
+      "tvla-round"  :       8,
+
+      "user-select" : { 
+        "k" :  "all",
+        "m" : "each"
+      },
+      "user-value"  : { 
+        "k" : "{$*|k|}",
+        "m" : "{$*|m|}"
+      }
     }
   },
 

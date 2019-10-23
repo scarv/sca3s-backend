@@ -17,15 +17,10 @@ from sca3s.backend.acquire import depo   as depo
 
 import abc
 
-class DepoAbs( abc.ABC ) :
-  def __init__( self, job ) :
+class KernelAbs( abc.ABC ) :
+  def __init__( self ) :
     super().__init__()  
 
-    self.job       = job
-
-    self.depo_id   = self.job.conf.get( 'depo-id'   )
-    self.depo_spec = self.job.conf.get( 'depo-spec' )
-
   @abc.abstractmethod
-  def transfer( self ) :
-    raise NotImplementedError()    
+  def supports( self, policy ) :
+    raise NotImplementedError()

@@ -9,6 +9,7 @@ from sca3s import spec    as spec
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
 from sca3s.backend.acquire import repo   as repo
@@ -65,6 +66,8 @@ class JobImp( be.share.job.JobAbs ) :
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
 
+  # Prepare the repo.:
+  # 
   # 1. create and initialise git index for repo.
   # 2. check repo. vs. whitelist
   #    - fetch upstream repo.
@@ -110,6 +113,8 @@ class JobImp( be.share.job.JobAbs ) :
     if ( fail ) :
       raise Exception()
 
+  # Prepare the board:
+  # 
   # 1. define parameters
   #    - construct the image name
   #    - construct the volume and environment mappings
@@ -153,6 +158,8 @@ class JobImp( be.share.job.JobAbs ) :
 
     step(      'clean-harness', privileged = False )
 
+  # Prepare the scope:
+  # 
   # 1. transfer board parameters
   # 2. calibrate
 

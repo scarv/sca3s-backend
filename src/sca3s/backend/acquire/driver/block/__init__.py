@@ -9,58 +9,62 @@ from sca3s import spec    as spec
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii, Crypto.Cipher.AES as AES, h5py, numpy, os, random, re
-
-TVLA_AES = { 16 : { 'k_dev'    : bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) ),
-                    'k_gen'    : bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ),
-                    'x_fixed'  : bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601890'                                 ) ),
-                    'x_random' : bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) ) },
-
-             24 : { 'k_dev'    : bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) ),
-                    'k_gen'    : bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ),
-                    'x_fixed'  : bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601888'                                 ) ),
-                    'x_random' : bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) ) },
-
-             32 : { 'k_dev'    : bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) ),
-                    'k_gen'    : bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ),
-                    'x_fixed'  : bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601895'                                 ) ),
-                    'x_random' : bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) ) } }
+import binascii, Crypto.Cipher.AES as AES, h5py, importlib, numpy, os, random, re
 
 class Block( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.trace_spec    = self.job.conf.get( 'trace-spec' )
+    self.trace_spec      = self.job.conf.get( 'trace-spec' )
 
-    self.trace_content =       self.trace_spec.get( 'content' )
-    self.trace_count   =  int( self.trace_spec.get( 'count'   ) )
+    self.trace_content   =       self.trace_spec.get( 'content' )
+    self.trace_count     =  int( self.trace_spec.get( 'count'   ) )
+
+    self.policy_id       = self.driver_spec.get( 'policy-id'   )
+    self.policy_spec     = self.driver_spec.get( 'policy-spec' )
+
+    self.kernel          = None
+
+  # Prepare the driver:
+  #
+  # 1. check the on-board driver
+  # 2. query the on-board kernel wrt. the size of 
+  #    - k (cipher key), 
+  #    - r (randomness), 
+  #    - m  (plaintext), and 
+  #    - c (ciphertext)
+  # 3. build a model of the on-board kernel
+  # 4. check the model supports whatever policy is selected
 
   def prepare( self ) : 
     if ( self.job.board.driver_id != 'block' ) :
       raise Exception()
 
-    self.kernel_sizeof_k = int( self.job.board.interact( '?reg k' ), 16 )
-    self.kernel_sizeof_r = int( self.job.board.interact( '?reg r' ), 16 )
-    self.kernel_sizeof_m = int( self.job.board.interact( '?reg m' ), 16 )
-    self.kernel_sizeof_c = int( self.job.board.interact( '?reg c' ), 16 )
+    kernel_sizeof_k = int( self.job.board.interact( '?reg k' ), 16 )
+    kernel_sizeof_r = int( self.job.board.interact( '?reg r' ), 16 )
+    kernel_sizeof_m = int( self.job.board.interact( '?reg m' ), 16 )
+    kernel_sizeof_c = int( self.job.board.interact( '?reg c' ), 16 )
 
-    self.job.log.info( '?reg k -> kernel sizeof( k ) = %s', self.kernel_sizeof_k )
-    self.job.log.info( '?reg r -> kernel sizeof( r ) = %s', self.kernel_sizeof_r )
-    self.job.log.info( '?reg m -> kernel sizeof( m ) = %s', self.kernel_sizeof_m )
-    self.job.log.info( '?reg c -> kernel sizeof( c ) = %s', self.kernel_sizeof_c )
+    self.job.log.info( '?reg k -> kernel sizeof( k ) = %s', kernel_sizeof_k )
+    self.job.log.info( '?reg r -> kernel sizeof( r ) = %s', kernel_sizeof_r )
+    self.job.log.info( '?reg m -> kernel sizeof( m ) = %s', kernel_sizeof_m )
+    self.job.log.info( '?reg c -> kernel sizeof( c ) = %s', kernel_sizeof_c )
 
-    if   ( ( self.driver_spec.get( 'policy' ) == 'tvla-fvr-k' ) and ( self.job.board.kernel_id not in [ 'aes' ] ) ): 
-      raise Exception()
-    elif ( ( self.driver_spec.get( 'policy' ) == 'tvla-fvr-d' ) and ( self.job.board.kernel_id not in [ 'aes' ] ) ): 
-      raise Exception()
-    elif ( ( self.driver_spec.get( 'policy' ) == 'tvla-svr-d' ) and ( self.job.board.kernel_id not in [ 'aes' ] ) ): 
-      raise Exception()
-    elif ( ( self.driver_spec.get( 'policy' ) == 'tvla-rvr-d' ) and ( self.job.board.kernel_id not in [ 'aes' ] ) ): 
+    try :
+      if ( self.job.board.kernel_id == 'aes'   ) :
+        self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + self.job.board.kernel_id ).KernelImp( kernel_sizeof_k, kernel_sizeof_r, kernel_sizeof_m, kernel_sizeof_c )
+      else :
+        self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + 'unknown'                ).KernelImp( kernel_sizeof_k, kernel_sizeof_r, kernel_sizeof_m, kernel_sizeof_c )
+    except :
+      raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'kernel', self.job.board.kernel_id ) )
+
+    if ( not self.kernel.supports( self.policy_id ) ) :
       raise Exception()
 
   def _value( self, x ) :
@@ -70,21 +74,21 @@ class Block( driver.DriverAbs ) :
       if ( ( not t.startswith( '{' ) ) or ( not t.endswith( '}' ) ) ) :
         r += t ; continue
     
-      ( c, n ) = tuple( t.strip( '{}' ).split( '*' ) )
+      ( x, n ) = tuple( t.strip( '{}' ).split( '*' ) )
     
-      c = c.strip()
+      x = x.strip()
       n = n.strip()
   
       if   ( n == '|k|' ) :
-        r += c * ( 2 * self.kernel_sizeof_k )
+        r += x * ( 2 * self.kernel.sizeof_k )
       elif ( n == '|r|' ) :
-        r += c * ( 2 * self.kernel_sizeof_r )
+        r += x * ( 2 * self.kernel.sizeof_r )
       elif ( n == '|m|' ) :
-        r += c * ( 2 * self.kernel_sizeof_m )
+        r += x * ( 2 * self.kernel.sizeof_m )
       elif ( n == '|c|' ) :
-        r += c * ( 2 * self.kernel_sizeof_c )
+        r += x * ( 2 * self.kernel.sizeof_c )
       else :
-        r += c * int( n )
+        r += x * int( n )
 
     return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
 
@@ -96,36 +100,23 @@ class Block( driver.DriverAbs ) :
     width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
     self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
 
-  def _hdf5_get_tvla( self, fd ) :
-    n   = 2 * self.trace_count
-
-    lhs = numpy.fromiter( range( 0, int( n / 2 ) ), numpy.int )
-    rhs = numpy.fromiter( range( int( n / 2 ), n ), numpy.int )
-
-    if ( 'tvla/lhs' in self.trace_content ) :
-      fd[ 'tvla/lhs' ] = lhs
-    if ( 'tvla/rhs' in self.trace_content ) :
-      fd[ 'tvla/rhs' ] = rhs
-
-    return ( n, lhs, rhs )
-
   def _hdf5_add_attr( self, fd ) :
     T = [ ( 'driver_version',    self.job.board.driver_version,    h5py.special_dtype( vlen = str ) ),
           ( 'driver_id',         self.job.board.driver_id,         h5py.special_dtype( vlen = str ) ),
           ( 'kernel_id',         self.job.board.kernel_id,         h5py.special_dtype( vlen = str ) ),
+
+          ( 'kernel_sizeof_k',   self.kernel.sizeof_k,             '<u8'                            ),
+          ( 'kernel_sizeof_r',   self.kernel.sizeof_r,             '<u8'                            ),
+          ( 'kernel_sizeof_m',   self.kernel.sizeof_m,             '<u8'                            ),
+          ( 'kernel_sizeof_c',   self.kernel.sizeof_c,             '<u8'                            ),
 
           ( 'signal_interval',   self.job.scope.signal_interval,   '<f8'                            ),
           ( 'signal_duration',   self.job.scope.signal_duration,   '<f8'                            ),
     
           ( 'signal_resolution', self.job.scope.signal_resolution, '<u8'                            ),
           ( 'signal_type',       self.job.scope.signal_type,       h5py.special_dtype( vlen = str ) ),
-          ( 'signal_length',     self.job.scope.signal_length,     '<u8'                            ),
+          ( 'signal_length',     self.job.scope.signal_length,     '<u8'                            ) ]
     
-          ( 'kernel_sizeof_k',   self.kernel_sizeof_k,             '<u8'                            ),
-          ( 'kernel_sizeof_r',   self.kernel_sizeof_r,             '<u8'                            ),
-          ( 'kernel_sizeof_m',   self.kernel_sizeof_m,             '<u8'                            ),
-          ( 'kernel_sizeof_c',   self.kernel_sizeof_c,             '<u8'                            ) ]
-
     for ( k, v, t ) in T :
       fd.attrs.create( k, v, dtype = t )
 
@@ -139,10 +130,10 @@ class Block( driver.DriverAbs ) :
           (  'perf/cycle',    ( n,                              ), '<u8'                                            ),
           (  'perf/duration', ( n,                              ), '<f8'                                            ),
    
-          ( 'k',              ( n, self.kernel_sizeof_k         ),   'B'                                            ),
-          ( 'r',              ( n, self.kernel_sizeof_k         ),   'B'                                            ),
-          ( 'm',              ( n, self.kernel_sizeof_k         ),   'B'                                            ),
-          ( 'c',              ( n, self.kernel_sizeof_k         ),   'B'                                            ) ]
+          ( 'k',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
+          ( 'r',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
+          ( 'm',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
+          ( 'c',              ( n, self.kernel.sizeof_k         ),   'B'                                            ) ]
 
     for ( k, v, t ) in T :
       if ( k in self.trace_content ) :
@@ -167,81 +158,72 @@ class Block( driver.DriverAbs ) :
       if ( k in self.trace_content ) :
         fd[ k ][ i ] = f( trace )
 
-  # policy: custom
+  # Driver policy: user-driven
 
-  def _policy_custom( self, fd ) :
-    n = self.trace_count ; self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
+  def _policy_user( self, fd ) :
+    user_select = self.policy_spec.get( 'user-select' )
+    user_value  = self.policy_spec.get( 'user-value'  )
 
-    custom_select = self.driver_spec.get( 'custom-select' )
-    custom_value  = self.driver_spec.get( 'custom-value'  )
+    n   = 1 * self.trace_count
 
-    k = self._value( custom_value.get( 'k' ) ) if ( custom_select.get( 'k' ) == 'all' ) else None
-    m = self._value( custom_value.get( 'm' ) ) if ( custom_select.get( 'm' ) == 'all' ) else None 
-    c = self._value( custom_value.get( 'c' ) ) if ( custom_select.get( 'c' ) == 'all' ) else None
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
+
+    k   = self._value( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'all' ) else None
+    m   = self._value( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'all' ) else None 
+    c   = self._value( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'all' ) else None
 
     for i in range( n ) :
-      if ( custom_select.get( 'k' ) == 'each' ) :
-        k = self._value( custom_value.get( 'k' ) )
-      if ( custom_select.get( 'm' ) == 'each' ) :
-        m = self._value( custom_value.get( 'm' ) )
-      if ( custom_select.get( 'c' ) == 'each' ) :
-        c = self._value( custom_value.get( 'c' ) )
+      if ( user_select.get( 'k' ) == 'each' ) :
+        k = self._value( user_value.get( 'k' ) )
+      if ( user_select.get( 'm' ) == 'each' ) :
+        m = self._value( user_value.get( 'm' ) )
+      if ( user_select.get( 'c' ) == 'each' ) :
+        c = self._value( user_value.get( 'c' ) )
 
       self._acquire_log_inc( i, n )
       self._hdf5_set_data( fd, self.acquire( k = k, m = m, c = c ), i )
       self._acquire_log_dec( i, n )
 
-  # Policy: TVLA type 1:  fixed-versus random key.
+  # Driver policy: TVLA-driven
+  #
+  # - mode = fvr-k ~>  fixed-versus random  key
+  # - mode = fvr-d ~>  fixed-versus random data  
+  # - mode = svr-d ~>   semi-versus random data  
+  # - mode = rvr-d ~> random-versus random data  
 
-  def _policy_tvla_fvr_k( self, fd ) :
-    raise Exception()
+  def _policy_tvla( self, fd ) :
+    tvla_mode  = self.policy_spec.get( 'tvla-mode'  )
+    tvla_round = self.policy_spec.get( 'tvla-round' )
 
-  # Policy: TVLA type 2:  fixed-versus random data.
+    n   = 2 * self.trace_count
 
-  def _policy_tvla_fvr_d( self, fd ) :
-    ( n, lhs, rhs ) = self._hdf5_get_tvla( fd ) ; self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
+    lhs = numpy.fromiter( range( 0, int( n / 2 ) ), numpy.int )
+    rhs = numpy.fromiter( range( int( n / 2 ), n ), numpy.int )
 
-    k_dev = TVLA_AES[ self.kernel_sizeof_k ][ 'k_dev'    ]
-    k_gen = TVLA_AES[ self.kernel_sizeof_k ][ 'k_gen'    ]
+    if ( 'tvla/lhs' in self.trace_content ) :
+      fd[ 'tvla/lhs' ] = lhs
+    if ( 'tvla/rhs' in self.trace_content ) :
+      fd[ 'tvla/rhs' ] = rhs
 
-    x     = TVLA_AES[ self.kernel_sizeof_k ][ 'x_fixed'  ]
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
-    for i in lhs :
-      self._acquire_log_inc( i, n, message = 'LHS (fixed)'  )
-      self._hdf5_set_data( fd, self.acquire( k = k_dev, m = x, c = x ), i )
-      self._acquire_log_dec( i, n, message = 'LHS (fixed)'  )
-
-    x     = TVLA_AES[ self.kernel_sizeof_k ][ 'x_random' ]
-
-    for i in rhs :
-      self._acquire_log_inc( i, n, message = 'RHS (random)' )
-      self._hdf5_set_data( fd, self.acquire( k = k_dev, m = x, c = x ), i ) ; x = AES.new( k_gen ).encrypt( x )
-      self._acquire_log_dec( i, n, message = 'RHS (random)' )
-
-  # Policy: TVLA type 3:   semi-versus random data.
-
-  def _policy_tvla_svr_d( self, fd ) :
-    raise Exception()
-
-  # Policy: TVLA type 4: random-versus random data.
-
-  def _policy_tvla_rvr_d( self, fd ) :
-    ( n, lhs, rhs ) = self._hdf5_get_tvla( fd ) ; self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
-
-    k_dev = TVLA_AES[ self.kernel_sizeof_k ][ 'k_dev'    ]
-    k_gen = TVLA_AES[ self.kernel_sizeof_k ][ 'k_gen'    ]
-
-    x     = TVLA_AES[ self.kernel_sizeof_k ][ 'x_random' ]
+    ( k, x ) = self.kernel.tvla_lhs_init( tvla_mode )
 
     for i in lhs :
-      self._acquire_log_inc( i, n, message = 'LHS (random)' )
-      self._hdf5_set_data( fd, self.acquire( k = k_dev, m = x, c = x ), i ) ; x = AES.new( k_gen ).encrypt( x )
-      self._acquire_log_dec( i, n, message = 'LHS (random)' )
+      self._acquire_log_inc( i, n, message = 'lhs of %s' % ( tvla_mode ) )
+      self._hdf5_set_data( fd, self.acquire( k = k, m = x, c = x ), i )
+      self._acquire_log_dec( i, n, message = 'lhs of %s' % ( tvla_mode ) )
+
+      ( k, x ) = self.kernel.tvla_lhs_step( tvla_mode, k, x )
+
+    ( k, x ) = self.kernel.tvla_rhs_init( tvla_mode )
 
     for i in rhs :
-      self._acquire_log_inc( i, n, message = 'RHS (random)' )
-      self._hdf5_set_data( fd, self.acquire( k = k_dev, m = x, c = x ), i ) ; x = AES.new( k_gen ).encrypt( x )
-      self._acquire_log_dec( i, n, message = 'RHS (random)' )
+      self._acquire_log_inc( i, n, message = 'rhs of %s' % ( tvla_mode ) )
+      self._hdf5_set_data( fd, self.acquire( k = k, m = x, c = x ), i )
+      self._acquire_log_dec( i, n, message = 'rhs of %s' % ( tvla_mode ) )
+
+      ( k, x ) = self.kernel.tvla_rhs_step( tvla_mode, k, x )
 
   # Execute driver process:
   #
@@ -253,16 +235,10 @@ class Block( driver.DriverAbs ) :
   def execute( self ) :
     fd = h5py.File( os.path.join( self.job.path, 'acquire.hdf5' ), 'a' )
 
-    if   ( self.driver_spec.get( 'policy' ) == 'custom'     ) : 
-      self._policy_custom( fd )
-    elif ( self.driver_spec.get( 'policy' ) == 'tvla-fvr-k' ) : 
-      self._policy_tvla_fvr_k( fd )
-    elif ( self.driver_spec.get( 'policy' ) == 'tvla-fvr-d' ) : 
-      self._policy_tvla_fvr_d( fd )
-    elif ( self.driver_spec.get( 'policy' ) == 'tvla-svr-d' ) : 
-      self._policy_tvla_svr_d( fd )
-    elif ( self.driver_spec.get( 'policy' ) == 'tvla-rvr-d' ) : 
-      self._policy_tvla_rvr_d( fd )
+    if   ( self.policy_id == 'user' ) : 
+      self._policy_user( fd )
+    elif ( self.policy_id == 'tvla' ) : 
+      self._policy_tvla( fd )
 
     fd.close()
 

@@ -9,14 +9,13 @@ from sca3s import spec    as spec
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
 from .                     import *
-
-import Crypto.Cipher.AES as AES
 
 class DriverImp( Block ) :
   def __init__( self, job ) :
@@ -49,14 +48,9 @@ class DriverImp( Block ) :
     be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
 
     if ( self.driver_spec.get( 'verify' ) ) :
-      if   ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 16 ) ) :
-        if ( m != AES.new( k ).decrypt( c ) ) :
-          raise Exception()  
-      elif ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 24 ) ) :
-        if ( m != AES.new( k ).decrypt( c ) ) :
-          raise Exception()  
-      elif ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 32 ) ) :
-        if ( m != AES.new( k ).decrypt( c ) ) :
+      t = self.kernel.dec( k, c )
+
+      if ( ( t != None ) and ( t != m ) ) :
           raise Exception()  
 
     cycle_dec = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
