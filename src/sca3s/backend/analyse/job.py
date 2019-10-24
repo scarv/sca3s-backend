@@ -76,7 +76,7 @@ def _plot_results(distances, fail):
     outcome = ['OK!', 'FAIL!']
     plt.xlabel('Sample Number')
     plt.ylabel('t value')
-    plt.axhline(4.5, color='r')
+    plt.axhline(4.5, label='threshold', color='r')
     plt.axhline(-4.5, color='r')
     plt.title('TVLA Test Result: ' + outcome[int(fail)])
     plt.plot(distances, label='t-test values', color='m')
