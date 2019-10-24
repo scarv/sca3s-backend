@@ -1,26 +1,23 @@
-import warnings
+import warnings, os
 
 from scipy.stats import ttest_ind as ttest
 import numpy as np
 import matplotlib.pyplot as plt
+import h5py
 
 
-def analyse(project, kernel, sub_graphs):
+def analyse(file, sub_graphs):
     """
     Analyse traces found within a project TVLA style.
     :param project: ChipWhisperer project file.
     """
-    num_traces = len(project.traces)
     # TVLA requires test to be run twice on independent data sets, so partition the traces.
     print('Performing TVLA analysis...')
-    test1, test2 = project.traces[:num_traces // 2], project.traces[num_traces // 2:]
-    print('Performing two independent tests with size: ' + str(len(test1)) + ' and ' + str(len(test2)))
-    distances1 = _welch_t_test(test1, kernel, sub_graphs)
-    distances2 = _welch_t_test(test2, kernel, sub_graphs)
-
-    result = any([_threshold(val1) and _threshold(val2) for val1, val2 in zip(distances1, distances2)])
-
-    _plot_results(distances1, distances2, result, kernel)
+    data = h5py.File(file,'r')
+    distances = _welch_t_test(data, sub_graphs)
+    data.close()
+    result = any(distances)
+    _plot_results(distances, result)
 
     print('\nTEST RESULT')
     if result:
@@ -40,17 +37,22 @@ def _threshold(number):
     return False
 
 
-def _welch_t_test(traces, kernel, sub_graphs):
+def _welch_t_test(data, sub_graphs):
     """
     Perform the welch t test on traces.
     :param traces: traces to partition and test.
     :return: boolean list representing possible leakage.
     """
-    # Define the fixed input plaintext for tvla here.
-    fixed_plaintext = bytearray.fromhex("da 39 a3 ee 5e 6b 4b 0d 32 55 bf ef 95 60 18 90")
     # Sort traces into groups based on plaintext derivation
-    fixed_group = np.array([trace.wave for trace in traces if trace.textin == fixed_plaintext])
-    random_group = np.array([trace.wave for trace in traces if trace.textin != fixed_plaintext])
+    crop = len( data['trace/signal'][ data['crop/signal'][0] ][0] )
+    for i in range(2000):
+        candidate = len( data['trace/signal'][ data['crop/signal'][i] ][0] )
+        if candidate < crop:
+            crop = candidate
+    fixed_group  = np.array([data['trace/signal'][ data['crop/signal'][i] ][0][:crop] for i in data['tvla']['lhs']])
+    random_group = np.array([data['trace/signal'][ data['crop/signal'][i] ][0][:crop] for i in data['tvla']['rhs']])
+
+
     # Compute the t test point wise (i.e. for each point compare power values between all traces => measure on 0th axis)
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
@@ -59,12 +61,12 @@ def _welch_t_test(traces, kernel, sub_graphs):
             plt.plot(distances)
             plt.xlabel('Sample Number')
             plt.ylabel('t value')
-            plt.title(kernel.split('/')[-1].split('.')[0])
+            plt.title('TVLA T Test Graph')
             plt.show()
     return distances
 
 
-def _plot_results(distances1, distances2, fail, kernel):
+def _plot_results(distances, fail):
     """
     Plot results to figure.
     :param distances1: results from 1st t test
@@ -76,10 +78,14 @@ def _plot_results(distances1, distances2, fail, kernel):
     plt.ylabel('t value')
     plt.axhline(4.5, color='r')
     plt.axhline(-4.5, color='r')
-    plt.title(kernel.split('/')[-1].split('.')[0] + ' = ' + outcome[int(fail)])
-    plt.plot(distances1, label='t-test 1', color='m')
-    plt.plot(distances2, label='t-test 2', color='b')
+    plt.title('TVLA Test Result: ' + outcome[int(fail)])
+    plt.plot(distances, label='t-test values', color='m')
+    # plt.plot(distances2, label='t-test 2', color='b')
     plt.legend(loc='best')
     plt.show()
 
 # [1] : https://www.rambus.com/test-vector-leakage-assessment-tvla-derived-test-requirements-dtr-with-aes/
+
+
+if __name__ == "__main__":
+    analyse('/home/james/Developer/sca3s-backend/acquire.hdf5', False)
