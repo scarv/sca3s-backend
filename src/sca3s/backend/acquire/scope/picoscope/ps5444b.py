@@ -9,6 +9,7 @@ from sca3s import spec    as spec
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
 from sca3s.backend.acquire import repo   as repo

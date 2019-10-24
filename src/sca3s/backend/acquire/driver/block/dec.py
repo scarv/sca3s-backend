@@ -9,6 +9,7 @@ from sca3s import spec    as spec
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
 from sca3s.backend.acquire import repo   as repo
@@ -16,19 +17,17 @@ from sca3s.backend.acquire import depo   as depo
 
 from .                     import *
 
-import Crypto.Cipher.AES as AES
-
 class DriverImp( Block ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-  def acquire( self, k = None, r = None, c = None ) :
+  def acquire( self, k = None, r = None, c = None, m = None ) :
     if ( k == None ) :
-      k = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_k ) ] )
+      k = self._value( '{$*|k|}' )
     if ( r == None ) :
-      r = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_r ) ] )
+      r = self._value( '{$*|r|}' )
     if ( c == None ) :
-      c = bytes( [ random.getrandbits( 8 ) for i in range( self.kernel_sizeof_m ) ] )
+      c = self._value( '{$*|c|}' )
 
     self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
     self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
@@ -43,19 +42,21 @@ class DriverImp( Block ) :
   
     m = be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
 
+    be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
+    be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
+    be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
+
     if ( self.driver_spec.get( 'verify' ) ) :
-      if   ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 16 ) ) :
-        if ( m != AES.new( k ).decrypt( c ) ) :
-          raise Exception()  
-      elif ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 24 ) ) :
-        if ( m != AES.new( k ).decrypt( c ) ) :
-          raise Exception()  
-      elif ( ( self.job.board.kernel_id == 'aes' ) and ( self.kernel_sizeof_k == 32 ) ) :
-        if ( m != AES.new( k ).decrypt( c ) ) :
+      t = self.kernel.dec( k, c )
+
+      if ( ( t != None ) and ( t != m ) ) :
           raise Exception()  
 
     cycle_dec = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
     cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'perf/cycle' : cycle_dec - cycle_nop, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    
+    ( edge_hi, edge_lo, duration ) = self._measure( trigger )
+
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    
