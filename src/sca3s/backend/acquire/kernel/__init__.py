@@ -18,8 +18,10 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelAbs( abc.ABC ) :
-  def __init__( self ) :
+  def __init__( self, func ) :
     super().__init__()  
+
+    self.func = func
 
   @abc.abstractmethod
   def supports( self, policy ) :

@@ -15,13 +15,11 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-from .                     import *
-
 import binascii, Crypto.Cipher.AES as AES
 
-class KernelImp( Block ) :
-  def __init__( self, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
-    super().__init__( sizeof_k, sizeof_r, sizeof_m, sizeof_c )
+class KernelImp( kernel.block.KernelType ) :
+  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
+    super().__init__( func, sizeof_k, sizeof_r, sizeof_m, sizeof_c )
 
     self.tvla_s_0 = None
     self.tvla_s_1 = None
@@ -40,7 +38,7 @@ class KernelImp( Block ) :
   def dec( self, k, c ) :
     return AES.new( k ).decrypt( m )
 
-  def tvla_lhs_init( self, mode ) :
+  def policy_tvla_init_lhs( self, mode ) :
     if  ( mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
         k = bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF9'                                 ) )
@@ -68,7 +66,17 @@ class KernelImp( Block ) :
         x = bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601895'                                 ) )
 
     elif( mode == 'svr-d' ) :
-      pass # TODO
+      if   ( self.sizeof_k == 16 ) :
+        k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
+        x = None
+
+      elif ( self.sizeof_k == 24 ) :
+        k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
+        x = None
+
+      elif ( self.sizeof_k == 32 ) :
+        k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
+        x = None
 
     elif( mode == 'rvr-d' ) :
       if   ( self.sizeof_k == 16 ) :
@@ -85,7 +93,66 @@ class KernelImp( Block ) :
 
     return ( k, x )
 
-  def tvla_rhs_init( self, mode ) :
+  def policy_tvla_iter_lhs( self, mode, k, x ) :
+    if  ( mode == 'fvr-k' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
+
+    elif( mode == 'fvr-d' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = x
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = x
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = x
+
+    elif( mode == 'svr-d' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = None
+
+        #x = bytes( binascii.a2b_hex( '8B8A490BDF7C00BDD7E6066C61002412' ) ) ; i = struct.pack( '<I', 1234 )
+        #x = bytes( [ x ^ y for ( x, y ) in zip( i[ 0 : 4 ], x[ 0 : 4 ] ) ] ) + x[ 4 : ]
+        #x = self.rev( k, x, round )
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = None
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = None
+
+    elif( mode == 'rvr-d' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
+
+    return ( k, x )
+
+  def policy_tvla_init_rhs( self, mode ) :
     if  ( mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
         self.tvla_s_0 =           bytes( binascii.a2b_hex( '53535353535353535353535353535353' ) )
@@ -148,52 +215,7 @@ class KernelImp( Block ) :
 
     return ( k, x )
 
-  def tvla_lhs_step( self, mode, k, x ) :
-    if  ( mode == 'fvr-k' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
-
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
-
-    elif( mode == 'fvr-d' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = x
-
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = x
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = x
-
-    elif( mode == 'svr-d' ) :
-      pass # TODO
-
-    elif( mode == 'rvr-d' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
-
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
-
-    return ( k, x )
-
-  def tvla_rhs_step( self, mode, k, x ) :
+  def policy_tvla_iter_rhs( self, mode, k, x ) :
     if  ( mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
         self.tvla_s_0 = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_0 )

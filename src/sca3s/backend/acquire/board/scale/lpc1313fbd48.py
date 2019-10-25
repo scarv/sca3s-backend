@@ -15,11 +15,9 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-from .                     import *
-
 import os
 
-class BoardImp( SCALE ) :
+class BoardImp( board.scale.BoardType ) :
   def __init__( self, job ) :
     super().__init__( job )
 

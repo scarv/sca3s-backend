@@ -52,13 +52,13 @@ class DriverAbs( abc.ABC ) :
     return ( edge_hi, edge_lo, float( edge_hi - edge_lo ) * self.job.scope.signal_interval )
 
   @abc.abstractmethod
-  def prepare( self ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
   def acquire( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def execute( self ) :
+  def prepare( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def process( self ) :
     raise NotImplementedError()

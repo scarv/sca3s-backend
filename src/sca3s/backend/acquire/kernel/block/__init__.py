@@ -15,11 +15,11 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc
+import abc, binascii, random, re
 
-class Block( kernel.KernelAbs ) :
-  def __init__( self, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
-    super().__init__()
+class KernelType( kernel.KernelAbs ) :
+  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
+    super().__init__( func )
 
     self.sizeof_k = sizeof_k
     self.sizeof_r = sizeof_r
@@ -34,18 +34,65 @@ class Block( kernel.KernelAbs ) :
   def dec( self, k, c ) :
     raise NotImplementedError()
 
+  def value( self, x ) :
+    r = ''
+  
+    for t in re.split( '({[^}]*})', x ) :
+      if ( ( not t.startswith( '{' ) ) or ( not t.endswith( '}' ) ) ) :
+        r += t ; continue
+    
+      ( x, n ) = tuple( t.strip( '{}' ).split( '*' ) )
+    
+      x = x.strip()
+      n = n.strip()
+  
+      if   ( n == '|k|' ) :
+        r += x * ( 2 * self.sizeof_k )
+      elif ( n == '|r|' ) :
+        r += x * ( 2 * self.sizeof_r )
+      elif ( n == '|m|' ) :
+        r += x * ( 2 * self.sizeof_m )
+      elif ( n == '|c|' ) :
+        r += x * ( 2 * self.sizeof_c )
+      else :
+        r += x * int( n )
+
+    return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
+
+  def policy_user_init( self, select, value ) :
+    if   ( self.func == 'enc' ) :
+      k = self.value( value.get( 'k' ) )
+      x = self.value( value.get( 'm' ) )
+
+    elif ( self.func == 'dec' ) :
+      k = self.value( value.get( 'k' ) )
+      c = self.value( value.get( 'c' ) )
+
+    return ( k, x )
+
+  def policy_user_iter( self, select, value, k, x ) :
+    if   ( self.func == 'enc' ) :
+      k = self.value( value.get( 'k' ) ) if ( select.get( 'k' ) == 'each' ) else ( k )
+      x = self.value( value.get( 'm' ) ) if ( select.get( 'm' ) == 'each' ) else ( x )
+
+    elif ( self.func == 'dec' ) :
+      k = self.value( value.get( 'k' ) ) if ( select.get( 'k' ) == 'each' ) else ( k )
+      x = self.value( value.get( 'c' ) ) if ( select.get( 'c' ) == 'each' ) else ( x )
+
+    return ( k, x )
+
   @abc.abstractmethod
-  def tvla_lhs_init( self, mode ) :
+  def policy_tvla_init_lhs( self, mode ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def tvla_rhs_init( self, mode ) :
+  def policy_tvla_iter_lhs( self, mode, k, x ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def tvla_lhs_step( self, mode, k, x ) :
+  def policy_tvla_init_rhs( self, mode ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def tvla_rhs_step( self, mode, k, x ) :
+  def policy_tvla_iter_rhs( self, mode, k, x ) :
     raise NotImplementedError()

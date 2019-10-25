@@ -15,82 +15,21 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii, Crypto.Cipher.AES as AES, h5py, importlib, numpy, os, random, re
+import binascii, h5py, importlib, numpy, os
 
-class Block( driver.DriverAbs ) :
+class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
-
-    self.trace_spec      = self.job.conf.get( 'trace-spec' )
-
-    self.trace_content   =       self.trace_spec.get( 'content' )
-    self.trace_count     =  int( self.trace_spec.get( 'count'   ) )
 
     self.policy_id       = self.driver_spec.get( 'policy-id'   )
     self.policy_spec     = self.driver_spec.get( 'policy-spec' )
 
     self.kernel          = None
 
-  # Prepare the driver:
-  #
-  # 1. check the on-board driver
-  # 2. query the on-board kernel wrt. the size of 
-  #    - k (cipher key), 
-  #    - r (randomness), 
-  #    - m  (plaintext), and 
-  #    - c (ciphertext)
-  # 3. build a model of the on-board kernel
-  # 4. check the model supports whatever policy is selected
+    self.trace_spec      = self.job.conf.get( 'trace-spec' )
 
-  def prepare( self ) : 
-    if ( self.job.board.driver_id != 'block' ) :
-      raise Exception()
-
-    kernel_sizeof_k = int( self.job.board.interact( '?reg k' ), 16 )
-    kernel_sizeof_r = int( self.job.board.interact( '?reg r' ), 16 )
-    kernel_sizeof_m = int( self.job.board.interact( '?reg m' ), 16 )
-    kernel_sizeof_c = int( self.job.board.interact( '?reg c' ), 16 )
-
-    self.job.log.info( '?reg k -> kernel sizeof( k ) = %s', kernel_sizeof_k )
-    self.job.log.info( '?reg r -> kernel sizeof( r ) = %s', kernel_sizeof_r )
-    self.job.log.info( '?reg m -> kernel sizeof( m ) = %s', kernel_sizeof_m )
-    self.job.log.info( '?reg c -> kernel sizeof( c ) = %s', kernel_sizeof_c )
-
-    try :
-      if ( self.job.board.kernel_id == 'aes'   ) :
-        self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + self.job.board.kernel_id ).KernelImp( kernel_sizeof_k, kernel_sizeof_r, kernel_sizeof_m, kernel_sizeof_c )
-      else :
-        self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + 'unknown'                ).KernelImp( kernel_sizeof_k, kernel_sizeof_r, kernel_sizeof_m, kernel_sizeof_c )
-    except :
-      raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'kernel', self.job.board.kernel_id ) )
-
-    if ( not self.kernel.supports( self.policy_id ) ) :
-      raise Exception()
-
-  def _value( self, x ) :
-    r = ''
-  
-    for t in re.split( '({[^}]*})', x ) :
-      if ( ( not t.startswith( '{' ) ) or ( not t.endswith( '}' ) ) ) :
-        r += t ; continue
-    
-      ( x, n ) = tuple( t.strip( '{}' ).split( '*' ) )
-    
-      x = x.strip()
-      n = n.strip()
-  
-      if   ( n == '|k|' ) :
-        r += x * ( 2 * self.kernel.sizeof_k )
-      elif ( n == '|r|' ) :
-        r += x * ( 2 * self.kernel.sizeof_r )
-      elif ( n == '|m|' ) :
-        r += x * ( 2 * self.kernel.sizeof_m )
-      elif ( n == '|c|' ) :
-        r += x * ( 2 * self.kernel.sizeof_c )
-      else :
-        r += x * int( n )
-
-    return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
+    self.trace_content   =       self.trace_spec.get( 'content' )
+    self.trace_count     =  int( self.trace_spec.get( 'count'   ) )
 
   def _acquire_log_inc( self, i, n, message = None ) :
     width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
@@ -99,6 +38,86 @@ class Block( driver.DriverAbs ) :
   def _acquire_log_dec( self, i, n, message = None ) :
     width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
     self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
+
+  def _acquire_enc( self, k = None, r = None, m = None ) :
+    if ( k == None ) :
+      k = self.kernel.value( '{$*|k|}' )
+    if ( r == None ) :
+      r = self.kernel.value( '{$*|r|}' )
+    if ( m == None ) :
+      m = self.kernel.value( '{$*|m|}' )
+
+    self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>reg m %s' % be.share.util.str2octetstr( m ).upper() )
+  
+    _                   = self.job.scope.prepare()
+
+    self.job.board.interact( '!enc_init' )
+    self.job.board.interact( '!enc'      )
+  
+    ( trigger, signal ) = self.job.scope.acquire()
+  
+    c = be.share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
+
+    be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
+    be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
+    be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
+
+    if ( self.driver_spec.get( 'verify' ) ) :
+      t = self.kernel.enc( k, m )
+
+      if ( ( t != None ) and ( t != c ) ) :
+        raise Exception()  
+
+    cycle_enc = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    self.job.board.interact( '!nop'      )
+    cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+
+    ( edge_hi, edge_lo, duration ) = self._measure( trigger )
+
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'k' : k, 'r' : r, 'm' : m, 'c' : c }
+
+  def _acquire_dec( self, k = None, r = None, c = None ) :
+    if ( k == None ) :
+      k = self.kernel.value( '{$*|k|}' )
+    if ( r == None ) :
+      r = self.kernel.value( '{$*|r|}' )
+    if ( c == None ) :
+      c = self.kernel.value( '{$*|c|}' )
+
+    self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>reg c %s' % be.share.util.str2octetstr( c ).upper() )
+  
+    _                   = self.job.scope.prepare()
+  
+    self.job.board.interact( '!dec_init' )
+    self.job.board.interact( '!dec'      )
+  
+    ( trigger, signal ) = self.job.scope.acquire()
+  
+    m = be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
+
+    be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
+    be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
+    be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
+
+    if ( self.driver_spec.get( 'verify' ) ) :
+      t = self.kernel.dec( k, c )
+
+      if ( ( t != None ) and ( t != m ) ) :
+        raise Exception()  
+
+    cycle_dec = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    self.job.board.interact( '!nop'      )
+    cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+
+    ( edge_hi, edge_lo, duration ) = self._measure( trigger )
+
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    
 
   def _hdf5_add_attr( self, fd ) :
     T = [ ( 'driver_version',    self.job.board.driver_version,    h5py.special_dtype( vlen = str ) ),
@@ -168,21 +187,14 @@ class Block( driver.DriverAbs ) :
 
     self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
-    k   = self._value( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'all' ) else None
-    m   = self._value( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'all' ) else None 
-    c   = self._value( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'all' ) else None
+    ( k, x ) = self.kernel.policy_user_init( user_select, user_value )
 
     for i in range( n ) :
-      if ( user_select.get( 'k' ) == 'each' ) :
-        k = self._value( user_value.get( 'k' ) )
-      if ( user_select.get( 'm' ) == 'each' ) :
-        m = self._value( user_value.get( 'm' ) )
-      if ( user_select.get( 'c' ) == 'each' ) :
-        c = self._value( user_value.get( 'c' ) )
-
       self._acquire_log_inc( i, n )
-      self._hdf5_set_data( fd, self.acquire( k = k, m = m, c = c ), i )
+      self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
       self._acquire_log_dec( i, n )
+
+      ( k, x ) = self.kernel.policy_user_iter( user_select, user_value, k, x )
 
   # Driver policy: TVLA-driven
   #
@@ -207,32 +219,75 @@ class Block( driver.DriverAbs ) :
 
     self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
-    ( k, x ) = self.kernel.tvla_lhs_init( tvla_mode )
+    ( k, x ) = self.kernel.policy_tvla_init_lhs( tvla_mode )
 
     for i in lhs :
       self._acquire_log_inc( i, n, message = 'lhs of %s' % ( tvla_mode ) )
-      self._hdf5_set_data( fd, self.acquire( k = k, m = x, c = x ), i )
+      self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
       self._acquire_log_dec( i, n, message = 'lhs of %s' % ( tvla_mode ) )
 
-      ( k, x ) = self.kernel.tvla_lhs_step( tvla_mode, k, x )
+      ( k, x ) = self.kernel.policy_tvla_iter_lhs( tvla_mode, k, x )
 
-    ( k, x ) = self.kernel.tvla_rhs_init( tvla_mode )
+    ( k, x ) = self.kernel.policy_tvla_init_rhs( tvla_mode )
 
     for i in rhs :
       self._acquire_log_inc( i, n, message = 'rhs of %s' % ( tvla_mode ) )
-      self._hdf5_set_data( fd, self.acquire( k = k, m = x, c = x ), i )
+      self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
       self._acquire_log_dec( i, n, message = 'rhs of %s' % ( tvla_mode ) )
 
-      ( k, x ) = self.kernel.tvla_rhs_step( tvla_mode, k, x )
+      ( k, x ) = self.kernel.policy_tvla_iter_rhs( tvla_mode, k, x )
 
-  # Execute driver process:
+  # Acquire data wrt. this driver, using the kernel model.
+
+  def acquire( self, k = None, x = None ) :
+    if   ( self.kernel.func == 'enc' ) :
+      return self._acquire_enc( k = k, m = x )
+    elif ( self.kernel.func == 'dec' ) :
+      return self._acquire_dec( k = k, c = x )
+
+  # Prepare the driver:
+  #
+  # 1. check the on-board driver
+  # 2. query the on-board kernel wrt. the size of 
+  #    - k (cipher key), 
+  #    - r (randomness), 
+  #    - m  (plaintext), and 
+  #    - c (ciphertext)
+  # 3. build a model of the on-board kernel
+  # 4. check the model supports whatever policy is selected
+
+  def prepare( self ) : 
+    if ( self.job.board.driver_id != 'block' ) :
+      raise Exception()
+
+    kernel_sizeof_k = int( self.job.board.interact( '?reg k' ), 16 )
+    kernel_sizeof_r = int( self.job.board.interact( '?reg r' ), 16 )
+    kernel_sizeof_m = int( self.job.board.interact( '?reg m' ), 16 )
+    kernel_sizeof_c = int( self.job.board.interact( '?reg c' ), 16 )
+
+    self.job.log.info( '?reg k -> kernel sizeof( k ) = %s', kernel_sizeof_k )
+    self.job.log.info( '?reg r -> kernel sizeof( r ) = %s', kernel_sizeof_r )
+    self.job.log.info( '?reg m -> kernel sizeof( m ) = %s', kernel_sizeof_m )
+    self.job.log.info( '?reg c -> kernel sizeof( c ) = %s', kernel_sizeof_c )
+
+    t = ( self.job.board.kernel_id ) if ( self.job.board.kernel_id in [ 'aes/enc', 'aes/dec' ] ) else ( 'generic/enc' ) ; ( t, kernel_func ) = t.split( '/' )
+
+    try :
+      self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + t ).KernelImp( kernel_func, kernel_sizeof_k, kernel_sizeof_r, kernel_sizeof_m, kernel_sizeof_c )
+    except :
+      raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'kernel', self.job.board.kernel_id ) )
+
+    if ( not self.kernel.supports( self.policy_id ) ) :
+      raise Exception()
+
+  # Process the driver:
   #
   # 1. open     HDF5 file
   # 2. execute selected policy
   # 3. close    HDF5 file
   # 4. compress HDF5 file
 
-  def execute( self ) :
+  def process( self ) :
     fd = h5py.File( os.path.join( self.job.path, 'acquire.hdf5' ), 'a' )
 
     if   ( self.policy_id == 'user' ) : 

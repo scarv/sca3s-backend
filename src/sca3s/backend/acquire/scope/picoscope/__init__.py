@@ -22,7 +22,7 @@ PICOSCOPE_DOWNSAMPLE_MODE_AGGREGATE = 1
 PICOSCOPE_DOWNSAMPLE_MODE_DECIMATE  = 2
 PICOSCOPE_DOWNSAMPLE_MODE_AVERAGE   = 3
 
-class PicoScope( scope.ScopeAbs ) :
+class ScopeType( scope.ScopeAbs ) :
   def __init__( self, job, api ) :
     super().__init__( job )
 
