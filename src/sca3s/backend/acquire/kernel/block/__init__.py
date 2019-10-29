@@ -59,40 +59,44 @@ class KernelType( kernel.KernelAbs ) :
 
     return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
 
-  def policy_user_init( self, select, value ) :
-    if   ( self.func == 'enc' ) :
-      k = self.value( value.get( 'k' ) )
-      x = self.value( value.get( 'm' ) )
+  def policy_user_init( self, spec ) :
+    user_select = spec.get( 'user-select' )
+    user_value  = spec.get( 'user-value'  )
 
+    if   ( self.func == 'enc' ) :
+      k = self.value( user_value.get( 'k' ) )
+      x = self.value( user_value.get( 'm' ) )
     elif ( self.func == 'dec' ) :
-      k = self.value( value.get( 'k' ) )
-      c = self.value( value.get( 'c' ) )
+      k = self.value( user_value.get( 'k' ) )
+      c = self.value( user_value.get( 'c' ) )
 
     return ( k, x )
 
-  def policy_user_iter( self, select, value, k, x ) :
-    if   ( self.func == 'enc' ) :
-      k = self.value( value.get( 'k' ) ) if ( select.get( 'k' ) == 'each' ) else ( k )
-      x = self.value( value.get( 'm' ) ) if ( select.get( 'm' ) == 'each' ) else ( x )
+  def policy_user_iter( self, spec, k, x, i ) :
+    user_select = spec.get( 'user-select' )
+    user_value  = spec.get( 'user-value'  )
 
+    if   ( self.func == 'enc' ) :
+      k = self.value( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
+      x = self.value( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( x )
     elif ( self.func == 'dec' ) :
-      k = self.value( value.get( 'k' ) ) if ( select.get( 'k' ) == 'each' ) else ( k )
-      x = self.value( value.get( 'c' ) ) if ( select.get( 'c' ) == 'each' ) else ( x )
+      k = self.value( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
+      x = self.value( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( x )
 
     return ( k, x )
 
   @abc.abstractmethod
-  def policy_tvla_init_lhs( self, mode ) :
+  def policy_tvla_init_lhs( self, spec ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_iter_lhs( self, mode, k, x ) :
+  def policy_tvla_iter_lhs( self, spec, k, x, i ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_init_rhs( self, mode ) :
+  def policy_tvla_init_rhs( self, spec ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_iter_rhs( self, mode, k, x ) :
+  def policy_tvla_iter_rhs( self, spec, k, x, i ) :
     raise NotImplementedError()

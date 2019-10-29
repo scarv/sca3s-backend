@@ -12,7 +12,7 @@
 
     "policy-id"   : "tvla",
     "policy-spec" : {
-      "tvla-mode"   : "fvr-d",
+      "tvla-mode"   : "svr-d",
       "tvla-round"  :       8,
 
       "user-select" : { 
