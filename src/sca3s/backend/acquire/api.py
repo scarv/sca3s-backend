@@ -51,6 +51,11 @@ class APIImp( be.share.api.APIAbs ):
         Retrieves pending jobs from the SCARV API.
         """
         params = { 'device-db' : devices }
+
+        instance = be.sys.conf.get( 'instance', section = 'sys' )
+        if ( instance != '*' ) :
+          params[ 'queue' ] = instance
+
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
         for i in range(3):
             res = requests.get("https://lab.scarv.org/api/acquisition/job",
