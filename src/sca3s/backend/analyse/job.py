@@ -4,6 +4,7 @@ from scipy.stats import ttest_ind as ttest
 import numpy as np
 import matplotlib.pyplot as plt
 import h5py
+from src.sca3s.backend.analyse.api import APIImp
 
 
 def analyse(file, sub_graphs):

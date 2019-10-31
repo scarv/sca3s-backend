@@ -5,14 +5,6 @@
 # as LICENSE.txt within the associated archive or repository).
 
 from sca3s import backend as be
-from sca3s import spec    as spec
-
-from sca3s.backend.acquire import board  as board
-from sca3s.backend.acquire import scope  as scope
-from sca3s.backend.acquire import driver as driver
-
-from sca3s.backend.acquire import repo   as repo
-from sca3s.backend.acquire import depo   as depo
 
 import enum, os, requests, time
 
@@ -28,15 +20,7 @@ class JSONStatus( enum.IntEnum ):
     INVALID_JOB_SYNTAX = 1001
     TOO_MANY_QUEUED_JOBS = 1002
     JOB_DOES_NOT_EXIST = 1003
-    # User error codes
-    NOT_LOGGED_IN = 2000
-    # AWS Error Codes
-    AWS_AUTHENTICATION_FAILED = 3000
-    S3_URL_GENERATION_FAILED = 3001
-    # Acquisition Error Codes
-    FAILURE_VALIDATING_JOB = 4000
-    FAILURE_ALLOCATING_JOB = 4001
-    FAILURE_PROCESSING_JOB = 4002
+    INVALID_INFRASTRUCTURE_TOKEN = 7000
 
 class APIImp( be.share.api.APIAbs ):
     """
