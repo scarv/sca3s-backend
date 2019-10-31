@@ -21,10 +21,11 @@ class JobImp( be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
     super().__init__( conf, path, log )  
 
-    self.version =      self.conf.get( 'version' )
+    self.job_id      = self.conf.get(  'job-id'      )
+    self.job_version = self.conf.get(  'job-version' )
+    self.job_type    = self.conf.get(  'job-type'    )
 
-    self.id      =      self.conf.get(      'id' )
-    self.user_id = str( self.conf.get( 'user_id' ) )
+    self.user_id     = self.conf.get( 'user-id'      )
 
   def _build_board( self ) :
     t = self.conf.get(  'board-id' )
@@ -44,7 +45,6 @@ class JobImp( be.share.job.JobAbs ) :
   
   def _build_driver( self ) :
     t = self.conf.get( 'driver-id' )
-  
     try :
       return importlib.import_module( 'sca3s.backend.acquire.driver' + '.' + t.replace( '/', '.' ) ).DriverImp( self )
     except :
@@ -268,8 +268,8 @@ class JobImp( be.share.job.JobAbs ) :
     self._prepare_scope()
     self.log.indent_dec()
 
-    self.log.indent_inc( message = 'execute driver' )
-    self.driver.execute()
+    self.log.indent_inc( message = 'process driver' )
+    self.driver.process()
     self.log.indent_dec()
 
     self.log.indent_inc( message = 'transfer local -> depo.' )

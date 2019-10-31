@@ -15,11 +15,11 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-from .                     import *
+import binascii
 
-class KernelImp( Block ) :
-  def __init__( self, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
-    super().__init__( sizeof_k, sizeof_r, sizeof_m, sizeof_c )
+class KernelImp( kernel.block.KernelType ) :
+  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
+    super().__init__( func, sizeof_k, sizeof_r, sizeof_m, sizeof_c )
 
   def supports( self, policy ) :
     if   ( policy == 'user' ) :
@@ -35,14 +35,14 @@ class KernelImp( Block ) :
   def dec( self, k, c ) :
     return None
 
-  def tvla_lhs_init( self, mode ) :
+  def tvla_init_lhs( self, mode ) :
     return ( None, None )
 
-  def tvla_rhs_init( self, mode ) :
+  def tvla_iter_lhs( self, mode, k, x ) :
     return ( None, None )
 
-  def tvla_lhs_step( self, mode, k, x ) :
+  def tvla_init_rhs( self, mode ) :
     return ( None, None )
 
-  def tvla_rhs_step( self, mode, k, x ) :
+  def tvla_iter_rhs( self, mode, k, x ) :
     return ( None, None )

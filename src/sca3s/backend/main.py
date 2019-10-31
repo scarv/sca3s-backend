@@ -41,7 +41,7 @@ def process( manifest ) :
     be.share.sys.log.info( 'allocating job' )
 
     try :
-      id   = manifest.get( 'id' ) ; 
+      id   = manifest.get( 'job-id' ) ; 
 
       path = tempfile.mkdtemp( prefix = id + '.', dir = be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = be.share.log.build_log( be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )

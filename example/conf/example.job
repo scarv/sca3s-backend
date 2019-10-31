@@ -1,16 +1,18 @@
-{ "version"     : "0.1.0",
-  "id"          : "foo",
-  "user_id"     : 1234,
+{    "job-id"      :   "foo",
+     "job-version" : "0.1.0",
+     "job-type"    :  "user",
 
-  "device-id"   : "scale-m3/ps2206b",
+    "user-id"      :  "4567",
 
-  "driver-id"   : "block/enc",
-  "driver-spec" : {
+  "device-id"      : "scale-m3/ps2206b",
+
+  "driver-id"      : "block",
+  "driver-spec"    : {
     "verify"      : true,
 
     "policy-id"   : "tvla",
     "policy-spec" : {
-      "tvla-mode"   : "fvr-d",
+      "tvla-mode"   : "svr-d",
       "tvla-round"  :       8,
 
       "user-select" : { 
@@ -24,8 +26,8 @@
     }
   },
 
-    "repo-id"   : "git",
-    "repo-spec" : { 
+    "repo-id"      : "git",
+    "repo-spec"    : { 
     "url"           : "git@github.com:danpage/sca3s-harness.git",
     "conf"          : {
       "foo" : 1,
@@ -33,12 +35,12 @@
     }
   },
 
-    "depo-id"   : "s3",
-    "depo-spec" : { 
+    "depo-id"      : "s3",
+    "depo-spec"    : { 
     "identity_id"   : "bar"
   },
 
-   "trace-spec" : {
+   "trace-spec"    : {
         "period-id" : "auto",
     "resolution-id" :  "max",
 

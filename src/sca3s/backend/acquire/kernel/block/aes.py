@@ -15,13 +15,11 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-from .                     import *
+import binascii, struct
 
-import binascii, Crypto.Cipher.AES as AES
-
-class KernelImp( Block ) :
-  def __init__( self, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
-    super().__init__( sizeof_k, sizeof_r, sizeof_m, sizeof_c )
+class KernelImp( kernel.block.KernelType ) :
+  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
+    super().__init__( func, sizeof_k, sizeof_r, sizeof_m, sizeof_c )
 
     self.tvla_s_0 = None
     self.tvla_s_1 = None
@@ -35,13 +33,16 @@ class KernelImp( Block ) :
     return False
 
   def enc( self, k, m ) :
-    return AES.new( k ).encrypt( m )
+    return be.share.crypto.AES( k ).enc( m )
 
   def dec( self, k, c ) :
-    return AES.new( k ).decrypt( m )
+    return be.share.crypto.AES( k ).dec( c )
 
-  def tvla_lhs_init( self, mode ) :
-    if  ( mode == 'fvr-k' ) :
+  def policy_tvla_init_lhs( self, spec ) :
+    tvla_mode  = spec.get( 'tvla-mode'  )
+    tvla_round = spec.get( 'tvla-round' )
+
+    if  ( tvla_mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
         k = bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF9'                                 ) )
         x = bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
@@ -54,7 +55,7 @@ class KernelImp( Block ) :
         k = bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF994F4D92CD2FAE64537B940EA5E1AF112' ) )
         x = bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
 
-    elif( mode == 'fvr-d' ) :
+    elif( tvla_mode == 'fvr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x = bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601890'                                 ) )
@@ -67,10 +68,20 @@ class KernelImp( Block ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x = bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601895'                                 ) )
 
-    elif( mode == 'svr-d' ) :
-      pass # TODO
+    elif( tvla_mode == 'svr-d' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
+        x = None
 
-    elif( mode == 'rvr-d' ) :
+      elif ( self.sizeof_k == 24 ) :
+        k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
+        x = None
+
+      elif ( self.sizeof_k == 32 ) :
+        k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
+        x = None
+
+    elif( tvla_mode == 'rvr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x = bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -85,8 +96,58 @@ class KernelImp( Block ) :
 
     return ( k, x )
 
-  def tvla_rhs_init( self, mode ) :
-    if  ( mode == 'fvr-k' ) :
+  def policy_tvla_iter_lhs( self, spec, k, x, i ) :
+    tvla_mode  = spec.get( 'tvla-mode'  )
+    tvla_round = spec.get( 'tvla-round' )
+
+    if  ( tvla_mode == 'fvr-k' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
+
+    elif( tvla_mode == 'fvr-d' ) :
+      k = k
+      x = x
+
+    elif( tvla_mode == 'svr-d' ) :
+      k = k
+
+      x = bytes( binascii.a2b_hex( '8B8A490BDF7C00BDD7E6066C61002412' ) ) ; i = struct.pack( '<I', i )
+      x = bytes( [ a ^ b for ( a, b ) in zip( x[ 0 : 4 ], i[ 0 : 4 ] ) ] ) + x[ 4 : ]
+
+      if   ( self.func == 'enc' ) :
+        x = be.share.crypto.AES( k ).enc_rev( x, tvla_round )
+      elif ( self.func == 'dec' ) :
+        x = be.share.crypto.AES( k ).dec_rev( x, tvla_round )
+
+    elif( tvla_mode == 'rvr-d' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
+
+    return ( k, x )
+
+  def policy_tvla_init_rhs( self, spec ) :
+    tvla_mode  = spec.get( 'tvla-mode'  )
+    tvla_round = spec.get( 'tvla-round' )
+
+    if  ( tvla_mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
         self.tvla_s_0 =           bytes( binascii.a2b_hex( '53535353535353535353535353535353' ) )
 
@@ -107,7 +168,7 @@ class KernelImp( Block ) :
         k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : self.sizeof_k ]
         x = bytes( binascii.a2b_hex( 'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'                                 ) )
 
-    elif( mode == 'fvr-d' ) :
+    elif( tvla_mode == 'fvr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x = bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -120,7 +181,7 @@ class KernelImp( Block ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x = bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    elif( mode == 'svr-d' ) :
+    elif( tvla_mode == 'svr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x = bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -133,7 +194,7 @@ class KernelImp( Block ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x = bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    elif( mode == 'rvr-d' ) :
+    elif( tvla_mode == 'rvr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x = bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -148,53 +209,11 @@ class KernelImp( Block ) :
 
     return ( k, x )
 
-  def tvla_lhs_step( self, mode, k, x ) :
-    if  ( mode == 'fvr-k' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
+  def policy_tvla_iter_rhs( self, spec, k, x, i ) :
+    tvla_mode  = spec.get( 'tvla-mode'  )
+    tvla_round = spec.get( 'tvla-round' )
 
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
-
-    elif( mode == 'fvr-d' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = x
-
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = x
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = x
-
-    elif( mode == 'svr-d' ) :
-      pass # TODO
-
-    elif( mode == 'rvr-d' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
-
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
-
-    return ( k, x )
-
-  def tvla_rhs_step( self, mode, k, x ) :
-    if  ( mode == 'fvr-k' ) :
+    if  ( tvla_mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
         self.tvla_s_0 = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_0 )
 
@@ -215,7 +234,7 @@ class KernelImp( Block ) :
         k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : self.sizeof_k ]
         x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
 
-    elif( mode == 'fvr-d' ) :
+    elif( tvla_mode == 'fvr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
@@ -228,7 +247,7 @@ class KernelImp( Block ) :
         k = k
         x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
 
-    elif( mode == 'svr-d' ) :
+    elif( tvla_mode == 'svr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
@@ -241,7 +260,7 @@ class KernelImp( Block ) :
         k = k
         x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
 
-    elif( mode == 'rvr-d' ) :
+    elif( tvla_mode == 'rvr-d' ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x = self.enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )

@@ -15,8 +15,6 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-from .                     import *
-
 import math, picoscope.ps3000a as api
 
 # PicoScope 3406B
@@ -27,7 +25,7 @@ import math, picoscope.ps3000a as api
 # datasheet         : https://www.picotech.com/download/datasheets/PicoScope3400.pdf
 # programming guide : https://www.picotech.com/download/manuals/picoscope-3000-series-a-api-programmers-guide.pdf
 
-class ScopeImp( PicoScope ) :
+class ScopeImp( scope.picoscope.ScopeType ) :
   def __init__( self, job ) :
     super().__init__( job, api.PS3000a )    
 
@@ -61,11 +59,11 @@ class ScopeImp( PicoScope ) :
     return        t
 
   def _downSampleMode( self, x ) :
-    if   ( x == PICOSCOPE_DOWNSAMPLE_MODE_NONE      ) :
+    if   ( x == scope.picoscope.PICOSCOPE_DOWNSAMPLE_MODE_NONE      ) :
       return 0
-    elif ( x == PICOSCOPE_DOWNSAMPLE_MODE_AGGREGATE ) :
+    elif ( x == scope.picoscope.PICOSCOPE_DOWNSAMPLE_MODE_AGGREGATE ) :
       return 1
-    elif ( x == PICOSCOPE_DOWNSAMPLE_MODE_DECIMATE  ) :
+    elif ( x == scope.picoscope.PICOSCOPE_DOWNSAMPLE_MODE_DECIMATE  ) :
       return 2
-    elif ( x == PICOSCOPE_DOWNSAMPLE_MODE_AVERAGE   ) :
+    elif ( x == scope.picoscope.PICOSCOPE_DOWNSAMPLE_MODE_AVERAGE   ) :
       return 4

@@ -17,7 +17,7 @@ from sca3s.backend.acquire import depo   as depo
 
 import os, serial
 
-class SCALE( board.BoardAbs ) :
+class BoardType( board.BoardAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
     
