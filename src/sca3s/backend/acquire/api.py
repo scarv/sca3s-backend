@@ -52,7 +52,7 @@ class APIImp( be.share.api.APIAbs ):
         """
         params = { 'device-db' : devices }
 
-        instance = be.sys.conf.get( 'instance', section = 'sys' )
+        instance = be.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :
           params[ 'queue' ] = instance
 

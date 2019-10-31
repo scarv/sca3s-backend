@@ -23,18 +23,19 @@ SCHEMA_CONF = {
       'pattern'      : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                }
      } },
 
-    'api:wait'              : { 'type' :  'number', 'default' :               60 },
-    'api:ping'              : { 'type' :  'number', 'default' :               10 },
+    'api:instance'          : { 'enum' : [ '1', '2', '*' ], 'default' :   '*' },
+    'api:wait'              : { 'type' :  'number',         'default' :    60 },
+    'api:ping'              : { 'type' :  'number',         'default' :    10 },
 
-    'run:env'               : { 'type' :  'object', 'default' : {}               },
-    'run:timeout'           : { 'type' :  'number', 'default' :               60 },
+    'run:env'               : { 'type' :  'object',         'default' :    {} },
+    'run:timeout'           : { 'type' :  'number',         'default' :    60 },
   
-    'job:timeout'           : { 'type' :  'number', 'default' :                1 },
+    'job:timeout'           : { 'type' :  'number',         'default' :     1 },
 
-    'job:manifest-file'     : { 'type' :  'string'                               },
-    'job:manifest-data'     : { 'type' :  'string'                               },
+    'job:manifest-file'     : { 'type' :  'string'                            },
+    'job:manifest-data'     : { 'type' :  'string'                            },
 
-    'job:clean'             : { 'type' : 'boolean', 'default' : False            },
+    'job:clean'             : { 'type' : 'boolean',         'default' : False },
 
     'job:device-db'         : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
