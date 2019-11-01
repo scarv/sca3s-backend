@@ -4,7 +4,7 @@
 
     "user-id"      :  "4567",
 
-  "device-id"      : "scale-m3/ps2206b",
+  "device-id"      : "scale-m3",
 
   "driver-id"      : "block",
   "driver-spec"    : {

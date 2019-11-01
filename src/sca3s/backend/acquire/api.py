@@ -46,11 +46,12 @@ class APIImp( be.share.api.APIAbs ):
     _infrastructure_token = os.environ['INFRASTRUCTURE_TOKEN']
 
 
-    def receive_job(self,devices):
+    def retrieve_job(self):
         """
         Retrieves pending jobs from the SCARV API.
         """
-        params = { 'device-db' : devices }
+        db = be.share.sys.conf.get( 'device-db', section = 'job' )
+        params = { 'device-db' : { k : { v : db[ k ][ v ] for v in [ 'board-id', 'scope-id' ] } for k in db.keys() } }
 
         instance = be.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :

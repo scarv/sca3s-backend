@@ -30,6 +30,7 @@ def process( manifest ) :
         if ( db.has( t ) ) :
           for ( key, value ) in db.get( t ).items() :
             manifest.put( key, value )
+
         else :
           raise be.share.exception.ConfigurationException()
     
@@ -87,7 +88,7 @@ def run_mode_api() :
   api_wait = int( be.share.sys.conf.get( 'wait', section = 'api' ) )
   api_ping = int( be.share.sys.conf.get( 'ping', section = 'api' ) )
 
-  ping = 0 ; term = False ; db = list( be.share.sys.conf.get( 'device-db', section = 'job' ).keys() )
+  ping = 0 ; term = False 
 
   def signalHandler( signum, frame ) :
     nonlocal term
@@ -104,7 +105,7 @@ def run_mode_api() :
 
   while( True ) :
     try :
-      manifest = api.receive_job( db )
+      manifest = api.retrieve_job()
   
       if ( manifest == None ) :
         ping += 1

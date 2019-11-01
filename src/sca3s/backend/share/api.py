@@ -12,3 +12,11 @@ import abc
 class APIAbs( abc.ABC ) :
   def __init__( self ) :
     super().__init__()  
+
+  @abc.abstractmethod
+  def retrieve_job( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def complete_job( self, job_id, error_code = None ) :
+    raise NotImplementedError()
