@@ -29,15 +29,13 @@ class APIImp( be.share.api.APIAbs ):
     _infrastructure_token = os.environ['INFRASTRUCTURE_TOKEN']
 
 
-    def receive_job(self,devices):
+    def retrieve_job(self):
         """
         Retrieves pending jobs from the SCARV API.
         """
-        params = { 'device-db' : devices }
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
         for i in range(3):
             res = requests.get("https://lab.scarv.org/api/analysis/job",
-                               params = params,
                                headers = headers)
             if res.status_code == 200:
                 job = res.json()
