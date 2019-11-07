@@ -1,6 +1,5 @@
 {    "job-id"      :   "foo",
      "job-version" : "0.1.0",
-     "job-type"    :  "user",
 
     "user-id"      :  "4567",
 
@@ -12,7 +11,7 @@
 
     "policy-id"   : "tvla",
     "policy-spec" : {
-      "tvla-mode"   : "svr-d",
+      "tvla-mode"   : "fvr-d",
       "tvla-round"  :       8,
 
       "user-select" : { 
