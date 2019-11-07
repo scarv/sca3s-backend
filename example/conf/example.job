@@ -1,5 +1,5 @@
-{    "job-id"      :   "foo",
-     "job-version" : "0.1.0",
+{    "job-version" : "0.1.0",
+     "job-id"      :   "foo",
 
     "user-id"      :  "4567",
 
