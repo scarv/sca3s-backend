@@ -41,8 +41,10 @@ SCHEMA_CONF = {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
         'board-id'   : { 'type' : 'string' },
         'board-spec' : { 'type' : 'object' },
+        'board-path' : { 'type' :  'array', 'items' : { 'type' : 'string' } },
         'scope-id'   : { 'type' : 'string' },
-        'scope-spec' : { 'type' : 'object' }
+        'scope-spec' : { 'type' : 'object' },
+        'scope-path' : { 'type' :  'array', 'items' : { 'type' : 'string' } }
       }, 'required' : [ 'board-id', 'board-spec', 'scope-id', 'scope-spec' ] }
     } }
   }

@@ -52,4 +52,4 @@ class BoardImp( board.scale.BoardType ) :
     else :
       raise Exception()
 
-    self.job.run( cmd, env = { 'PATH' : os.environ[ 'PATH' ] + ( ''.join( [ ( os.pathsep + t ) for t in self.board_path ] ) ) }, timeout = self.program_timeout )
+    self.job.run( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_timeout )
