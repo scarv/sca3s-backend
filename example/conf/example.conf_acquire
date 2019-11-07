@@ -14,10 +14,9 @@
   },
 
   "job:device-db"              : { 
-    "scale-m3/ps2206b" : {
-      "board-desc" : "...",
+    "scale-m3" : {
       "board-id"   : "scale/lpc1313fbd48",
-      "board-spec" : {
+      "board-spec" : {      
                 "connect-id"      : "/dev/ttyUSB0",
                 "connect-timeout" :             10,
 
@@ -25,7 +24,7 @@
                 "program-timeout" :            120,
                 "program-mode"    :        "jlink"
       },
-      "scope-desc" : "...",
+      "board-path" : [ "/opt/openocd-0.10.0/bin" ],
       "scope-id"   : "picoscope/ps2206b",
       "scope-spec" : {
                 "connect-id"      :   "FU837/0324",
@@ -34,7 +33,8 @@
         "channel-trigger-id"      :   "A",
         "channel-acquire-id"      :   "B",
         "channel-disable-id"      : []
-      }
+      },
+      "scope-path" : []
     }
   }
 }

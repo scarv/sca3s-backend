@@ -21,9 +21,8 @@ class JobImp( be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
     super().__init__( conf, path, log )  
 
-    self.job_id      = self.conf.get(  'job-id'      )
     self.job_version = self.conf.get(  'job-version' )
-    self.job_type    = self.conf.get(  'job-type'    )
+    self.job_id      = self.conf.get(  'job-id'      )
 
     self.user_id     = self.conf.get( 'user-id'      )
 

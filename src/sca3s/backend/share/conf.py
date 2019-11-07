@@ -11,42 +11,41 @@ import json, jsonschema, logging, os, sys, tempfile
 
 SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
-    'path:cache'            : { 'type' :  'string', 'default' : tempfile.tempdir },
-    'path:job'              : { 'type' :  'string', 'default' : tempfile.tempdir },
-    'path:log'              : { 'type' :  'string', 'default' : tempfile.tempdir },
+    'path:cache'        : { 'type' :  'string',         'default' : tempfile.tempdir },
+    'path:job'          : { 'type' :  'string',         'default' : tempfile.tempdir },
+    'path:log'          : { 'type' :  'string',         'default' : tempfile.tempdir },
 
-    'security:creds'        : { 'type' :  'object', 'default' : {}               },
+    'security:creds'    : { 'type' :  'object',         'default' : {}               },
 
-    'security:template'     : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
-      'url'          : { 'type' :  'string', 'default' : 'git@github.com/scarv/sca3s-harness.git' },
-      'tag'          : { 'type' :  'string', 'default' : 'master'                                 },
-      'pattern'      : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                }
-     } },
+    'security:template' : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
+          'url' : { 'type' :  'string', 'default' : 'git@github.com/scarv/sca3s-harness.git' },
+          'tag' : { 'type' :  'string', 'default' : 'master'                                 },
+      'pattern' : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                }
+    } },
 
-    'api:instance'          : { 'enum' : [ '1', '2', '*' ], 'default' :   '*' },
-    'api:wait'              : { 'type' :  'number',         'default' :    60 },
-    'api:ping'              : { 'type' :  'number',         'default' :    10 },
+    'api:instance'      : { 'enum' : [ '1', '2', '*' ], 'default' :              '*' },
+    'api:wait'          : { 'type' :  'number',         'default' :               60 },
+    'api:ping'          : { 'type' :  'number',         'default' :               10 },
 
-    'run:env'               : { 'type' :  'object',         'default' :    {} },
-    'run:timeout'           : { 'type' :  'number',         'default' :    60 },
+    'run:env'           : { 'type' :  'object',         'default' :               {} },
+    'run:timeout'       : { 'type' :  'number',         'default' :               60 },
   
-    'job:timeout'           : { 'type' :  'number',         'default' :     1 },
+    'job:timeout'       : { 'type' :  'number',         'default' :                1 },
 
-    'job:manifest-file'     : { 'type' :  'string'                            },
-    'job:manifest-data'     : { 'type' :  'string'                            },
+    'job:manifest-file' : { 'type' :  'string'                                       },
+    'job:manifest-data' : { 'type' :  'string'                                       },
 
-    'job:clean'             : { 'type' : 'boolean',         'default' : False },
+    'job:clean'         : { 'type' : 'boolean',         'default' :            False },
 
-    'job:device-db'         : { 'type' :  'object', 'default' : {}, 'patternProperties' : {
+    'job:device-db'     : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
-        'board-desc' : { 'type' : 'string' },
         'board-id'   : { 'type' : 'string' },
         'board-spec' : { 'type' : 'object' },
-
-        'scope-desc' : { 'type' : 'string' },
+        'board-path' : { 'type' :  'array', 'items' : { 'type' : 'string' } },
         'scope-id'   : { 'type' : 'string' },
-        'scope-spec' : { 'type' : 'object' }
-      }, 'required' : [ 'board-desc', 'board-id', 'board-spec', 'scope-desc', 'scope-id', 'scope-spec' ] }
+        'scope-spec' : { 'type' : 'object' },
+        'scope-path' : { 'type' :  'array', 'items' : { 'type' : 'string' } }
+      }, 'required' : [ 'board-id', 'board-spec', 'scope-id', 'scope-spec' ] }
     } }
   }
 }

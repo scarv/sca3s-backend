@@ -2,6 +2,7 @@ boto3
 docker
 gitpython
 h5py
+jsonmerge
 jsonschema
 more-itertools
 picoscope

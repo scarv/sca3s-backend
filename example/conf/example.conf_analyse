@@ -1,0 +1,4 @@
+{ "path:cache"                 : "${REPO_HOME}/example/data/cache",
+  "path:job"                   : "${REPO_HOME}/example/data/job",
+  "path:log"                   : "${REPO_HOME}/example/data/log"
+}

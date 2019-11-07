@@ -1,10 +1,9 @@
-{    "job-id"      :   "foo",
-     "job-version" : "0.1.0",
-     "job-type"    :  "user",
+{    "job-version" : "0.1.0",
+     "job-id"      :   "foo",
 
     "user-id"      :  "4567",
 
-  "device-id"      : "scale-m3/ps2206b",
+  "device-id"      : "scale-m3",
 
   "driver-id"      : "block",
   "driver-spec"    : {
@@ -12,7 +11,7 @@
 
     "policy-id"   : "tvla",
     "policy-spec" : {
-      "tvla-mode"   : "svr-d",
+      "tvla-mode"   : "fvr-d",
       "tvla-round"  :       8,
 
       "user-select" : { 
