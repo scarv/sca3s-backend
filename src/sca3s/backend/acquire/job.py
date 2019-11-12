@@ -21,10 +21,10 @@ class JobImp( be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
     super().__init__( conf, path, log )  
 
-    self.job_version = self.conf.get(  'job_version' )
-    self.job_id      = self.conf.get(  'job_id'      )
+    self.user_id     = int( self.conf.get( 'user_id'      ) )
 
-    self.user_id     = self.conf.get( 'user_id'      )
+    self.job_version =      self.conf.get(  'job_version' )
+    self.job_id      =      self.conf.get(  'job_id'      )
 
   def _build_board( self ) :
     t = self.conf.get(  'board_id' )
