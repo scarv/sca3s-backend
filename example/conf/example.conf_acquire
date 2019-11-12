@@ -13,6 +13,10 @@
     "pattern" : "README.md|src/kernel/.*"
   },
 
+  "api:instance"               : "*",
+  "api:wait"                   :  60,
+  "api:ping"                   :  10,
+
   "job:device_db"              : { 
     "scale_m3" : {
       "board_id"   : "scale/lpc1313fbd48",

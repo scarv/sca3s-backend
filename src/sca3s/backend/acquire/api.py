@@ -15,7 +15,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import enum, os, requests, time
+import enum, json, os, requests, time
 
 class JSONStatus( enum.IntEnum ):
     """
@@ -51,19 +51,29 @@ class APIImp( be.share.api.APIAbs ):
         Retrieves pending jobs from the SCARV API.
         """
         db = be.share.sys.conf.get( 'device_db', section = 'job' )
-        params = { 'device_db' : { k : { v : db[ k ][ v ] for v in [ 'board_id', 'scope_id' ] } for k in db.keys() } }
+        params = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'scope_id' ] } for k in db.keys() } ) }
 
         instance = be.share.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :
           params[ 'queue' ] = instance
 
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
+
+        print( ">>> GET config" )
+        print( db )
+        print( params )
+        print( instance )
+        print( headers )
+       
         for i in range(3):
             res = requests.get("https://lab.scarv.org/api/acquisition/job",
                                params = params,
                                headers = headers)
             if res.status_code == 200:
                 job = res.json()
+                print( ">>> GET job" )
+                print( job )
+
                 if job["status"] == JSONStatus.SUCCESS:
                     return job
                 else:

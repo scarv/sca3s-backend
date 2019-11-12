@@ -1,7 +1,7 @@
 {    "job_version" : "0.1.0",
      "job_id"      :   "foo",
 
-    "user_id"      :  "4567",
+    "user_id"      :  4567,
 
   "device_id"      : "scale_m3",
 
