@@ -21,12 +21,12 @@ class BoardType( board.BoardAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
     
-    self.connect_id      =      self.board_spec.get( 'connect-id'      )
-    self.connect_timeout = int( self.board_spec.get( 'connect-timeout' ) )
+    self.connect_id      =      self.board_spec.get( 'connect_id'      )
+    self.connect_timeout = int( self.board_spec.get( 'connect_timeout' ) )
 
-    self.program_id      =      self.board_spec.get( 'program-id'      )
-    self.program_timeout = int( self.board_spec.get( 'program-timeout' ) )
-    self.program_mode    =      self.board_spec.get( 'program-mode'    )
+    self.program_id      =      self.board_spec.get( 'program_id'      )
+    self.program_timeout = int( self.board_spec.get( 'program_timeout' ) )
+    self.program_mode    =      self.board_spec.get( 'program_mode'    )
 
   def _uart_send( self, x ) :
     self.board_object.write( ( x + '\x0D' ).encode() )

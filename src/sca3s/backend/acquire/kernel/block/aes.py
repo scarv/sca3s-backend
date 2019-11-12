@@ -39,8 +39,8 @@ class KernelImp( kernel.block.KernelType ) :
     return be.share.crypto.AES( k ).dec( c )
 
   def policy_tvla_init_lhs( self, spec ) :
-    tvla_mode  = spec.get( 'tvla-mode'  )
-    tvla_round = spec.get( 'tvla-round' )
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
 
     if  ( tvla_mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
@@ -97,8 +97,8 @@ class KernelImp( kernel.block.KernelType ) :
     return ( k, x )
 
   def policy_tvla_iter_lhs( self, spec, k, x, i ) :
-    tvla_mode  = spec.get( 'tvla-mode'  )
-    tvla_round = spec.get( 'tvla-round' )
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
 
     if  ( tvla_mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
@@ -144,8 +144,8 @@ class KernelImp( kernel.block.KernelType ) :
     return ( k, x )
 
   def policy_tvla_init_rhs( self, spec ) :
-    tvla_mode  = spec.get( 'tvla-mode'  )
-    tvla_round = spec.get( 'tvla-round' )
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
 
     if  ( tvla_mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :
@@ -210,8 +210,8 @@ class KernelImp( kernel.block.KernelType ) :
     return ( k, x )
 
   def policy_tvla_iter_rhs( self, spec, k, x, i ) :
-    tvla_mode  = spec.get( 'tvla-mode'  )
-    tvla_round = spec.get( 'tvla-round' )
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
 
     if  ( tvla_mode == 'fvr-k' ) :
       if   ( self.sizeof_k == 16 ) :

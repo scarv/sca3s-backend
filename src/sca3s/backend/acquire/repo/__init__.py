@@ -23,8 +23,8 @@ class RepoAbs( abc.ABC ) :
 
     self.job       = job
 
-    self.repo_id   = self.job.conf.get( 'repo-id'   )
-    self.repo_spec = self.job.conf.get( 'repo-spec' )
+    self.repo_id   = self.job.conf.get( 'repo_id'   )
+    self.repo_spec = self.job.conf.get( 'repo_spec' )
 
   @abc.abstractmethod
   def transfer( self ) :

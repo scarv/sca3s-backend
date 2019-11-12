@@ -32,20 +32,20 @@ SCHEMA_CONF = {
   
     'job:timeout'       : { 'type' :  'number',         'default' :                1 },
 
-    'job:manifest-file' : { 'type' :  'string'                                       },
-    'job:manifest-data' : { 'type' :  'string'                                       },
+    'job:manifest_file' : { 'type' :  'string'                                       },
+    'job:manifest_data' : { 'type' :  'string'                                       },
 
     'job:clean'         : { 'type' : 'boolean',         'default' :            False },
 
-    'job:device-db'     : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
+    'job:device_db'     : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
-        'board-id'   : { 'type' : 'string' },
-        'board-spec' : { 'type' : 'object' },
-        'board-path' : { 'type' :  'array', 'items' : { 'type' : 'string' } },
-        'scope-id'   : { 'type' : 'string' },
-        'scope-spec' : { 'type' : 'object' },
-        'scope-path' : { 'type' :  'array', 'items' : { 'type' : 'string' } }
-      }, 'required' : [ 'board-id', 'board-spec', 'scope-id', 'scope-spec' ] }
+        'board_id'   : { 'type' : 'string' },
+        'board_spec' : { 'type' : 'object' },
+        'board_path' : { 'type' :  'array', 'items' : { 'type' : 'string' } },
+        'scope_id'   : { 'type' : 'string' },
+        'scope_spec' : { 'type' : 'object' },
+        'scope_path' : { 'type' :  'array', 'items' : { 'type' : 'string' } }
+      }, 'required' : [ 'board_id', 'board_spec', 'scope_id', 'scope_spec' ] }
     } }
   }
 }

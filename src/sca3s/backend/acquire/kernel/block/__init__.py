@@ -60,8 +60,8 @@ class KernelType( kernel.KernelAbs ) :
     return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
 
   def policy_user_init( self, spec ) :
-    user_select = spec.get( 'user-select' )
-    user_value  = spec.get( 'user-value'  )
+    user_select = spec.get( 'user_select' )
+    user_value  = spec.get( 'user_value'  )
 
     if   ( self.func == 'enc' ) :
       k = self.value( user_value.get( 'k' ) )
@@ -73,8 +73,8 @@ class KernelType( kernel.KernelAbs ) :
     return ( k, x )
 
   def policy_user_iter( self, spec, k, x, i ) :
-    user_select = spec.get( 'user-select' )
-    user_value  = spec.get( 'user-value'  )
+    user_select = spec.get( 'user_select' )
+    user_value  = spec.get( 'user_value'  )
 
     if   ( self.func == 'enc' ) :
       k = self.value( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )

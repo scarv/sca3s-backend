@@ -23,8 +23,8 @@ class DriverAbs( abc.ABC ) :
 
     self.job         = job
 
-    self.driver_id   = self.job.conf.get( 'driver-id'   )
-    self.driver_spec = self.job.conf.get( 'driver-spec' )
+    self.driver_id   = self.job.conf.get( 'driver_id'   )
+    self.driver_spec = self.job.conf.get( 'driver_spec' )
 
   def calibrate( self, resolution = 8, dtype = '<f8' ) :
     l = be.share.sys.conf.get( 'timeout', section = 'job' )

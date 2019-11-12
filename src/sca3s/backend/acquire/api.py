@@ -50,8 +50,8 @@ class APIImp( be.share.api.APIAbs ):
         """
         Retrieves pending jobs from the SCARV API.
         """
-        db = be.share.sys.conf.get( 'device-db', section = 'job' )
-        params = { 'device-db' : { k : { v : db[ k ][ v ] for v in [ 'board-id', 'scope-id' ] } for k in db.keys() } }
+        db = be.share.sys.conf.get( 'device_db', section = 'job' )
+        params = { 'device_db' : { k : { v : db[ k ][ v ] for v in [ 'board_id', 'scope_id' ] } for k in db.keys() } }
 
         instance = be.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :

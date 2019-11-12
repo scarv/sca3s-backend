@@ -23,8 +23,8 @@ class DepoAbs( abc.ABC ) :
 
     self.job       = job
 
-    self.depo_id   = self.job.conf.get( 'depo-id'   )
-    self.depo_spec = self.job.conf.get( 'depo-spec' )
+    self.depo_id   = self.job.conf.get( 'depo_id'   )
+    self.depo_spec = self.job.conf.get( 'depo_spec' )
 
   @abc.abstractmethod
   def transfer( self ) :

@@ -21,12 +21,12 @@ class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.policy_id       = self.driver_spec.get( 'policy-id'   )
-    self.policy_spec     = self.driver_spec.get( 'policy-spec' )
+    self.policy_id       = self.driver_spec.get( 'policy_id'   )
+    self.policy_spec     = self.driver_spec.get( 'policy_spec' )
 
     self.kernel          = None
 
-    self.trace_spec      = self.job.conf.get( 'trace-spec' )
+    self.trace_spec      = self.job.conf.get( 'trace_spec' )
 
     self.trace_content   =       self.trace_spec.get( 'content' )
     self.trace_count     =  int( self.trace_spec.get( 'count'   ) )
@@ -195,10 +195,10 @@ class DriverImp( driver.DriverAbs ) :
 
   # Driver policy: TVLA-driven
   #
-  # - mode = fvr-k ~>  fixed-versus random  key
-  # - mode = fvr-d ~>  fixed-versus random data  
-  # - mode = svr-d ~>   semi-versus random data  
-  # - mode = rvr-d ~> random-versus random data  
+  # - mode = fvr_k ~>  fixed-versus random  key
+  # - mode = fvr_d ~>  fixed-versus random data  
+  # - mode = svr_d ~>   semi-versus random data  
+  # - mode = rvr_d ~> random-versus random data  
 
   def _policy_tvla( self, fd ) :
     n   = 2 * self.trace_count
@@ -216,18 +216,18 @@ class DriverImp( driver.DriverAbs ) :
     ( k, x ) = self.kernel.policy_tvla_init_lhs( self.policy_spec )
 
     for i in lhs :
-      self._acquire_log_inc( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_inc( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
-      self._acquire_log_dec( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_dec( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       ( k, x ) = self.kernel.policy_tvla_iter_lhs( self.policy_spec, k, x, i )
 
     ( k, x ) = self.kernel.policy_tvla_init_rhs( self.policy_spec )
 
     for i in rhs :
-      self._acquire_log_inc( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_inc( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
-      self._acquire_log_dec( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_dec( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, k, x, i )
 

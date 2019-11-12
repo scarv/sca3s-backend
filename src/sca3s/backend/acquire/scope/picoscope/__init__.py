@@ -28,12 +28,12 @@ class ScopeType( scope.ScopeAbs ) :
 
     self.api                = api
 
-    self.connect_id         = self.scope_spec.get( 'connect-id'         )
-    self.connect_timeout    = self.scope_spec.get( 'connect-timeout'    )
+    self.connect_id         = self.scope_spec.get( 'connect_id'         )
+    self.connect_timeout    = self.scope_spec.get( 'connect_timeout'    )
 
-    self.channel_trigger_id = self.scope_spec.get( 'channel-trigger-id' )
-    self.channel_acquire_id = self.scope_spec.get( 'channel-acquire-id' )
-    self.channel_disable_id = self.scope_spec.get( 'channel-disable-id' )
+    self.channel_trigger_id = self.scope_spec.get( 'channel_trigger_id' )
+    self.channel_acquire_id = self.scope_spec.get( 'channel_acquire_id' )
+    self.channel_disable_id = self.scope_spec.get( 'channel_disable_id' )
 
   def  open( self ) :
     self.scope_object = self.api( serialNumber = self.connect_id.encode(), connect = True )

@@ -22,10 +22,10 @@ def process( manifest ) :
     be.share.sys.log.info( 'validating job' )
   
     try :
-      db = be.share.sys.conf.get( 'device-db', section = 'job' )
+      db = be.share.sys.conf.get( 'device_db', section = 'job' )
     
-      if ( manifest.has( 'device-id' ) ) :
-        t =  manifest.get( 'device-id' )
+      if ( manifest.has( 'device_id' ) ) :
+        t =  manifest.get( 'device_id' )
     
         if ( db.has( t ) ) :
           for ( key, value ) in db.get( t ).items() :
@@ -42,7 +42,7 @@ def process( manifest ) :
     be.share.sys.log.info( 'allocating job' )
 
     try :
-      id   = manifest.get( 'job-id' ) ; 
+      id   = manifest.get( 'job_id' ) ; 
 
       path = tempfile.mkdtemp( prefix = id + '.', dir = be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = be.share.log.build_log( be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
@@ -73,10 +73,10 @@ def process( manifest ) :
   return ( id, result )
 
 def run_mode_cli() :
-  if   ( be.share.sys.conf.has( 'manifest-file', section = 'job' ) ) :
-    manifest = be.share.conf.Conf( conf = be.share.sys.conf.get( 'manifest-file', section = 'job' ) )
-  elif ( be.share.sys.conf.has( 'manifest-data', section = 'job' ) ) :
-    manifest = be.share.conf.Conf( conf = be.share.sys.conf.get( 'manifest-data', section = 'job' ) )
+  if   ( be.share.sys.conf.has( 'manifest_file', section = 'job' ) ) :
+    manifest = be.share.conf.Conf( conf = be.share.sys.conf.get( 'manifest_file', section = 'job' ) )
+  elif ( be.share.sys.conf.has( 'manifest_data', section = 'job' ) ) :
+    manifest = be.share.conf.Conf( conf = be.share.sys.conf.get( 'manifest_data', section = 'job' ) )
   else :
     raise be.share.exception.ConfigurationException()
 

@@ -28,10 +28,10 @@ def init() :
   parser.add_argument( '--sys:task',          action =   'store', choices = [ 'acquire', 'analyse' ], default = 'acquire'                )
   parser.add_argument( '--sys:mode',          action =   'store', choices = [ 'cli', 'api'         ], default = 'cli'                    )
 
-  parser.add_argument( '--job:manifest-file', action =   'store', type = str                                                             )
-  parser.add_argument( '--job:manifest-json', action =   'store', type = str                                                             )
+  parser.add_argument( '--job:manifest_file', action =   'store', type = str                                                             )
+  parser.add_argument( '--job:manifest_json', action =   'store', type = str                                                             )
 
-  args = { key.replace( '_', '-' ) : value for ( key, value ) in vars( parser.parse_args() ).items() if ( value != None ) }
+  args = { k : v for ( k, v ) in vars( parser.parse_args() ).items() if ( v != None ) }
 
   # initialise system configuration, from configuration file *then* command line arguments
 
