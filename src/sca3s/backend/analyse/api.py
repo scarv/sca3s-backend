@@ -15,12 +15,10 @@ class JSONStatus( enum.IntEnum ):
     """
     # Global Success Code
     SUCCESS = 0
-    # Job error codes
-    NO_ITEMS_ON_QUEUE = 1000
-    INVALID_JOB_SYNTAX = 1001
-    TOO_MANY_QUEUED_JOBS = 1002
-    JOB_DOES_NOT_EXIST = 1003
-    INVALID_INFRASTRUCTURE_TOKEN = 7000
+    # Analysis Error Codes
+    FAILURE_VALIDATING_JOB = 4000
+    FAILURE_ALLOCATING_JOB = 4001
+    FAILURE_PROCESSING_JOB = 4002
 
 class APIImp( be.share.api.APIAbs ):
     """
@@ -59,7 +57,7 @@ class APIImp( be.share.api.APIAbs ):
         """
         remark = "complete"
         if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
-            remark = "failed:" + str(error_code)
+            remark = "failed:" + str(int(error_code))
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
         for i in range(3):
             res = requests.patch("https://lab.scarv.org/api/analysis/job/" + job_id,
