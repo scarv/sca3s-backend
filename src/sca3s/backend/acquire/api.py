@@ -53,7 +53,7 @@ class APIImp( be.share.api.APIAbs ):
         db = be.share.sys.conf.get( 'device_db', section = 'job' )
         params = { 'device_db' : { k : { v : db[ k ][ v ] for v in [ 'board_id', 'scope_id' ] } for k in db.keys() } }
 
-        instance = be.sys.conf.get( 'instance', section = 'api' )
+        instance = be.share.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :
           params[ 'queue' ] = instance
 
