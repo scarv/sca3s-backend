@@ -21,8 +21,8 @@ class DepoImp( depo.DepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.access_key_id = be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key_id', section = 's3' )
-    self.access_key    = be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key',    section = 's3' ) 
+    self.access_key_id = sca3s_be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key_id', section = 's3' )
+    self.access_key    = sca3s_be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key',    section = 's3' ) 
 
     self.region_id     = self.depo_spec.get( 'region_id' )
     self.bucket_id     = self.depo_spec.get( 'bucket_id' )

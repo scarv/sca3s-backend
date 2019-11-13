@@ -65,9 +65,9 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   def interact( self, x ) :
-    be.share.sys.log.debug( '> uart : %s', x )
+    sca3s_be.share.sys.log.debug( '> uart : %s', x )
     self._uart_send( x ) ; t = self._uart_recv()
-    be.share.sys.log.debug( '< uart : %s', t )
+    sca3s_be.share.sys.log.debug( '< uart : %s', t )
 
     if   ( t[ 0 ] == '+' ) :
       return t[ 1 : ]
@@ -88,7 +88,7 @@ class BoardAbs( abc.ABC ) :
     self.driver_id      = t[ 1 ]
     self.kernel_id      = t[ 2 ]
 
-    if ( self.driver_version != be.share.version.VERSION ) :
+    if ( self.driver_version != sca3s_be.share.version.VERSION ) :
       raise Exception()
 
     self.job.log.info( '?id -> driver version = %s', self.driver_version )

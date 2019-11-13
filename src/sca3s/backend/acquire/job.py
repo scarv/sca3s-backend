@@ -17,7 +17,7 @@ from sca3s.backend.acquire import depo   as depo
 
 import docker, git, importlib, json, logging, more_itertools as mit, os, re, sys
 
-class JobImp( be.share.job.JobAbs ) :
+class JobImp( sca3s_be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
     super().__init__( conf, path, log )  
 
@@ -76,9 +76,9 @@ class JobImp( be.share.job.JobAbs ) :
   def _prepare_repo( self ) :
     return # TODO: reinstance this once upstream repo. is public, otherwise auth. fails
 
-    template_url     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'url'     )
-    template_tag     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'tag'     )
-    template_pattern = be.share.sys.conf.get( 'template', section = 'security' ).get( 'pattern' )
+    template_url     = sca3s_be.share.sys.conf.get( 'template', section = 'security' ).get( 'url'     )
+    template_tag     = sca3s_be.share.sys.conf.get( 'template', section = 'security' ).get( 'tag'     )
+    template_pattern = sca3s_be.share.sys.conf.get( 'template', section = 'security' ).get( 'pattern' )
 
     path             = os.path.join( self.path, 'target' )
 
@@ -127,7 +127,7 @@ class JobImp( be.share.job.JobAbs ) :
   # 5. clean
 
   def _prepare_board( self ) :
-    img = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board_id' ).replace( '/', '-' ) + ':' + be.share.version.VERSION
+    img = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board_id' ).replace( '/', '-' ) + ':' + sca3s_be.share.version.VERSION
     
     vol = { os.path.join( self.path, 'target' ) : { 'bind' : '/mnt/scarv/sca3s/harness', 'mode' : 'rw' } }
     

@@ -47,7 +47,7 @@ def process( manifest ) :
       path = tempfile.mkdtemp( prefix = id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
 
-      job  = task_sca3s_be.job.JobImp( manifest, path, log )
+      job  = task_be.job.JobImp( manifest, path, log )
 
     except Exception as e :
       result = STATUS_FAILURE_ALLOCATING_JOB ; raise e
@@ -83,7 +83,7 @@ def run_mode_cli() :
   process( manifest )
 
 def run_mode_api() :
-  api      = task_sca3s_be.api.APIImp()
+  api      = task_be.api.APIImp()
       
   api_wait = int( sca3s_be.share.sys.conf.get( 'wait', section = 'api' ) )
   api_ping = int( sca3s_be.share.sys.conf.get( 'ping', section = 'api' ) )
@@ -120,13 +120,13 @@ def run_mode_api() :
 
         if ( id != None ) :
           if   ( result == STATUS_SUCCESS                ) :
-            api.complete_job( id, error_code = task_sca3s_be.api.JSONStatus.SUCCESS                )
+            api.complete_job( id, error_code = task_be.api.JSONStatus.SUCCESS                )
           elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
-            api.complete_job( id, error_code = task_sca3s_be.api.JSONStatus.FAILURE_VALIDATING_JOB )
+            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_VALIDATING_JOB )
           elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
-            api.complete_job( id, error_code = task_sca3s_be.api.JSONStatus.FAILURE_ALLOCATING_JOB )
+            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_ALLOCATING_JOB )
           elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
-            api.complete_job( id, error_code = task_sca3s_be.api.JSONStatus.FAILURE_PROCESSING_JOB )
+            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_PROCESSING_JOB )
   
       if ( term ) :
         sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return

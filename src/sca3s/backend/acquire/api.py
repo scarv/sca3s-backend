@@ -39,7 +39,7 @@ class JSONStatus( enum.IntEnum ):
     FAILURE_ALLOCATING_JOB = 4001
     FAILURE_PROCESSING_JOB = 4002
 
-class APIImp( be.share.api.APIAbs ):
+class APIImp( sca3s_be.share.api.APIAbs ):
     """
     Class for receiving jobs from SCARV API.
     """
@@ -50,10 +50,10 @@ class APIImp( be.share.api.APIAbs ):
         """
         Retrieves pending jobs from the SCARV API.
         """
-        db = be.share.sys.conf.get( 'device_db', section = 'job' )
+        db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
         params = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'scope_id' ] } for k in db.keys() } ) }
 
-        instance = be.share.sys.conf.get( 'instance', section = 'api' )
+        instance = sca3s_be.share.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :
           params[ 'queue' ] = instance
 
@@ -70,10 +70,10 @@ class APIImp( be.share.api.APIAbs ):
                 else:
                     return None
             else:
-                be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
-                be.share.sys.log.info(res.text)
+                sca3s_be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
+                sca3s_be.share.sys.log.info(res.text)
                 time.sleep(1)
-        be.share.sys.log.info("[SCARV] Error in API Communication")
+        sca3s_be.share.sys.log.info("[SCARV] Error in API Communication")
         raise Exception("SCARV API Communication Error.")
 
 
@@ -97,11 +97,11 @@ class APIImp( be.share.api.APIAbs ):
                 info = res.json()
                 if info["status"] == JSONStatus.SUCCESS:
                     return
-                be.share.sys.log.info("[SCARV] Error in API Communication - " + info["status"])
+                sca3s_be.share.sys.log.info("[SCARV] Error in API Communication - " + info["status"])
                 return
             else:
-                be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
-                be.share.sys.log.info(res.text)
+                sca3s_be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
+                sca3s_be.share.sys.log.info(res.text)
                 time.sleep(1)
-        be.share.sys.log.info("[SCARV] Error in API Communication")
+        sca3s_be.share.sys.log.info("[SCARV] Error in API Communication")
         raise Exception("SCARV API Communication Error.")

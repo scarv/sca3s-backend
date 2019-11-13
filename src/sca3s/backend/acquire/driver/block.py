@@ -47,9 +47,9 @@ class DriverImp( driver.DriverAbs ) :
     if ( m == None ) :
       m = self.kernel.value( '{$*|m|}' )
 
-    self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
-    self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
-    self.job.board.interact( '>reg m %s' % be.share.util.str2octetstr( m ).upper() )
+    self.job.board.interact( '>reg k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>reg r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>reg m %s' % sca3s_be.share.util.str2octetstr( m ).upper() )
   
     _                   = self.job.scope.prepare()
 
@@ -58,12 +58,12 @@ class DriverImp( driver.DriverAbs ) :
   
     ( trigger, signal ) = self.job.scope.acquire()
   
-    c = be.share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
+    c = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
 
-    be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
-    be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
-    be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
-    be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
+    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
+    sca3s_be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
+    sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
 
     if ( self.driver_spec.get( 'verify' ) ) :
       t = self.kernel.enc( k, m )
@@ -71,9 +71,9 @@ class DriverImp( driver.DriverAbs ) :
       if ( ( t != None ) and ( t != c ) ) :
         raise Exception()  
 
-    cycle_enc = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_enc = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
-    cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
     ( edge_hi, edge_lo, duration ) = self._measure( trigger )
 
@@ -87,9 +87,9 @@ class DriverImp( driver.DriverAbs ) :
     if ( c == None ) :
       c = self.kernel.value( '{$*|c|}' )
 
-    self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
-    self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
-    self.job.board.interact( '>reg c %s' % be.share.util.str2octetstr( c ).upper() )
+    self.job.board.interact( '>reg k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>reg r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>reg c %s' % sca3s_be.share.util.str2octetstr( c ).upper() )
   
     _                   = self.job.scope.prepare()
   
@@ -98,12 +98,12 @@ class DriverImp( driver.DriverAbs ) :
   
     ( trigger, signal ) = self.job.scope.acquire()
   
-    m = be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
+    m = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
 
-    be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
-    be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
-    be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
-    be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
+    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
+    sca3s_be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
+    sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
 
     if ( self.driver_spec.get( 'verify' ) ) :
       t = self.kernel.dec( k, c )
@@ -111,9 +111,9 @@ class DriverImp( driver.DriverAbs ) :
       if ( ( t != None ) and ( t != m ) ) :
         raise Exception()  
 
-    cycle_dec = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_dec = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
-    cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
     ( edge_hi, edge_lo, duration ) = self._measure( trigger )
 

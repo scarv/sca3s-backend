@@ -34,7 +34,7 @@ class BoardImp( board.scale.BoardType ) :
     return None
 
   def get_build_context_vol( self ) :
-    return { be.share.sys.conf.get( 'cache', section = 'path' ) : { 'bind' : '/mnt/scarv/sca3s/cache', 'mode' : 'rw' } }
+    return { sca3s_be.share.sys.conf.get( 'cache', section = 'path' ) : { 'bind' : '/mnt/scarv/sca3s/cache', 'mode' : 'rw' } }
 
   def get_build_context_env( self ) :
     return { 'CACHE' : '/mnt/scarv/sca3s/cache', 'JLINK' : self.program_id }

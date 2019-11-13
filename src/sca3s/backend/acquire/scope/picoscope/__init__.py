@@ -49,7 +49,7 @@ class ScopeType( scope.ScopeAbs ) :
       self.scope_object.close()
 
   def calibrate( self, mode, x, resolution = 8, dtype = '<f8' ) :  
-    resolution = be.share.util.closest( resolution, self._resolutions() )
+    resolution = sca3s_be.share.util.closest( resolution, self._resolutions() )
 
     if   ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
       interval =     x

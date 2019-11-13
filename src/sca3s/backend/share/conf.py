@@ -96,7 +96,7 @@ class Conf( dict ) :
     for ( key, value ) in self.items() :
       if ( value != None ) :
         if   ( isinstance( value, dict ) ) :
-          value = be.share.conf.Conf( conf = value )
+          value = sca3s_be.share.conf.Conf( conf = value )
         elif ( isinstance( value, str  ) ) :
           value = os.path.expandvars( value )
 

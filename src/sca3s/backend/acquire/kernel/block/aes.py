@@ -33,10 +33,10 @@ class KernelImp( kernel.block.KernelType ) :
     return False
 
   def enc( self, k, m ) :
-    return be.share.crypto.AES( k ).enc( m )
+    return sca3s_be.share.crypto.AES( k ).enc( m )
 
   def dec( self, k, c ) :
-    return be.share.crypto.AES( k ).dec( c )
+    return sca3s_be.share.crypto.AES( k ).dec( c )
 
   def policy_tvla_init_lhs( self, spec ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
@@ -124,9 +124,9 @@ class KernelImp( kernel.block.KernelType ) :
       x = bytes( [ a ^ b for ( a, b ) in zip( x[ 0 : 4 ], i[ 0 : 4 ] ) ] ) + x[ 4 : ]
 
       if   ( self.func == 'enc' ) :
-        x = be.share.crypto.AES( k ).enc_rev( x, tvla_round )
+        x = sca3s_be.share.crypto.AES( k ).enc_rev( x, tvla_round )
       elif ( self.func == 'dec' ) :
-        x = be.share.crypto.AES( k ).dec_rev( x, tvla_round )
+        x = sca3s_be.share.crypto.AES( k ).dec_rev( x, tvla_round )
 
     elif( tvla_mode == 'rvr_d' ) :
       if   ( self.sizeof_k == 16 ) :
