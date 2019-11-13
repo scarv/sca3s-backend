@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import share   as share
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 import os
 
