@@ -5,7 +5,7 @@
 # as LICENSE.txt within the associated archive or repository).
 
 from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import share   as share
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope

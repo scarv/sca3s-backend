@@ -5,7 +5,7 @@
 # as LICENSE.txt within the associated archive or repository).
 
 from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import share   as share
 
 import argparse, logging, os, sys
 
@@ -42,7 +42,7 @@ def init() :
 
   conf.populate( args )
 
-  spec.share.schema.validate( conf, be.share.conf.SCHEMA_CONF )
+  share.share.schema.validate( conf, be.share.conf.SCHEMA_CONF )
 
   # initialise system logger
 

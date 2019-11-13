@@ -5,7 +5,7 @@
 # as LICENSE.txt within the associated archive or repository).
 
 from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import share   as share
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -58,12 +58,6 @@ class APIImp( be.share.api.APIAbs ):
           params[ 'queue' ] = instance
 
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
-
-        print( ">>> GET config" )
-        print( db )
-        print( params )
-        print( instance )
-        print( headers )
        
         for i in range(3):
             res = requests.get("https://lab.scarv.org/api/acquisition/job",
@@ -71,9 +65,6 @@ class APIImp( be.share.api.APIAbs ):
                                headers = headers)
             if res.status_code == 200:
                 job = res.json()
-                print( ">>> GET job" )
-                print( job )
-
                 if job["status"] == JSONStatus.SUCCESS:
                     return job
                 else:

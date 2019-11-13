@@ -5,7 +5,7 @@
 # as LICENSE.txt within the associated archive or repository).
 
 from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import share   as share
 
 import importlib, os, shutil, signal, tempfile, time
 
@@ -34,7 +34,7 @@ def process( manifest ) :
         else :
           raise be.share.exception.ConfigurationException()
     
-      spec.share.schema.validate( manifest, task_spec.schema.SCHEMA_MANIFEST )
+      share.share.schema.validate( manifest, task_share.schema.SCHEMA_MANIFEST )
   
     except Exception as e :
       result = STATUS_FAILURE_VALIDATING_JOB ; raise e
@@ -141,11 +141,11 @@ if ( __name__ == '__main__' ) :
     be.share.sys.init()
 
     if   ( be.share.sys.conf.get( 'task', section = 'sys' ) == 'acquire' ) :
-      task_be   = importlib.import_module( 'sca3s.backend.acquire' )
-      task_spec = importlib.import_module( 'sca3s.spec.acquire' )
+      task_be    = importlib.import_module( 'sca3s.backend.acquire' )
+      task_share = importlib.import_module( 'sca3s.share.acquire' )
     elif ( be.share.sys.conf.get( 'task', section = 'sys' ) == 'analyse' ) :
-      task_be   = importlib.import_module( 'sca3s.backend.analyse' )
-      task_spec = importlib.import_module( 'sca3s.spec.analyse' )
+      task_be    = importlib.import_module( 'sca3s.backend.analyse' )
+      task_share = importlib.import_module( 'sca3s.share.analyse' )
     else :
       raise be.share.exception.ConfigurationException()
 

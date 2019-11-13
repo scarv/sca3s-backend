@@ -5,7 +5,7 @@
 # as LICENSE.txt within the associated archive or repository).
 
 from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import share   as share
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -24,8 +24,8 @@ class DepoImp( depo.DepoAbs ) :
     self.access_key_id = be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key_id', section = 's3' )
     self.access_key    = be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key',    section = 's3' ) 
 
-    self.region_id     =       self.depo_spec.get( 'region_id'   )
-    self.bucket_id     =       self.depo_spec.get( 'bucket_id'   )
+    self.region_id     = self.depo_spec.get( 'region_id' )
+    self.bucket_id     = self.depo_spec.get( 'bucket_id' )
 
   def transfer( self ) :
     session  = boto3.Session( aws_access_key_id = self.access_key_id, aws_secret_access_key = self.access_key, region_name = self.region_id )
