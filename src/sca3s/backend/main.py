@@ -42,7 +42,7 @@ def process( manifest ) :
     sca3s_be.share.sys.log.info( 'allocating job' )
 
     try :
-      id   = manifest.get( 'job_id' ) ; 
+      id   = manifest.get( 'job_id' )
 
       path = tempfile.mkdtemp( prefix = id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )

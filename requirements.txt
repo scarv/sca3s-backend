@@ -10,4 +10,7 @@ pycrypto
 PyJWT
 pyserial
 requests
+scipy
+numpy
+matplotlib
 
