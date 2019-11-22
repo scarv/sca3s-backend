@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -34,7 +34,7 @@ class BoardImp( board.scale.BoardType ) :
     return None
 
   def get_build_context_vol( self ) :
-    return { be.share.sys.conf.get( 'cache', section = 'path' ) : { 'bind' : '/mnt/scarv/sca3s/cache', 'mode' : 'rw' } }
+    return { sca3s_be.share.sys.conf.get( 'cache', section = 'path' ) : { 'bind' : '/mnt/scarv/sca3s/cache', 'mode' : 'rw' } }
 
   def get_build_context_env( self ) :
     return { 'CACHE' : '/mnt/scarv/sca3s/cache', 'JLINK' : self.program_id }

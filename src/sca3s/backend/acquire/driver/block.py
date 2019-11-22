@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -21,12 +21,12 @@ class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.policy_id       = self.driver_spec.get( 'policy-id'   )
-    self.policy_spec     = self.driver_spec.get( 'policy-spec' )
+    self.policy_id       = self.driver_spec.get( 'policy_id'   )
+    self.policy_spec     = self.driver_spec.get( 'policy_spec' )
 
     self.kernel          = None
 
-    self.trace_spec      = self.job.conf.get( 'trace-spec' )
+    self.trace_spec      = self.job.conf.get( 'trace_spec' )
 
     self.trace_content   =       self.trace_spec.get( 'content' )
     self.trace_count     =  int( self.trace_spec.get( 'count'   ) )
@@ -47,9 +47,9 @@ class DriverImp( driver.DriverAbs ) :
     if ( m == None ) :
       m = self.kernel.value( '{$*|m|}' )
 
-    self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
-    self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
-    self.job.board.interact( '>reg m %s' % be.share.util.str2octetstr( m ).upper() )
+    self.job.board.interact( '>reg k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>reg r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>reg m %s' % sca3s_be.share.util.str2octetstr( m ).upper() )
   
     _                   = self.job.scope.prepare()
 
@@ -58,12 +58,12 @@ class DriverImp( driver.DriverAbs ) :
   
     ( trigger, signal ) = self.job.scope.acquire()
   
-    c = be.share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
+    c = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
 
-    be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
-    be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
-    be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
-    be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
+    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
+    sca3s_be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
+    sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
 
     if ( self.driver_spec.get( 'verify' ) ) :
       t = self.kernel.enc( k, m )
@@ -71,9 +71,9 @@ class DriverImp( driver.DriverAbs ) :
       if ( ( t != None ) and ( t != c ) ) :
         raise Exception()  
 
-    cycle_enc = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_enc = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
-    cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
     ( edge_hi, edge_lo, duration ) = self._measure( trigger )
 
@@ -87,9 +87,9 @@ class DriverImp( driver.DriverAbs ) :
     if ( c == None ) :
       c = self.kernel.value( '{$*|c|}' )
 
-    self.job.board.interact( '>reg k %s' % be.share.util.str2octetstr( k ).upper() )
-    self.job.board.interact( '>reg r %s' % be.share.util.str2octetstr( r ).upper() )
-    self.job.board.interact( '>reg c %s' % be.share.util.str2octetstr( c ).upper() )
+    self.job.board.interact( '>reg k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>reg r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>reg c %s' % sca3s_be.share.util.str2octetstr( c ).upper() )
   
     _                   = self.job.scope.prepare()
   
@@ -98,12 +98,12 @@ class DriverImp( driver.DriverAbs ) :
   
     ( trigger, signal ) = self.job.scope.acquire()
   
-    m = be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
+    m = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
 
-    be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
-    be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
-    be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
-    be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
+    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
+    sca3s_be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
+    sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
 
     if ( self.driver_spec.get( 'verify' ) ) :
       t = self.kernel.dec( k, c )
@@ -111,9 +111,9 @@ class DriverImp( driver.DriverAbs ) :
       if ( ( t != None ) and ( t != m ) ) :
         raise Exception()  
 
-    cycle_dec = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_dec = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop'      )
-    cycle_nop = be.share.util.seq2int( be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
 
     ( edge_hi, edge_lo, duration ) = self._measure( trigger )
 
@@ -195,10 +195,10 @@ class DriverImp( driver.DriverAbs ) :
 
   # Driver policy: TVLA-driven
   #
-  # - mode = fvr-k ~>  fixed-versus random  key
-  # - mode = fvr-d ~>  fixed-versus random data  
-  # - mode = svr-d ~>   semi-versus random data  
-  # - mode = rvr-d ~> random-versus random data  
+  # - mode = fvr_k ~>  fixed-versus random  key
+  # - mode = fvr_d ~>  fixed-versus random data  
+  # - mode = svr_d ~>   semi-versus random data  
+  # - mode = rvr_d ~> random-versus random data  
 
   def _policy_tvla( self, fd ) :
     n   = 2 * self.trace_count
@@ -216,18 +216,18 @@ class DriverImp( driver.DriverAbs ) :
     ( k, x ) = self.kernel.policy_tvla_init_lhs( self.policy_spec )
 
     for i in lhs :
-      self._acquire_log_inc( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_inc( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
-      self._acquire_log_dec( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_dec( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       ( k, x ) = self.kernel.policy_tvla_iter_lhs( self.policy_spec, k, x, i )
 
     ( k, x ) = self.kernel.policy_tvla_init_rhs( self.policy_spec )
 
     for i in rhs :
-      self._acquire_log_inc( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_inc( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
-      self._acquire_log_dec( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla-mode' ) ) )
+      self._acquire_log_dec( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, k, x, i )
 

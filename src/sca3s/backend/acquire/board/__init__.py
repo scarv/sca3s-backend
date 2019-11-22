@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -24,9 +24,9 @@ class BoardAbs( abc.ABC ) :
     self.job            = job
 
     self.board_object   = None
-    self.board_id       = self.job.conf.get( 'board-id'   )
-    self.board_spec     = self.job.conf.get( 'board-spec' )
-    self.board_path     = self.job.conf.get( 'board-path' )
+    self.board_id       = self.job.conf.get( 'board_id'   )
+    self.board_spec     = self.job.conf.get( 'board_spec' )
+    self.board_path     = self.job.conf.get( 'board_path' )
 
     self.driver_version = None
     self.driver_id      = None
@@ -65,9 +65,9 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   def interact( self, x ) :
-    be.share.sys.log.debug( '> uart : %s', x )
+    sca3s_be.share.sys.log.debug( '> uart : %s', x )
     self._uart_send( x ) ; t = self._uart_recv()
-    be.share.sys.log.debug( '< uart : %s', t )
+    sca3s_be.share.sys.log.debug( '< uart : %s', t )
 
     if   ( t[ 0 ] == '+' ) :
       return t[ 1 : ]
@@ -88,7 +88,7 @@ class BoardAbs( abc.ABC ) :
     self.driver_id      = t[ 1 ]
     self.kernel_id      = t[ 2 ]
 
-    if ( self.driver_version != be.share.version.VERSION ) :
+    if ( self.driver_version != sca3s_be.share.version.VERSION ) :
       raise Exception()
 
     self.job.log.info( '?id -> driver version = %s', self.driver_version )

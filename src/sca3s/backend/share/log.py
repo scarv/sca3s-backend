@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 import logging, logging.handlers, os, sys
 
@@ -62,7 +62,7 @@ class LogAdapter( logging.LoggerAdapter ):
 # in a given path, with a file name matching the backend task.
 
 def build_log( type, path, id = None, replace = dict() ) :
-  name = be.share.sys.conf.get( 'task', section = 'sys' ) + '.log'
+  name = sca3s_be.share.sys.conf.get( 'task', section = 'sys' ) + '.log'
 
   logger = logging.getLogger( id )
   formatter = logging.Formatter( '[%(asctime)s] {%(name)s} : %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
@@ -76,7 +76,7 @@ def build_log( type, path, id = None, replace = dict() ) :
     handler.setFormatter( formatter ) 
     logger.addHandler( handler )
 
-    debug = int( be.share.sys.conf.get( 'debug', section = 'sys' ) )
+    debug = int( sca3s_be.share.sys.conf.get( 'debug', section = 'sys' ) )
 
     if   ( debug == 0 ) :
       logger.setLevel( logging.INFO  )

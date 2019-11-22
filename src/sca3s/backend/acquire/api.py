@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -15,7 +15,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import enum, os, requests, time
+import enum, json, os, requests, time
 
 class JSONStatus( enum.IntEnum ):
     """
@@ -39,7 +39,7 @@ class JSONStatus( enum.IntEnum ):
     FAILURE_ALLOCATING_JOB = 4001
     FAILURE_PROCESSING_JOB = 4002
 
-class APIImp( be.share.api.APIAbs ):
+class APIImp( sca3s_be.share.api.APIAbs ):
     """
     Class for receiving jobs from SCARV API.
     """
@@ -50,14 +50,15 @@ class APIImp( be.share.api.APIAbs ):
         """
         Retrieves pending jobs from the SCARV API.
         """
-        db = be.share.sys.conf.get( 'device-db', section = 'job' )
-        params = { 'device-db' : { k : { v : db[ k ][ v ] for v in [ 'board-id', 'scope-id' ] } for k in db.keys() } }
+        db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
+        params = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'scope_id' ] } for k in db.keys() } ) }
 
-        instance = be.sys.conf.get( 'instance', section = 'api' )
+        instance = sca3s_be.share.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :
           params[ 'queue' ] = instance
 
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
+       
         for i in range(3):
             res = requests.get("https://lab.scarv.org/api/acquisition/job",
                                params = params,
@@ -69,10 +70,10 @@ class APIImp( be.share.api.APIAbs ):
                 else:
                     return None
             else:
-                be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
-                be.share.sys.log.info(res.text)
+                sca3s_be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
+                sca3s_be.share.sys.log.info(res.text)
                 time.sleep(1)
-        be.share.sys.log.info("[SCARV] Error in API Communication")
+        sca3s_be.share.sys.log.info("[SCARV] Error in API Communication")
         raise Exception("SCARV API Communication Error.")
 
 
@@ -96,11 +97,11 @@ class APIImp( be.share.api.APIAbs ):
                 info = res.json()
                 if info["status"] == JSONStatus.SUCCESS:
                     return
-                be.share.sys.log.info("[SCARV] Error in API Communication - " + info["status"])
+                sca3s_be.share.sys.log.info("[SCARV] Error in API Communication - " + info["status"])
                 return
             else:
-                be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
-                be.share.sys.log.info(res.text)
+                sca3s_be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
+                sca3s_be.share.sys.log.info(res.text)
                 time.sleep(1)
-        be.share.sys.log.info("[SCARV] Error in API Communication")
+        sca3s_be.share.sys.log.info("[SCARV] Error in API Communication")
         raise Exception("SCARV API Communication Error.")

@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -17,17 +17,17 @@ from sca3s.backend.acquire import depo   as depo
 
 import docker, git, importlib, json, logging, more_itertools as mit, os, re, sys
 
-class JobImp( be.share.job.JobAbs ) :
+class JobImp( sca3s_be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
     super().__init__( conf, path, log )  
 
-    self.job_version = self.conf.get(  'job-version' )
-    self.job_id      = self.conf.get(  'job-id'      )
+    self.user_id     = int( self.conf.get( 'user_id'      ) )
 
-    self.user_id     = self.conf.get( 'user-id'      )
+    self.job_version =      self.conf.get(  'job_version' )
+    self.job_id      =      self.conf.get(  'job_id'      )
 
   def _build_board( self ) :
-    t = self.conf.get(  'board-id' )
+    t = self.conf.get(  'board_id' )
 
     try :
       return importlib.import_module( 'sca3s.backend.acquire.board'  + '.' + t.replace( '/', '.' ) ).BoardImp( self )
@@ -35,7 +35,7 @@ class JobImp( be.share.job.JobAbs ) :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (  'board', t ) )
   
   def _build_scope( self ) :
-    t = self.conf.get(  'scope-id' )
+    t = self.conf.get(  'scope_id' )
   
     try :
       return importlib.import_module( 'sca3s.backend.acquire.scope'  + '.' + t.replace( '/', '.' ) ).ScopeImp( self )  
@@ -43,14 +43,14 @@ class JobImp( be.share.job.JobAbs ) :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (  'scope', t ) )
   
   def _build_driver( self ) :
-    t = self.conf.get( 'driver-id' )
+    t = self.conf.get( 'driver_id' )
     try :
       return importlib.import_module( 'sca3s.backend.acquire.driver' + '.' + t.replace( '/', '.' ) ).DriverImp( self )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'driver', t ) )
 
   def _build_repo( self ) :
-    t = self.conf.get(   'repo-id' )
+    t = self.conf.get(   'repo_id' )
 
     try :
       return importlib.import_module( 'sca3s.backend.acquire.repo'   + '.' + t.replace( '/', '.' ) ).RepoImp( self )
@@ -58,7 +58,7 @@ class JobImp( be.share.job.JobAbs ) :
       raise ImportError( 'failed to construct %s instance with id = %s ' % (   'repo', t ) )
 
   def _build_depo( self ) :
-    t = self.conf.get(   'depo-id' )
+    t = self.conf.get(   'depo_id' )
 
     try :
       return importlib.import_module( 'sca3s.backend.acquire.depo'   + '.' + t.replace( '/', '.' ) ).DepoImp( self )
@@ -76,9 +76,9 @@ class JobImp( be.share.job.JobAbs ) :
   def _prepare_repo( self ) :
     return # TODO: reinstance this once upstream repo. is public, otherwise auth. fails
 
-    template_url     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'url'     )
-    template_tag     = be.share.sys.conf.get( 'template', section = 'security' ).get( 'tag'     )
-    template_pattern = be.share.sys.conf.get( 'template', section = 'security' ).get( 'pattern' )
+    template_url     = sca3s_be.share.sys.conf.get( 'template', section = 'security' ).get( 'url'     )
+    template_tag     = sca3s_be.share.sys.conf.get( 'template', section = 'security' ).get( 'tag'     )
+    template_pattern = sca3s_be.share.sys.conf.get( 'template', section = 'security' ).get( 'pattern' )
 
     path             = os.path.join( self.path, 'target' )
 
@@ -127,12 +127,12 @@ class JobImp( be.share.job.JobAbs ) :
   # 5. clean
 
   def _prepare_board( self ) :
-    img = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board-id' ).replace( '/', '-' ) + ':' + be.share.version.VERSION
+    img = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board_id' ).replace( '/', '-' ) + ':' + sca3s_be.share.version.VERSION
     
     vol = { os.path.join( self.path, 'target' ) : { 'bind' : '/mnt/scarv/sca3s/harness', 'mode' : 'rw' } }
     
     env = { 'DOCKER_GID' : os.getgid(), 
-            'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board-id' ), 'TARGET' : mit.first( self.conf.get( 'driver-id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
+            'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board_id' ), 'TARGET' : mit.first( self.conf.get( 'driver_id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
 
     vol = { **vol, **self.board.get_build_context_vol() }
     env = { **env, **self.board.get_build_context_env() }
@@ -163,13 +163,13 @@ class JobImp( be.share.job.JobAbs ) :
   # 2. calibrate
 
   def _prepare_scope( self ) :
-    trace_spec            = self.conf.get( 'trace-spec' )
+    trace_spec            = self.conf.get( 'trace_spec' )
 
-    trace_resolution_id   =      trace_spec.get( 'resolution-id'   )
-    trace_resolution_spec = int( trace_spec.get( 'resolution-spec' ) )
+    trace_resolution_id   =      trace_spec.get( 'resolution_id'   )
+    trace_resolution_spec = int( trace_spec.get( 'resolution_spec' ) )
 
-    trace_period_id       =      trace_spec.get( 'period-id'       )
-    trace_period_spec     = int( trace_spec.get( 'period-spec'     ) )
+    trace_period_id       =      trace_spec.get( 'period_id'       )
+    trace_period_spec     = int( trace_spec.get( 'period_spec'     ) )
 
     trace_type            =      trace_spec.get( 'type'            )
 

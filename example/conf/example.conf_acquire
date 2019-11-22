@@ -3,8 +3,8 @@
   "path:log"                   : "${REPO_HOME}/example/data/log",
 
   "security:creds"             : {
-    "s3:access-key-id" : "${S3_ACCESS_KEY_ID}",
-    "s3:access-key"    : "${S3_ACCESS_KEY}"
+    "s3:access_key_id" : "${S3_ACCESS_KEY_ID}",
+    "s3:access_key"    : "${S3_ACCESS_KEY}"
   },
 
   "security:template"          : {
@@ -13,28 +13,32 @@
     "pattern" : "README.md|src/kernel/.*"
   },
 
-  "job:device-db"              : { 
-    "scale-m3" : {
-      "board-id"   : "scale/lpc1313fbd48",
-      "board-spec" : {      
-                "connect-id"      : "/dev/ttyUSB0",
-                "connect-timeout" :             10,
+  "api:instance"               : "*",
+  "api:wait"                   :  60,
+  "api:ping"                   :  10,
 
-                "program-id"      :    "269308551",
-                "program-timeout" :            120,
-                "program-mode"    :        "jlink"
-      },
-      "board-path" : [ "/opt/openocd-0.10.0/bin" ],
-      "scope-id"   : "picoscope/ps2206b",
-      "scope-spec" : {
-                "connect-id"      :   "FU837/0324",
-                "connect-timeout" :          10000,
+  "job:device_db"              : { 
+    "scale_m3" : {
+      "board_id"   : "scale/lpc1313fbd48",
+      "board_spec" : {      
+                "connect_id"      : "/dev/ttyUSB0",
+                "connect_timeout" :             10,
 
-        "channel-trigger-id"      :   "A",
-        "channel-acquire-id"      :   "B",
-        "channel-disable-id"      : []
+                "program_id"      :    "269308551",
+                "program_timeout" :            120,
+                "program_mode"    :        "jlink"
       },
-      "scope-path" : []
+      "board_path" : [ "/opt/openocd-0.10.0/bin" ],
+      "scope_id"   : "picoscope/ps2206b",
+      "scope_spec" : {
+                "connect_id"      :   "FU837/0324",
+                "connect_timeout" :          10000,
+
+        "channel_trigger_id"      :   "A",
+        "channel_acquire_id"      :   "B",
+        "channel_disable_id"      : []
+      },
+      "scope_path" : []
     }
   }
 }

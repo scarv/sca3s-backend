@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 import argparse, logging, os, sys
 
@@ -19,34 +19,34 @@ def init() :
 
   parser = argparse.ArgumentParser( add_help = False )
   
-  parser.add_argument( '--sys:help',          action =    'help'                                                                         )
-  parser.add_argument( '--sys:version',       action = 'version',                                     version = be.share.version.VERSION )
-  parser.add_argument( '--sys:debug',         action =   'count',                                     default = 0                        )
+  parser.add_argument( '--sys:help',          action =    'help'                                                                               )
+  parser.add_argument( '--sys:version',       action = 'version',                                     version = sca3s_be.share.version.VERSION )
+  parser.add_argument( '--sys:debug',         action =   'count',                                     default = 0                              )
 
-  parser.add_argument( '--sys:conf',          action =   'store', type = str                                                             )
+  parser.add_argument( '--sys:conf',          action =   'store', type = str                                                                   )
 
-  parser.add_argument( '--sys:task',          action =   'store', choices = [ 'acquire', 'analyse' ], default = 'acquire'                )
-  parser.add_argument( '--sys:mode',          action =   'store', choices = [ 'cli', 'api'         ], default = 'cli'                    )
+  parser.add_argument( '--sys:task',          action =   'store', choices = [ 'acquire', 'analyse' ], default = 'acquire'                      )
+  parser.add_argument( '--sys:mode',          action =   'store', choices = [ 'cli', 'api'         ], default = 'cli'                          )
 
-  parser.add_argument( '--job:manifest-file', action =   'store', type = str                                                             )
-  parser.add_argument( '--job:manifest-json', action =   'store', type = str                                                             )
+  parser.add_argument( '--job:manifest_file', action =   'store', type = str                                                                   )
+  parser.add_argument( '--job:manifest_json', action =   'store', type = str                                                                   )
 
-  args = { key.replace( '_', '-' ) : value for ( key, value ) in vars( parser.parse_args() ).items() if ( value != None ) }
+  args = { k : v for ( k, v ) in vars( parser.parse_args() ).items() if ( v != None ) }
 
   # initialise system configuration, from configuration file *then* command line arguments
 
-  conf = be.share.conf.Conf()
+  conf = sca3s_be.share.conf.Conf()
 
   if ( ( 'sys:conf' in args ) and ( os.path.isfile( args[ 'sys:conf' ] ) ) ) :
     conf.populate( args[ 'sys:conf' ] )
 
   conf.populate( args )
 
-  spec.share.schema.validate( conf, be.share.conf.SCHEMA_CONF )
+  sca3s_mw.share.schema.validate( conf, sca3s_be.share.conf.SCHEMA_CONF )
 
   # initialise system logger
 
-  log  = be.share.log.build_log( be.share.log.TYPE_SYS, path = be.share.sys.conf.get( 'log', section = 'path' ) )
+  log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_SYS, path = sca3s_be.share.sys.conf.get( 'log', section = 'path' ) )
 
   # dump configuration
 

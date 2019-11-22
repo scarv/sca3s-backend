@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 import abc, os, subprocess
 
@@ -29,9 +29,9 @@ class JobAbs( abc.ABC ) :
 
   def run( self, cmd, env = None, timeout = None, quiet = False, fail = True ) :
     if ( env     == None ) :
-      env     =      be.share.sys.conf.get( 'env',     section = 'run' )
+      env     =      sca3s_be.share.sys.conf.get( 'env',     section = 'run' )
     if ( timeout == None ) :
-      timeout = int( be.share.sys.conf.get( 'timeout', section = 'run' ) )
+      timeout = int( sca3s_be.share.sys.conf.get( 'timeout', section = 'run' ) )
 
     env = { **os.environ, **env }
 
@@ -41,10 +41,10 @@ class JobAbs( abc.ABC ) :
     if ( not quiet ) :
       self.log.info( '| cmd : %s', str( cmd ) )
 
-    be.share.sys.log.debug( '! env     : %s', str( env     ) )
-    be.share.sys.log.debug( '! timeout : %s', str( timeout ) )
-    be.share.sys.log.debug( '! quiet   : %s', str( quiet   ) )
-    be.share.sys.log.debug( '! fail    : %s', str( fail    ) )
+    sca3s_be.share.sys.log.debug( '! env     : %s', str( env     ) )
+    sca3s_be.share.sys.log.debug( '! timeout : %s', str( timeout ) )
+    sca3s_be.share.sys.log.debug( '! quiet   : %s', str( quiet   ) )
+    sca3s_be.share.sys.log.debug( '! fail    : %s', str( fail    ) )
 
     try :
       pd = subprocess.run( cmd, cwd = self.path, env = env, timeout = timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )

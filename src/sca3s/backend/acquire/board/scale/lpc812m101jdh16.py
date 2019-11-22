@@ -15,34 +15,29 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii
+import os
 
-class KernelImp( kernel.block.KernelType ) :
-  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
-    super().__init__( func, sizeof_k, sizeof_r, sizeof_m, sizeof_c )
+class BoardImp( board.scale.BoardType ) :
+  def __init__( self, job ) :
+    super().__init__( job )
 
-  def supports( self, policy ) :
-    if   ( policy == 'user' ) :
-      return True
-    elif ( policy == 'tvla' ) :
-      return False
+  def get_channel_trigger_range( self ) :
+    return   5.0E-0
 
-    return False
+  def get_channel_trigger_threshold( self ) :
+    return   2.0E-0
 
-  def enc( self, k, m ) :
+  def get_channel_acquire_range( self ) :
+    return 500.0E-3
+
+  def get_channel_acquire_threshold( self ) :
     return None
 
-  def dec( self, k, c ) :
-    return None
+  def get_build_context_vol( self ) :
+    return { sca3s_be.share.sys.conf.get( 'cache', section = 'path' ) : { 'bind' : '/mnt/scarv/sca3s/cache', 'mode' : 'rw' } }
 
-  def tvla_init_lhs( self, mode ) :
-    return ( None, None )
+  def get_build_context_env( self ) :
+    return { 'CACHE' : '/mnt/scarv/sca3s/cache' }
 
-  def tvla_iter_lhs( self, mode, k, x ) :
-    return ( None, None )
-
-  def tvla_init_rhs( self, mode ) :
-    return ( None, None )
-
-  def tvla_iter_rhs( self, mode, k, x ) :
-    return ( None, None )
+  def program( self ) :  
+    pass

@@ -7,7 +7,7 @@
 
 <!--- -------------------------------------------------------------------- --->
 
-*Acting as a component part of the
+*Acting as a component part of the wider
 [SCARV](https://www.scarv.org)
 project,
 SCA3S is a collection of resources that support the development 
@@ -31,6 +31,8 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
 ├── bin                     - scripts (e.g., environment configuration)
 ├── build                   - working directory for build
 ├── example                 - working directory for example configuration(s) and data
+├── extern                  - external resources (e.g., submodules)
+│   └── sca3s-share           - submodule: scarv/sca3s-share
 └── src
     └── sca3s               - source code for SCA3S
         └── backend         - source code for SCA3S back-end infrastructure
@@ -137,33 +139,7 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
       | `make venv`              | build the Python [virtual environment](https://docs.python.org/library/venv.html)    |
       | `make    clean`          | clean-up (e.g., remove everything built in `${REPO_HOME}/build`)                     |
 
-   2. execute the back-end infrastructure appliance directly via
-
-      ```sh
-      ${REPO_HOME}/bin/acquire.sh
-      ```
-
-      to satisfy use-cases such as
-   
-      1. fulfilment of a local  job manifest,
-         e.g.,
-   
-         ```sh
-         ${REPO_HOME}/bin/acquire.sh --sys:mode=cli         --sys:conf="${REPO_HOME}/example/example.conf" ...
-         ```
-   
-      2. fulfilment of a remote job manifest *pushed from* some queue to the server,
-         e.g.,
-   
-         ```sh
-         ${REPO_HOME}/bin/acquire.sh --sys:mode=server-push --sys:conf="${REPO_HOME}/example/example.conf" ...
-         ```
-   
-      3. fulfilment of a remote job manifest *pulled from* some queue by the server,
-         e.g.,
-   
-         ```sh
-         ${REPO_HOME}/bin/acquire.sh --sys:mode=server-pull --sys:conf="${REPO_HOME}/example/example.conf" ...
+   2. execute the back-end infrastructure appliance directly.
 
 <!--- -------------------------------------------------------------------- --->
 

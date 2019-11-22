@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -23,8 +23,8 @@ class RepoAbs( abc.ABC ) :
 
     self.job       = job
 
-    self.repo_id   = self.job.conf.get( 'repo-id'   )
-    self.repo_spec = self.job.conf.get( 'repo-spec' )
+    self.repo_id   = self.job.conf.get( 'repo_id'   )
+    self.repo_spec = self.job.conf.get( 'repo_spec' )
 
   @abc.abstractmethod
   def transfer( self ) :

@@ -4,8 +4,8 @@
 # can be found at https://opensource.org/licenses/MIT (or should be included 
 # as LICENSE.txt within the associated archive or repository).
 
-from sca3s import backend as be
-from sca3s import spec    as spec
+from sca3s import backend    as sca3s_be
+from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
@@ -28,12 +28,12 @@ class ScopeType( scope.ScopeAbs ) :
 
     self.api                = api
 
-    self.connect_id         = self.scope_spec.get( 'connect-id'         )
-    self.connect_timeout    = self.scope_spec.get( 'connect-timeout'    )
+    self.connect_id         = self.scope_spec.get( 'connect_id'         )
+    self.connect_timeout    = self.scope_spec.get( 'connect_timeout'    )
 
-    self.channel_trigger_id = self.scope_spec.get( 'channel-trigger-id' )
-    self.channel_acquire_id = self.scope_spec.get( 'channel-acquire-id' )
-    self.channel_disable_id = self.scope_spec.get( 'channel-disable-id' )
+    self.channel_trigger_id = self.scope_spec.get( 'channel_trigger_id' )
+    self.channel_acquire_id = self.scope_spec.get( 'channel_acquire_id' )
+    self.channel_disable_id = self.scope_spec.get( 'channel_disable_id' )
 
   def  open( self ) :
     self.scope_object = self.api( serialNumber = self.connect_id.encode(), connect = True )
@@ -49,7 +49,7 @@ class ScopeType( scope.ScopeAbs ) :
       self.scope_object.close()
 
   def calibrate( self, mode, x, resolution = 8, dtype = '<f8' ) :  
-    resolution = be.share.util.closest( resolution, self._resolutions() )
+    resolution = sca3s_be.share.util.closest( resolution, self._resolutions() )
 
     if   ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
       interval =     x
