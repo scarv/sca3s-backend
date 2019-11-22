@@ -1,4 +1,4 @@
-import warnings, os
+import warnings, gzip, shutil
 
 from scipy.stats import ttest_ind as ttest
 import numpy as np
@@ -47,9 +47,14 @@ class JobImp(be.share.job.JobAbs):
 
         url = self.conf.get('traces_url')
         response = requests.get(url)
-        self.log.info('writing traces into ' + self.path + '/traces.hdf5')
-        with open(self.path + '/traces.hdf5', 'wb') as fd:
+        self.log.info('writing traces into ' + self.path + '/traces.hdf5.gz')
+        with open(self.path + '/traces.hdf5.gz', 'wb') as fd:
             fd.write(response.content)
+
+        self.log.info('extracting traces into ' + self.path + '/traces.hdf5')
+        with gzip.open(self.path + '/traces.hdf5.gz', 'rb') as fd_in:
+            with open(self.path + '/traces.hdf5', 'wb') as fd_out:
+                shutil.copyfileobj(fd_in, fd_out)
 
         self.log.indent_dec()
 
