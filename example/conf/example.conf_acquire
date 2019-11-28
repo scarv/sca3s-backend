@@ -14,7 +14,7 @@
   },
 
   "api:instance"               : "*",
-  "api:wait"                   :  60,
+  "api:wait"                   :  10,
   "api:ping"                   :  10,
 
   "job:device_db"              : { 
