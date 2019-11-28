@@ -85,7 +85,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
         """
         remark = "complete"
         if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
-            remark = "failed:" + str(error_code)
+            remark = "failed:" + str(int(error_code))
         headers = {"Authorization": "infrastructure " + self._infrastructure_token}
         for i in range(3):
             res = requests.patch("https://lab.scarv.org/api/acquisition/job/" + job_id,
