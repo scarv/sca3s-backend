@@ -22,6 +22,11 @@ def process( manifest ) :
     sca3s_be.share.sys.log.info( 'validating job' )
   
     try :
+      if ( manifest.has(    'job_id' ) ) :
+        id = manifest.get( 'job_id' )
+      else :
+        raise sca3s_be.share.exception.BackEndException( message = sca3s_mw.share.status.INVALID_CONF )
+
       db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
     
       if ( manifest.has( 'device_id' ) ) :
@@ -32,7 +37,7 @@ def process( manifest ) :
             manifest.put( key, value )
 
         else :
-          raise sca3s_be.share.exception.ConfigurationException()
+          raise sca3s_be.share.exception.BackEndException( message = sca3s_mw.share.status.INVALID_CONF )
     
       sca3s_mw.share.schema.validate( manifest, task_mw.schema.SCHEMA_MANIFEST )
   
@@ -42,8 +47,6 @@ def process( manifest ) :
     sca3s_be.share.sys.log.info( 'allocating job' )
 
     try :
-      id   = manifest.get( 'job_id' )
-
       path = tempfile.mkdtemp( prefix = id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
 
