@@ -11,7 +11,6 @@ import json, jsonschema, logging, os, sys, tempfile
 
 SCHEMA_CONF = {
   'type' : 'object', 'default' : {}, 'properties' : {
-    'path:cache'        : { 'type' :  'string',         'default' : tempfile.tempdir },
     'path:job'          : { 'type' :  'string',         'default' : tempfile.tempdir },
     'path:log'          : { 'type' :  'string',         'default' : tempfile.tempdir },
 

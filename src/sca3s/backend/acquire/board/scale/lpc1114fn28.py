@@ -34,10 +34,10 @@ class BoardImp( board.scale.BoardType ) :
     return None
 
   def get_build_context_vol( self ) :
-    return { sca3s_be.share.sys.conf.get( 'cache', section = 'path' ) : { 'bind' : '/mnt/scarv/sca3s/cache', 'mode' : 'rw' } }
+    return {}
 
   def get_build_context_env( self ) :
-    return { 'CACHE' : '/mnt/scarv/sca3s/cache' }
+    return {}
 
   def program( self ) :  
     pass
