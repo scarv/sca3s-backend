@@ -146,13 +146,13 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
       self.drain( 'stdout', docker.from_env().containers.run( img, command = cmd, environment = env, volumes = vol, privileged = privileged, detach = False, auto_remove = True, stdout = True, stderr = True ) )
       self.log.indent_dec()
 
-    step(      'build-harness', privileged = False )
-    step(     'report-harness', privileged = False )
+    step(  'build-harness', privileged = False )
+    step( 'report-harness', privileged = False )
 
     self.board.program()
     self.board.prepare()
 
-    step(      'clean-harness', privileged = False )
+    step(  'clean-harness', privileged = False )
 
   # Prepare the scope:
   # 
