@@ -31,7 +31,12 @@ class DepoImp(depo.DepoAbs):
 
         def upload(name, ext):
             bucket.upload_file(os.path.join(self.job.path, name),
-                               os.path.join(str(self.job.conf.get('user_id')), self.job.conf.get('job_id')[: 10] + ext))
+                               os.path.join(str(self.job.conf.get('user_id')), self.job.conf.get('job_id')[: 10] + ext),
+                               ExtraArgs={
+                                   "ACL": "public-read",
+                                   "ContentType": "image/png",
+                                   "CacheControl": "no-cache, max-age=0"
+                               })
 
         upload('analyse.log', '.log')
         upload('report.png', '.png')
