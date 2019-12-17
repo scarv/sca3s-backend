@@ -1,4 +1,4 @@
-import warnings, gzip, shutil
+import warnings, gzip, shutil, importlib
 
 from scipy.stats import ttest_ind as ttest
 import numpy as np
@@ -22,9 +22,11 @@ class JobImp(be.share.job.JobAbs):
 
     def process_prologue(self):
         """
-        Analysis does not need a prologue.
+        Construct depo for S3.
         """
-        pass
+        self.log.indent_inc(message='construct depo object')
+        self.depo = self._build_depo()
+        self.log.indent_dec()
 
     def process(self):
         """
@@ -32,6 +34,9 @@ class JobImp(be.share.job.JobAbs):
         """
         self._download_traces()
         self._analyse(False)
+        self.log.indent_inc(message='transfer local -> depo.')
+        self.depo.transfer()
+        self.log.indent_dec()
 
     def process_epilogue(self):
         """
@@ -134,6 +139,13 @@ class JobImp(be.share.job.JobAbs):
         plt.plot(distances, label='t-test values', color='m')
         # plt.plot(distances2, label='t-test 2', color='b')
         plt.legend(loc='best')
-        plt.show()
+        plt.savefig(self.path + '/report.png')
 
-# [1] : https://www.rambus.com/test-vector-leakage-assessment-tvla-derived-test-requirements-dtr-with-aes/
+    def _build_depo(self):
+        """
+        Construct S3 depo object.
+        """
+        try:
+            return importlib.import_module('sca3s.backend.analyse.depo.s3').DepoImp(self)
+        except:
+            raise ImportError('failed to construct depo instance with id = s3')
