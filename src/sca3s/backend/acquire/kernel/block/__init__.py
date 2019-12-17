@@ -18,11 +18,11 @@ from sca3s.backend.acquire import depo   as depo
 import abc, binascii, random, re
 
 class KernelType( kernel.KernelAbs ) :
-  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
+  def __init__( self, func, sizeof_r, sizeof_k, sizeof_m, sizeof_c ) :
     super().__init__( func )
 
-    self.sizeof_k = sizeof_k
     self.sizeof_r = sizeof_r
+    self.sizeof_k = sizeof_k
     self.sizeof_m = sizeof_m
     self.sizeof_c = sizeof_c
 

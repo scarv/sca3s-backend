@@ -39,12 +39,15 @@ SCHEMA_CONF = {
     'job:device_db'     : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {
         'board_id'   : { 'type' : 'string' },
+        'board_desc' : { 'type' : 'string' },
         'board_spec' : { 'type' : 'object' },
         'board_path' : { 'type' :  'array', 'items' : { 'type' : 'string' } },
+
         'scope_id'   : { 'type' : 'string' },
+        'scope_desc' : { 'type' : 'string' },
         'scope_spec' : { 'type' : 'object' },
         'scope_path' : { 'type' :  'array', 'items' : { 'type' : 'string' } }
-      }, 'required' : [ 'board_id', 'board_spec', 'scope_id', 'scope_spec' ] }
+      }, 'required' : [ 'board_id', 'board_desc', 'board_spec', 'scope_id', 'scope_desc', 'scope_spec' ] }
     } }
   }
 }

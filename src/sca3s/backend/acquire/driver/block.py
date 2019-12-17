@@ -39,29 +39,30 @@ class DriverImp( driver.DriverAbs ) :
     width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
     self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
 
-  def _acquire_enc( self, k = None, r = None, m = None ) :
-    if ( k == None ) :
-      k = self.kernel.value( '{$*|k|}' )
+  def _acquire_enc( self, r = None, k = None, m = None ) :
     if ( r == None ) :
       r = self.kernel.value( '{$*|r|}' )
+    if ( k == None ) :
+      k = self.kernel.value( '{$*|k|}' )
     if ( m == None ) :
       m = self.kernel.value( '{$*|m|}' )
 
-    self.job.board.interact( '>reg k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
-    self.job.board.interact( '>reg r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
-    self.job.board.interact( '>reg m %s' % sca3s_be.share.util.str2octetstr( m ).upper() )
+    self.job.board.interact( '>data r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>data k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>data m %s' % sca3s_be.share.util.str2octetstr( m ).upper() )
   
     _                   = self.job.scope.prepare()
 
-    self.job.board.interact( '!enc_init' )
-    self.job.board.interact( '!enc'      )
+    self.job.board.interact( '!kernel_prologue' )
+    self.job.board.interact( '!kernel'          )
+    self.job.board.interact( '!kernel_epilogue' )
   
     ( trigger, signal ) = self.job.scope.acquire()
   
-    c = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<reg c' ) )
+    c = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data c' ) )
 
-    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
     sca3s_be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
     sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
     sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
 
@@ -71,37 +72,38 @@ class DriverImp( driver.DriverAbs ) :
       if ( ( t != None ) and ( t != c ) ) :
         raise Exception()  
 
-    cycle_enc = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
-    self.job.board.interact( '!nop'      )
-    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_enc = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
+    self.job.board.interact( '!nop' )
+    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
 
     ( edge_hi, edge_lo, duration ) = self._measure( trigger )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'k' : k, 'r' : r, 'm' : m, 'c' : c }
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c }
 
-  def _acquire_dec( self, k = None, r = None, c = None ) :
-    if ( k == None ) :
-      k = self.kernel.value( '{$*|k|}' )
+  def _acquire_dec( self, r = None, k = None, c = None ) :
     if ( r == None ) :
       r = self.kernel.value( '{$*|r|}' )
+    if ( k == None ) :
+      k = self.kernel.value( '{$*|k|}' )
     if ( c == None ) :
       c = self.kernel.value( '{$*|c|}' )
 
-    self.job.board.interact( '>reg k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
-    self.job.board.interact( '>reg r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
-    self.job.board.interact( '>reg c %s' % sca3s_be.share.util.str2octetstr( c ).upper() )
+    self.job.board.interact( '>data r %s' % sca3s_be.share.util.str2octetstr( r ).upper() )
+    self.job.board.interact( '>data k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
+    self.job.board.interact( '>data c %s' % sca3s_be.share.util.str2octetstr( c ).upper() )
   
     _                   = self.job.scope.prepare()
   
-    self.job.board.interact( '!dec_init' )
-    self.job.board.interact( '!dec'      )
+    self.job.board.interact( '!kernel_prologue' )
+    self.job.board.interact( '!kernel'          )
+    self.job.board.interact( '!kernel_epilogue' )
   
     ( trigger, signal ) = self.job.scope.acquire()
   
-    m = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<reg m' ) )
+    m = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data m' ) )
 
-    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
     sca3s_be.share.sys.log.debug( 'acquire : r = %s', binascii.b2a_hex( r ) )
+    sca3s_be.share.sys.log.debug( 'acquire : k = %s', binascii.b2a_hex( k ) )
     sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
     sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
 
@@ -111,13 +113,13 @@ class DriverImp( driver.DriverAbs ) :
       if ( ( t != None ) and ( t != m ) ) :
         raise Exception()  
 
-    cycle_dec = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
-    self.job.board.interact( '!nop'      )
-    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?tsc' ) ), 2 ** 8 )
+    cycle_dec = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
+    self.job.board.interact( '!nop' )
+    cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
 
     ( edge_hi, edge_lo, duration ) = self._measure( trigger )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'r' : r, 'm' : m, 'c' : c }    
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c }    
 
   def _hdf5_add_attr( self, fd ) :
     T = [ ( 'driver_version',    self.job.board.driver_version,    h5py.special_dtype( vlen = str ) ),
@@ -149,8 +151,8 @@ class DriverImp( driver.DriverAbs ) :
           (  'perf/cycle',    ( n,                              ), '<u8'                                            ),
           (  'perf/duration', ( n,                              ), '<f8'                                            ),
    
-          ( 'k',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
           ( 'r',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
+          ( 'k',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
           ( 'm',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
           ( 'c',              ( n, self.kernel.sizeof_k         ),   'B'                                            ) ]
 
@@ -168,8 +170,8 @@ class DriverImp( driver.DriverAbs ) :
           (  'perf/cycle',    lambda trace : trace[  'perf/cycle'    ]                                                         ),
           (  'perf/duration', lambda trace : trace[  'perf/duration' ]                                                         ),
 
-          ( 'k',              lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 )                             ),
           ( 'r',              lambda trace : numpy.frombuffer( trace[ 'r' ], dtype = numpy.uint8 )                             ),
+          ( 'k',              lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 )                             ),
           ( 'm',              lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 )                             ),
           ( 'c',              lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 )                             ) ]
 
@@ -254,20 +256,34 @@ class DriverImp( driver.DriverAbs ) :
     if ( self.job.board.driver_id != 'block' ) :
       raise Exception()
 
-    kernel_sizeof_k = int( self.job.board.interact( '?reg k' ), 16 )
-    kernel_sizeof_r = int( self.job.board.interact( '?reg r' ), 16 )
-    kernel_sizeof_m = int( self.job.board.interact( '?reg m' ), 16 )
-    kernel_sizeof_c = int( self.job.board.interact( '?reg c' ), 16 )
+    ( kernel_nameof, kernel_typeof ) = self.job.board.kernel_id.split( '/' )
+    
+    if ( kernel_nameof not in [ 'generic', 'aes' ] ) :
+      raise Exception()
+    if ( kernel_typeof not in [     'enc', 'dec' ] ) :
+      raise Exception()
+    
+    if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'm' ] ) ) ) :
+      raise Exception()
+    if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'c' ] ) ) ) :
+      raise Exception()
+    if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_o != set( [ 'c'           ] ) ) ) :
+      raise Exception()
+    if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_o != set( [ 'm'           ] ) ) ) :
+      raise Exception()
 
-    self.job.log.info( '?reg k -> kernel sizeof( k ) = %s', kernel_sizeof_k )
-    self.job.log.info( '?reg r -> kernel sizeof( r ) = %s', kernel_sizeof_r )
-    self.job.log.info( '?reg m -> kernel sizeof( m ) = %s', kernel_sizeof_m )
-    self.job.log.info( '?reg c -> kernel sizeof( c ) = %s', kernel_sizeof_c )
-
-    t = ( self.job.board.kernel_id ) if ( self.job.board.kernel_id in [ 'aes/enc', 'aes/dec' ] ) else ( 'generic/enc' ) ; ( t, kernel_func ) = t.split( '/' )
+    kernel_sizeof_r = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?data r' ) ), 2 ** 8 )
+    kernel_sizeof_k = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?data k' ) ), 2 ** 8 )
+    kernel_sizeof_m = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?data m' ) ), 2 ** 8 )
+    kernel_sizeof_c = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?data c' ) ), 2 ** 8 )
+    
+    self.job.log.info( '?data r -> kernel sizeof( r ) = %s', kernel_sizeof_r )
+    self.job.log.info( '?data k -> kernel sizeof( k ) = %s', kernel_sizeof_k )
+    self.job.log.info( '?data m -> kernel sizeof( m ) = %s', kernel_sizeof_m )
+    self.job.log.info( '?data c -> kernel sizeof( c ) = %s', kernel_sizeof_c )
 
     try :
-      self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + t ).KernelImp( kernel_func, kernel_sizeof_k, kernel_sizeof_r, kernel_sizeof_m, kernel_sizeof_c )
+      self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + kernel_nameof ).KernelImp( kernel_typeof, kernel_sizeof_r, kernel_sizeof_k, kernel_sizeof_m, kernel_sizeof_c )
     except :
       raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'kernel', self.job.board.kernel_id ) )
 

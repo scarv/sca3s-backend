@@ -47,7 +47,7 @@ def int2seq( x, b, endian = LE, pad = None ) :
 
   return t
 
-def seq2int( x, b, endian = +1 ) :
+def seq2int( x, b, endian = LE ) :
   if   ( endian == LE ) :
     x = enumerate(           x   )
   elif ( endian == BE ) :

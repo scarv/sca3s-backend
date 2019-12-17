@@ -79,7 +79,7 @@ class BoardAbs( abc.ABC ) :
       raise Exception()
 
   def prepare( self ) :
-    t = self.interact( '?id' ).split( ':' )
+    t = self.interact( '?kernel_id' ).split( ':' )
 
     if ( len( t ) != 3 ) :
       raise Exception()
@@ -91,9 +91,15 @@ class BoardAbs( abc.ABC ) :
     if ( self.driver_version != sca3s_be.share.version.VERSION ) :
       raise Exception()
 
-    self.job.log.info( '?id -> driver version = %s', self.driver_version )
-    self.job.log.info( '?id -> driver id      = %s', self.driver_id      )
-    self.job.log.info( '?id -> kernel id      = %s', self.kernel_id      )
+    self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
+    self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )
+    self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
+
+    self.kernel_data_i = set( self.job.board.interact( '?kernel_data <' ).split( ',' ) )
+    self.kernel_data_o = set( self.job.board.interact( '?kernel_data >' ).split( ',' ) )
+
+    self.job.log.info( '?kernel_data -> kernel data  input = %s', self.kernel_data_i  )
+    self.job.log.info( '?kernel_data -> kernel data output = %s', self.kernel_data_o  )
 
   @abc.abstractmethod
   def program( self ) :

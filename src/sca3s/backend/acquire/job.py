@@ -15,7 +15,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import docker, git, importlib, json, logging, more_itertools as mit, os, re, sys
+import docker, git, importlib, json, logging, os, re, sys
 
 class JobImp( sca3s_be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
@@ -132,7 +132,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     vol = { os.path.join( self.path, 'target' ) : { 'bind' : '/mnt/scarv/sca3s/harness', 'mode' : 'rw' } }
     
     env = { 'DOCKER_GID' : os.getgid(), 
-            'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board_id' ), 'TARGET' : mit.first( self.conf.get( 'driver_id' ).split( '/' ) ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
+            'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board_id' ), 'KERNEL' : self.conf.get( 'driver_id' ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
 
     vol = { **vol, **self.board.get_build_context_vol() }
     env = { **env, **self.board.get_build_context_env() }

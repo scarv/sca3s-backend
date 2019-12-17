@@ -51,7 +51,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
         Retrieves pending jobs from the SCARV API.
         """
         db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
-        params = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'scope_id' ] } for k in db.keys() } ) }
+        params = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() } ) }
 
         instance = sca3s_be.share.sys.conf.get( 'instance', section = 'api' )
         if ( instance != '*' ) :

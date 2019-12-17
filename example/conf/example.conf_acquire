@@ -19,6 +19,7 @@
   "job:device_db"              : { 
     "scale_m3" : {
       "board_id"   : "scale/lpc1313fbd48",
+      "board_desc" : "description of scale/lpc1313fbd48",
       "board_spec" : {      
                 "connect_id"      : "/dev/ttyUSB0",
                 "connect_timeout" :             10,
@@ -28,7 +29,9 @@
                 "program_mode"    :        "jlink"
       },
       "board_path" : [ "/opt/openocd-0.10.0/bin" ],
+
       "scope_id"   : "picoscope/ps2206b",
+      "scope_desc" : "description of picoscope/ps2206b",
       "scope_spec" : {
                 "connect_id"      :   "FU837/0324",
                 "connect_timeout" :          10000,
