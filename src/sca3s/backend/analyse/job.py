@@ -99,7 +99,7 @@ class JobImp(be.share.job.JobAbs):
         """
         # Sort traces into groups based on plaintext derivation
         crop = len(data['trace/signal'][data['crop/signal'][0]][0])
-        for i in range(2000):
+        for i in range(len(data['crop/signal']) - 1):
             candidate = len(data['trace/signal'][data['crop/signal'][i]][0])
             if candidate < crop:
                 crop = candidate
