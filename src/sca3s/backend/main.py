@@ -62,7 +62,11 @@ def process( manifest ) :
       job.process()
   
     except Exception as e :
-      result = STATUS_FAILURE_PROCESSING_JOB ; raise e
+      if isinstance(e, sca3s_be.share.exception.OKException):
+        result = e
+      else:
+        result = STATUS_FAILURE_PROCESSING_JOB
+        raise e
 
     finally :
       job.process_epilogue()
@@ -130,6 +134,8 @@ def run_mode_api() :
             api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_ALLOCATING_JOB )
           elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
             api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_PROCESSING_JOB )
+          elif ( isinstance(result, sca3s_be.share.exception.OKException)):
+            api.complete_job(id, error_code = result.status)
   
       if ( term ) :
         sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return

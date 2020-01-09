@@ -81,6 +81,7 @@ class JobImp(be.share.job.JobAbs):
 
         if result:
             self.log.info('Test concluded that this implementation is leaking!')
+            raise be.share.exception.OKException(be.analyse.api.JSONStatus.TVLA_FAILURE)
         else:
             self.log.info('Test concluded that this implementation looks ok :)')
 
