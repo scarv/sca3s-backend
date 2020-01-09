@@ -19,6 +19,7 @@ class JSONStatus( enum.IntEnum ):
     FAILURE_VALIDATING_JOB = 4000
     FAILURE_ALLOCATING_JOB = 4001
     FAILURE_PROCESSING_JOB = 4002
+    TVLA_FAILURE = 4003
 
 class APIImp( be.share.api.APIAbs ):
     """

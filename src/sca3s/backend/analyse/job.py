@@ -33,10 +33,12 @@ class JobImp(be.share.job.JobAbs):
         Main wrapper function for the analyis tasks.
         """
         self._download_traces()
-        self._analyse(False)
+        fail = self._analyse(False)
         self.log.indent_inc(message='transfer local -> depo.')
         self.depo.transfer()
         self.log.indent_dec()
+        if fail:
+            raise be.share.exception.OKException(be.analyse.api.JSONStatus.TVLA_FAILURE)
 
     def process_epilogue(self):
         """
@@ -75,16 +77,15 @@ class JobImp(be.share.job.JobAbs):
         self.log.info('performing TVLA t-test.')
         distances = self._welch_t_test(data, sub_graphs)
         data.close()
-        result = any(distances)
+        fail = any(distances)
         self.log.info('graphing results.')
-        self._plot_results(distances, result)
-
-        if result:
+        self._plot_results(distances, fail)
+        if fail:
             self.log.info('Test concluded that this implementation is leaking!')
         else:
             self.log.info('Test concluded that this implementation looks ok :)')
-
         self.log.indent_dec()
+        return fail
 
     def _threshold(self, number):
         """

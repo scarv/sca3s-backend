@@ -23,3 +23,14 @@ def dump( exception, log = None ) :
     log.error( '│ ' + line + ( ' ' * ( n - len( line ) ) ) + ' │' )
 
   log.error( '└' + ( '─' * ( n + 2 ) ) + '┘' )
+
+
+class OKException(Exception):
+  """
+  Class to define a set of "OK Exceptions" for known recoverable errors.
+  """
+  status = None
+
+  def __init__(self, status):
+    super()
+    self.status = status
