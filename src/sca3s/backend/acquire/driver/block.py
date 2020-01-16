@@ -21,15 +21,15 @@ class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.policy_id       = self.driver_spec.get( 'policy_id'   )
-    self.policy_spec     = self.driver_spec.get( 'policy_spec' )
+    self.trace_spec    = self.job.conf.get( 'trace_spec' )
 
-    self.kernel          = None
+    self.trace_content =       self.trace_spec.get( 'content' )
+    self.trace_count   =  int( self.trace_spec.get( 'count'   ) )
 
-    self.trace_spec      = self.job.conf.get( 'trace_spec' )
+    self.kernel        = None
 
-    self.trace_content   =       self.trace_spec.get( 'content' )
-    self.trace_count     =  int( self.trace_spec.get( 'count'   ) )
+    self.policy_id     = self.driver_spec.get( 'policy_id'   )
+    self.policy_spec   = self.driver_spec.get( 'policy_spec' )
 
   def _acquire_log_inc( self, i, n, message = None ) :
     width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
@@ -245,10 +245,6 @@ class DriverImp( driver.DriverAbs ) :
   #
   # 1. check the on-board driver
   # 2. query the on-board kernel wrt. the size of 
-  #    - k (cipher key), 
-  #    - r (randomness), 
-  #    - m  (plaintext), and 
-  #    - c (ciphertext)
   # 3. build a model of the on-board kernel
   # 4. check the model supports whatever policy is selected
 

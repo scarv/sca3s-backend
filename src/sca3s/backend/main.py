@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import importlib, os, shutil, signal, tempfile, time
+import importlib, multiprocessing, os, shutil, signal, tempfile, time
 
 STATUS_SUCCESS                = 0
 
@@ -90,60 +90,79 @@ def run_mode_cli() :
   process( manifest )
 
 def run_mode_api() :
-  api      = task_be.api.APIImp()
+  api               = task_be.api.APIImp()
       
-  api_wait = int( sca3s_be.share.sys.conf.get( 'wait', section = 'api' ) )
-  api_ping = int( sca3s_be.share.sys.conf.get( 'ping', section = 'api' ) )
+  api_announce_wait = int( sca3s_be.share.sys.conf.get( 'announce_wait', section = 'api' ) )
+  api_announce_ping = int( sca3s_be.share.sys.conf.get( 'announce_ping', section = 'api' ) )
+  api_retrieve_wait = int( sca3s_be.share.sys.conf.get( 'retrieve_wait', section = 'api' ) )
+  api_retrieve_ping = int( sca3s_be.share.sys.conf.get( 'retrieve_ping', section = 'api' ) )
 
-  ping = 0 ; term = False 
+  api_term          = False 
 
   def signalHandler( signum, frame ) :
-    nonlocal term
+    nonlocal api_term
 
     if   ( signum == signal.SIGABRT ) :
-      term = True
+      api_term = True
     elif ( signum == signal.SIGTERM ) :
-      term = True
+      api_term = True
 
     return
 
   signal.signal( signal.SIGABRT, signalHandler )
   signal.signal( signal.SIGTERM, signalHandler )
 
-  while( True ) :
-    try :
-      manifest = api.retrieve_job()
+  def announceHandler() :
+    ping = 0
+
+    while( True ) :
+      try :
+        api.announce()
+
+        if ( ( ping % api_announce_ping ) == 0 ) :
+          sca3s_be.share.sys.log.info( 'activity ping: announce thread' )
+
+        ping += 1 ; time.sleep( api_announce_wait )
+
+      except Exception as e :
+        sca3s_be.share.exception.dump( e, log = sca3s_be.share.sys.log )
+    
+  def retrieveHandler() :
+    ping = 0 ; 
   
-      if ( manifest == None ) :
-        ping += 1
-
-        if ( ( ping % api_ping ) == 0 ) :
-          sca3s_be.share.sys.log.info( 'polled queue %d times ... no jobs', api_ping ) 
-      
-      else :  
-        ping  = 0
-
-        ( id, result ) = process( sca3s_be.share.conf.Conf( conf = manifest ) )
-
-        if ( id != None ) :
-          if   ( result == STATUS_SUCCESS                ) :
-            api.complete_job( id, error_code = task_be.api.JSONStatus.SUCCESS                )
-          elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
-            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_VALIDATING_JOB )
-          elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
-            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_ALLOCATING_JOB )
-          elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
-            api.complete_job( id, error_code = task_be.api.JSONStatus.FAILURE_PROCESSING_JOB )
-          elif ( isinstance(result, sca3s_be.share.exception.OKException)):
-            api.complete_job(id, error_code = result.status)
+    while( True ) :
+      try :
+        manifest = api.retrieve()
+    
+        if ( manifest != None ) :
+          ( id, result ) = process( sca3s_be.share.conf.Conf( conf = manifest ) )
   
-      if ( term ) :
-        sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
-  
-      time.sleep( api_wait )
+          if ( id != None ) :
+            if   ( result == STATUS_SUCCESS                ) :
+              api.complete( id, error_code = task_be.api.JSONStatus.SUCCESS                )
+            elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
+              api.complete( id, error_code = task_be.api.JSONStatus.FAILURE_VALIDATING_JOB )
+            elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
+              api.complete( id, error_code = task_be.api.JSONStatus.FAILURE_ALLOCATING_JOB )
+            elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
+              api.complete( id, error_code = task_be.api.JSONStatus.FAILURE_PROCESSING_JOB )
+            elif ( isinstance( result, sca3s_be.share.exception.OKException ) ):
+              api.complete( id, error_code = result.status )
 
-    except Exception as e :
-      sca3s_be.share.exception.dump( e, log = sca3s_be.share.sys.log )
+          ping = 0
+    
+        if ( api_term ) :
+          sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
+
+        if ( ( ping % api_retrieve_ping ) == 0 ) :
+          sca3s_be.share.sys.log.info( 'activity ping: retrieve thread' )
+    
+        ping += 1 ; time.sleep( api_retrieve_wait )
+  
+      except Exception as e :
+        sca3s_be.share.exception.dump( e, log = sca3s_be.share.sys.log )
+
+  multiprocessing.Process( target = announceHandler ).start() ; retrieveHandler()
 
 if ( __name__ == '__main__' ) :
   try :

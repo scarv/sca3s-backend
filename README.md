@@ -135,9 +135,9 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
 
       | Command                  | Description
       | :----------------------- | :----------------------------------------------------------------------------------- |
-      | `make doc`               | build the [Doxygen](http://www.doxygen.nl)-based documentation                       |
       | `make venv`              | build the Python [virtual environment](https://docs.python.org/library/venv.html)    |
-      | `make    clean`          | clean-up (e.g., remove everything built in `${REPO_HOME}/build`)                     |
+      | `make doxygen`           | build the [Doxygen](http://www.doxygen.nl)-based documentation                       |
+      | `make spotless`          | remove *everything* built in `${REPO_HOME}/build`                                    |
 
    2. execute the back-end infrastructure appliance directly.
 

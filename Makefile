@@ -7,16 +7,19 @@
 ifndef REPO_HOME
   $(error "execute 'source ./bin/conf.sh' to configure environment")
 endif
+ifndef REPO_VERSION
+  $(error "execute 'source ./bin/conf.sh' to configure environment")
+endif
 
 # =============================================================================
 
-venv  : ${REPO_HOME}/requirements.txt
+venv    : ${REPO_HOME}/requirements.txt
 	@${REPO_HOME}/bin/venv.sh
 
-doc   : ${REPO_HOME}/Doxyfile
+doxygen : ${REPO_HOME}/Doxyfile
 	@doxygen ${<}
 
-clean :
+spotless :
 	@rm --force --recursive ${REPO_HOME}/build/*
 
 # =============================================================================

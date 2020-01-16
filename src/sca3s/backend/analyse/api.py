@@ -27,8 +27,10 @@ class APIImp( be.share.api.APIAbs ):
     """
     _infrastructure_token = os.environ['INFRASTRUCTURE_TOKEN']
 
+    def announce( self ):
+      pass
 
-    def retrieve_job(self):
+    def retrieve( self ):
         """
         Retrieves pending jobs from the SCARV API.
         """
@@ -49,8 +51,7 @@ class APIImp( be.share.api.APIAbs ):
         be.share.sys.log.info("[SCARV] Error in API Communication")
         raise Exception("SCARV API Communication Error.")
 
-
-    def complete_job(self, job_id, error_code=None):
+    def complete( self, job_id, error_code = None ):
         """
         Marks a job as finished on the SCARV API.
         :param job_id: Job ID to finish.

@@ -15,7 +15,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import enum, json, os, requests, time
+import enum, json, os, requests, time, urllib.parse
 
 class JSONStatus( enum.IntEnum ):
     """
@@ -40,13 +40,42 @@ class JSONStatus( enum.IntEnum ):
     FAILURE_PROCESSING_JOB = 4002
 
 class APIImp( sca3s_be.share.api.APIAbs ):
+#  def __init__( self ) :
+#    super().__init__()  
+#
+#  def announce( self ):
+#    db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
+#
+#    return self._request( requests.post, 'api/acquisition/advertise', json = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() } ) } )
+#
+#  def retrieve( self ):
+#    params = dict()
+#
+#    if ( self.instance != '*' ) :
+#      params[ 'queue' ] = instance
+#
+#    return self._request( requests.get, 'api/acquisition/job', params = params )
+#
+#  def complete( self, job_id, error_code = None ):
+#    remark = 'complete'
+#
+#    if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
+#      remark = 'failed:' + str(int(error_code))
+#
+#    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquisition/job', job_id ), json = { 'remark' : remark } )
+
     """
     Class for receiving jobs from SCARV API.
     """
     _infrastructure_token = os.environ['INFRASTRUCTURE_TOKEN']
 
+    def announce( self ) :
+      #db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
+      #
+      #return self._request( requests.post, 'api/acquisition/advertise', json = json.dumps( [ { 'id' : k, **{ v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } } for k in db.keys() ] ) )
+      pass
 
-    def retrieve_job(self):
+    def retrieve( self ):
         """
         Retrieves pending jobs from the SCARV API.
         """
@@ -72,12 +101,14 @@ class APIImp( sca3s_be.share.api.APIAbs ):
             else:
                 sca3s_be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
                 sca3s_be.share.sys.log.info(res.text)
+                sca3s_be.share.sys.log.info('params = ' + str( params ))
+                sca3s_be.share.sys.log.info('headers = ' + str( headers ))
                 time.sleep(1)
         sca3s_be.share.sys.log.info("[SCARV] Error in API Communication")
         raise Exception("SCARV API Communication Error.")
 
 
-    def complete_job(self, job_id, error_code=None):
+    def complete( self, job_id, error_code = None ):
         """
         Marks a job as finished on the SCARV API.
         :param job_id: Job ID to finish.

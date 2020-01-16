@@ -22,19 +22,26 @@ SCHEMA_CONF = {
       'pattern' : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                }
     } },
 
-    'api:instance'      : { 'enum' : [ '1', '2', '*' ], 'default' :              '*' },
-    'api:wait'          : { 'type' :  'number',         'default' :               60 },
-    'api:ping'          : { 'type' :  'number',         'default' :               10 },
+    'api:instance'      : { 'enum' : [ '1', '2', '*' ], 'default' :                     '*' },
+    'api:url'           : { 'type' :  'string',         'default' : 'https://lab.scarv.org' },
 
-    'run:env'           : { 'type' :  'object',         'default' :               {} },
-    'run:timeout'       : { 'type' :  'number',         'default' :               60 },
+    'api:retry_wait'    : { 'type' :  'number',         'default' :                       3 },
+    'api:retry_count'   : { 'type' :  'number',         'default' :                       3 },
+
+    'api:announce_wait' : { 'type' :  'number',         'default' :                     600 },
+    'api:announce_ping' : { 'type' :  'number',         'default' :                       1 },
+    'api:retrieve_wait' : { 'type' :  'number',         'default' :                      30 },
+    'api:retrieve_ping' : { 'type' :  'number',         'default' :                      10 },
+
+    'run:env'           : { 'type' :  'object',         'default' :                      {} },
+    'run:timeout'       : { 'type' :  'number',         'default' :                      60 },
   
-    'job:timeout'       : { 'type' :  'number',         'default' :                1 },
+    'job:timeout'       : { 'type' :  'number',         'default' :                       1 },
 
-    'job:manifest_file' : { 'type' :  'string'                                       },
-    'job:manifest_data' : { 'type' :  'string'                                       },
+    'job:manifest_file' : { 'type' :  'string'                                              },
+    'job:manifest_data' : { 'type' :  'string'                                              },
 
-    'job:clean'         : { 'type' : 'boolean',         'default' :            False },
+    'job:clean'         : { 'type' : 'boolean',         'default' :                   False },
 
     'job:device_db'     : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {}, 'properties' : {

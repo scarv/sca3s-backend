@@ -13,8 +13,6 @@
   },
 
   "api:instance"               : "*",
-  "api:wait"                   :  10,
-  "api:ping"                   :  10,
 
   "job:device_db"              : { 
     "scale_m3" : {

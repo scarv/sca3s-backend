@@ -7,16 +7,60 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import abc
+import abc, os, requests, time, urllib.parse
 
 class APIAbs( abc.ABC ) :
   def __init__( self ) :
     super().__init__()  
 
+    self.url         =      sca3s_be.share.sys.conf.get( 'url',         section = 'api' )
+
+    self.instance    =      sca3s_be.share.sys.conf.get( 'instance',    section = 'api' )
+
+    self.retry_wait  = int( sca3s_be.share.sys.conf.get( 'retry_wait',  section = 'api' ) )
+    self.retry_count = int( sca3s_be.share.sys.conf.get( 'retry_count', section = 'api' ) )
+
+  def _request( self, request, url, params = dict(), headers = dict(), json = dict() ) :
+    url = urllib.parse.urljoin( self.url, url )
+       
+    headers = { **headers, "Authorization" : "infrastructure " + os.environ[ 'INFRASTRUCTURE_TOKEN' ] }
+
+    for i in range( self.retry_count ) :
+      response = request( url, params = params, headers = headers, json = json )
+
+      if ( response.status_code == 200 ):
+        response = response.json()
+
+        if ( response[ "status" ] == JSONStatus.SUCCESS ):
+          return response
+        else :
+          return None
+
+      else :
+        sca3s_be.share.sys.log.indent_inc( message = 'API request failed (%d of %d)' % ( i + 1, self.retry_count ) )
+
+        sca3s_be.share.sys.log.info( 'config: url      = ' + str( url      ) )
+        sca3s_be.share.sys.log.info( 'config: params   = ' + str( params   ) )
+        sca3s_be.share.sys.log.info( 'config: headers  = ' + str( headers  ) )
+        sca3s_be.share.sys.log.info( 'config: json     = ' + str( json     ) )
+
+        sca3s_be.share.sys.log.info( '> request        = ' + str( request  ) )
+        sca3s_be.share.sys.log.info( '< response       = ' + str( response ) )
+
+        sca3s_be.share.sys.log.indent_dec()
+
+        time.sleep( self.retry_wait )
+
+    raise Exception()
+
   @abc.abstractmethod
-  def retrieve_job( self ) :
+  def announce( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def complete_job( self, job_id, error_code = None ) :
+  def retrieve( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def complete( self, job_id, error_code = None ) :
     raise NotImplementedError()
