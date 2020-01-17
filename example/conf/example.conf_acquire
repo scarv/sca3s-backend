@@ -9,7 +9,7 @@
   "security:template"          : {
     "url"     : "git@github.com/scarv/sca3s-harness.git",
     "tag"     : "master",
-    "pattern" : "README.md|src/kernel/.*"
+    "pattern" : "README.md|sca3s.json|src/kernel/.*"
   },
 
   "api:instance"               : "*",

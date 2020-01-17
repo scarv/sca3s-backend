@@ -19,7 +19,7 @@ SCHEMA_CONF = {
     'security:template' : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
           'url' : { 'type' :  'string', 'default' : 'git@github.com/scarv/sca3s-harness.git' },
           'tag' : { 'type' :  'string', 'default' : 'master'                                 },
-      'pattern' : { 'type' :  'string', 'default' : 'README.md|src/kernel/.*'                }
+      'pattern' : { 'type' :  'string', 'default' : 'README.md|sca3s.json|src/kernel/.*'     }
     } },
 
     'api:instance'      : { 'enum' : [ '1', '2', '*' ], 'default' :                     '*' },
