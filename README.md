@@ -77,6 +77,7 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
    ```sh
    git clone https://github.com/scarv/sca3s-backend.git
    cd ./sca3s-backend
+   git submodule update --init --recursive
    source ./bin/conf.sh
    ```
 

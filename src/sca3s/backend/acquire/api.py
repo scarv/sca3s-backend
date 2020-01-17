@@ -15,124 +15,29 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import enum, json, os, requests, time, urllib.parse
-
-class JSONStatus( enum.IntEnum ):
-    """
-    Class to define status codes for use with the OKException class.
-    By default `status : 0` should be included with all API requests.
-    """
-    # Global Success Code
-    SUCCESS = 0
-    # Job error codes
-    NO_ITEMS_ON_QUEUE = 1000
-    INVALID_JOB_SYNTAX = 1001
-    TOO_MANY_QUEUED_JOBS = 1002
-    JOB_DOES_NOT_EXIST = 1003
-    # User error codes
-    NOT_LOGGED_IN = 2000
-    # AWS Error Codes
-    AWS_AUTHENTICATION_FAILED = 3000
-    S3_URL_GENERATION_FAILED = 3001
-    # Acquisition Error Codes
-    FAILURE_VALIDATING_JOB = 4000
-    FAILURE_ALLOCATING_JOB = 4001
-    FAILURE_PROCESSING_JOB = 4002
+import requests, urllib.parse
 
 class APIImp( sca3s_be.share.api.APIAbs ):
-#  def __init__( self ) :
-#    super().__init__()  
-#
-#  def announce( self ):
-#    db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
-#
-#    return self._request( requests.post, 'api/acquisition/advertise', json = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() } ) } )
-#
-#  def retrieve( self ):
-#    params = dict()
-#
-#    if ( self.instance != '*' ) :
-#      params[ 'queue' ] = instance
-#
-#    return self._request( requests.get, 'api/acquisition/job', params = params )
-#
-#  def complete( self, job_id, error_code = None ):
-#    remark = 'complete'
-#
-#    if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
-#      remark = 'failed:' + str(int(error_code))
-#
-#    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquisition/job', job_id ), json = { 'remark' : remark } )
+  def __init__( self ) :
+    super().__init__()  
 
-    """
-    Class for receiving jobs from SCARV API.
-    """
-    _infrastructure_token = os.environ['INFRASTRUCTURE_TOKEN']
+  def retrieve( self ):
+    params = dict()
 
-    def announce( self ) :
-      #db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
-      #
-      #return self._request( requests.post, 'api/acquisition/advertise', json = json.dumps( [ { 'id' : k, **{ v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } } for k in db.keys() ] ) )
-      pass
+    if ( self.instance != '*' ) :
+      params[ 'queue' ] = instance
 
-    def retrieve( self ):
-        """
-        Retrieves pending jobs from the SCARV API.
-        """
-        db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
-        params = { 'device_db' : json.dumps( { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() } ) }
+    return self._request( requests.get, 'api/acquisition/job', params = params )
 
-        instance = sca3s_be.share.sys.conf.get( 'instance', section = 'api' )
-        if ( instance != '*' ) :
-          params[ 'queue' ] = instance
+  def complete( self, job_id, error_code = None ):
+    remark = 'complete'
 
-        headers = {"Authorization": "infrastructure " + self._infrastructure_token}
-       
-        for i in range(3):
-            res = requests.get("https://lab.scarv.org/api/acquisition/job",
-                               params = params,
-                               headers = headers)
-            if res.status_code == 200:
-                job = res.json()
-                if job["status"] == JSONStatus.SUCCESS:
-                    return job
-                else:
-                    return None
-            else:
-                sca3s_be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
-                sca3s_be.share.sys.log.info(res.text)
-                sca3s_be.share.sys.log.info('params = ' + str( params ))
-                sca3s_be.share.sys.log.info('headers = ' + str( headers ))
-                time.sleep(1)
-        sca3s_be.share.sys.log.info("[SCARV] Error in API Communication")
-        raise Exception("SCARV API Communication Error.")
+    if ( ( error_code is not None ) and ( error_code is not sca3s_be.share.api.JSONStatus.SUCCESS ) ) :
+      remark = 'failed:' + str( int( error_code ) )
 
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquisition/job', job_id ), json = { 'remark' : remark } )
 
-    def complete( self, job_id, error_code = None ):
-        """
-        Marks a job as finished on the SCARV API.
-        :param job_id: Job ID to finish.
-        :param error_code: If an error has occured, specify it here (JSONStatus enum only).
-        """
-        remark = "complete"
-        if ( ( error_code is not None ) and ( error_code is not JSONStatus.SUCCESS ) ) :
-            remark = "failed:" + str(int(error_code))
-        headers = {"Authorization": "infrastructure " + self._infrastructure_token}
-        for i in range(3):
-            res = requests.patch("https://lab.scarv.org/api/acquisition/job/" + job_id,
-                                 headers=headers,
-                                 json={
-                                     "remark" : remark
-                                 })
-            if res.status_code == 200:
-                info = res.json()
-                if info["status"] == JSONStatus.SUCCESS:
-                    return
-                sca3s_be.share.sys.log.info("[SCARV] Error in API Communication - " + info["status"])
-                return
-            else:
-                sca3s_be.share.sys.log.info("[SCARV] API Communication Error - trying again...")
-                sca3s_be.share.sys.log.info(res.text)
-                time.sleep(1)
-        sca3s_be.share.sys.log.info("[SCARV] Error in API Communication")
-        raise Exception("SCARV API Communication Error.")
+  def announce( self ):
+    db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
+
+    return self._request( requests.post, 'api/acquisition/advertise', json = { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() } )

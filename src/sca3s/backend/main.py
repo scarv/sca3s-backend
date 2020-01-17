@@ -139,13 +139,13 @@ def run_mode_api() :
   
           if ( id != None ) :
             if   ( result == STATUS_SUCCESS                ) :
-              api.complete( id, error_code = task_be.api.JSONStatus.SUCCESS                )
+              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.SUCCESS                )
             elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
-              api.complete( id, error_code = task_be.api.JSONStatus.FAILURE_VALIDATING_JOB )
+              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.FAILURE_VALIDATING_JOB )
             elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
-              api.complete( id, error_code = task_be.api.JSONStatus.FAILURE_ALLOCATING_JOB )
+              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.FAILURE_ALLOCATING_JOB )
             elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
-              api.complete( id, error_code = task_be.api.JSONStatus.FAILURE_PROCESSING_JOB )
+              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.FAILURE_PROCESSING_JOB )
             elif ( isinstance( result, sca3s_be.share.exception.OKException ) ):
               api.complete( id, error_code = result.status )
 

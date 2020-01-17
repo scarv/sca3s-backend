@@ -13,10 +13,10 @@ endif
 
 # =============================================================================
 
-venv    : ${REPO_HOME}/requirements.txt
+venv     : ${REPO_HOME}/requirements.txt
 	@${REPO_HOME}/bin/venv.sh
 
-doxygen : ${REPO_HOME}/Doxyfile
+doxygen  : ${REPO_HOME}/Doxyfile
 	@doxygen ${<}
 
 spotless :
