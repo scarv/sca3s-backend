@@ -168,6 +168,10 @@ if ( __name__ == '__main__' ) :
   try :
     sca3s_be.share.sys.init()
 
+    print( "finished init" ) ; 
+    print( sca3s_be.share.sys.conf.get( 'device_db', section = 'job' ) )
+    exit( 0 )
+
     if   ( sca3s_be.share.sys.conf.get( 'task', section = 'sys' ) == 'acquire' ) :
       task_be = importlib.import_module( 'sca3s.backend.acquire' )
       task_mw = importlib.import_module( 'sca3s.middleware.acquire' )

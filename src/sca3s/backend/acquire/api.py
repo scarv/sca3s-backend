@@ -27,7 +27,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     if ( self.instance != '*' ) :
       params[ 'queue' ] = instance
 
-    return self._request( requests.get, 'api/acquisition/job', params = params )
+    return self._request( requests.get, 'api/acquire/job', params = params )
 
   def complete( self, job_id, error_code = None ):
     remark = 'complete'
@@ -35,9 +35,9 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     if ( ( error_code is not None ) and ( error_code is not sca3s_be.share.api.JSONStatus.SUCCESS ) ) :
       remark = 'failed:' + str( int( error_code ) )
 
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquisition/job', job_id ), json = { 'remark' : remark } )
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job', job_id ), json = { 'remark' : remark } )
 
   def announce( self ):
     db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
 
-    return self._request( requests.post, 'api/acquisition/advertise', json = { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() } )
+    return self._request( requests.post, 'api/acquire/advertise', json = { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() } )

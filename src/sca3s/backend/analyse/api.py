@@ -27,7 +27,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     if ( self.instance != '*' ) :
       params[ 'queue' ] = instance
 
-    return self._request( requests.get, 'api/analysis/job', params = params )
+    return self._request( requests.get, 'api/analyse/job', params = params )
 
   def complete( self, job_id, error_code = None ):
     remark = 'complete'
@@ -35,7 +35,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     if ( ( error_code is not None ) and ( error_code is not sca3s_be.share.api.JSONStatus.SUCCESS ) ) :
       remark = 'failed:' + str( int( error_code ) )
 
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/analysis/job', job_id ), json = { 'remark' : remark } )
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/analyse/job', job_id ), json = { 'remark' : remark } )
 
   def announce( self ):
     pass
