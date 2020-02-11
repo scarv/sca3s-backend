@@ -1,3 +1,6 @@
 [submodule "extern/sca3s-middleware"]
 	path = extern/sca3s-middleware
 	url = ssh://git@github.com/scarv/sca3s-middleware.git
+[submodule "extern/wiki"]
+	path = extern/wiki
+	url = https://github.com/scarv/sca3s-backend.wiki.git

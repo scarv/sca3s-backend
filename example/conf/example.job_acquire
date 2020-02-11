@@ -27,7 +27,7 @@
 
     "repo_id"      : "git",
     "repo_spec"    : { 
-    "url"           : "git@github.com:danpage/sca3s-harness.git",
+    "url"           : "git@github.com:scarv/sca3s-demo.git",
     "conf"          : {
       "foo" : 1,
       "bar" : 2

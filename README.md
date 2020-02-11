@@ -32,7 +32,8 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
 ├── build                   - working directory for build
 ├── example                 - working directory for example configuration(s) and data
 ├── extern                  - external resources (e.g., submodules)
-│   └── sca3s-share           - submodule: scarv/sca3s-share
+│   ├── sca3s-middleware      - submodule: scarv/sca3s-middleware
+│   └── wiki                  - submodule: scarv/sca3s-backend.wiki
 └── src
     └── sca3s               - source code for SCA3S
         └── backend         - source code for SCA3S back-end infrastructure
@@ -75,7 +76,7 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
 2. Execute
 
    ```sh
-   git clone https://github.com/scarv/sca3s-backend.git
+   git clone https://github.com/scarv/sca3s-backend.git ./sca3s-backend
    cd ./sca3s-backend
    git submodule update --init --recursive
    source ./bin/conf.sh
