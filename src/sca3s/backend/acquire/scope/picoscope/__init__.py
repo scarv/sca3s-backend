@@ -39,7 +39,7 @@ class ScopeType( scope.ScopeAbs ) :
     self.scope_object = self.api( serialNumber = self.connect_id.encode(), connect = True )
 
     if ( self.scope_object == None ) :
-      raise Exception()
+      raise Exception( 'failed to open scope' )
 
     for t in self.scope_object.getAllUnitInfo().split( '\n' ) :
       self.job.log.info( t )

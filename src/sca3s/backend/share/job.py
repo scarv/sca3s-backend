@@ -65,7 +65,7 @@ class JobAbs( abc.ABC ) :
       self.log.indent_dec()
 
     if ( ( fail == True ) and ( result != 0 ) ) :
-      raise Exception()
+      raise Exception( 'failed to complete command execution' )
 
     return ( result == 0 )
 

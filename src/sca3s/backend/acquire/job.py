@@ -110,7 +110,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     self.log.indent_dec()
 
     if ( fail ) :
-      raise Exception()
+      raise Exception( 'failed to complete repo. preparation' )
 
   # Prepare the board:
   # 

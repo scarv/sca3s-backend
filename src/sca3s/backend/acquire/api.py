@@ -29,13 +29,8 @@ class APIImp( sca3s_be.share.api.APIAbs ):
 
     return self._request( requests.get, 'api/acquire/job', params = params )
 
-  def complete( self, job_id, error_code = None ):
-    remark = 'complete'
-
-    if ( ( error_code is not None ) and ( error_code is not sca3s_be.share.api.JSONStatus.SUCCESS ) ) :
-      remark = 'failed:' + str( int( error_code ) )
-
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job', job_id ), json = { 'remark' : remark } )
+  def complete( self, job_id, status = None ):
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job', job_id ), json = { 'status' : status } )
 
   def announce( self ):
     db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )

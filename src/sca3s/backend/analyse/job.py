@@ -38,7 +38,7 @@ class JobImp(be.share.job.JobAbs):
         self.depo.transfer()
         self.log.indent_dec()
         if fail:
-            raise be.share.exception.OKException(be.analyse.api.JSONStatus.TVLA_FAILURE)
+            raise Exception( 'failed to complete TVLA' )
 
     def process_epilogue(self):
         """

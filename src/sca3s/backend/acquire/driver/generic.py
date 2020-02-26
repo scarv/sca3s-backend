@@ -39,8 +39,10 @@ class DriverImp( driver.DriverAbs ) :
   # 4. check the model supports whatever policy is selected
 
   def prepare( self ) : 
-    if ( self.job.board.driver_id != 'generic' ) :
-      raise Exception()
+    if ( self.job.board.driver_version != sca3s_be.share.version.VERSION ) :
+      raise Exception( 'mismatched driver version'    )
+    if ( self.job.board.driver_id      != 'generic'                      ) :
+      raise Exception( 'mismatched driver identifier' )
 
   # Process the driver:
   #

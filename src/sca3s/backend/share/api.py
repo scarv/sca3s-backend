@@ -9,30 +9,6 @@ from sca3s import middleware as sca3s_mw
 
 import abc, enum, os, requests, time, urllib.parse
 
-class JSONStatus( enum.IntEnum ):
-    """
-    Class to define status codes for use with the OKException class.
-    By default `status : 0` should be included with all API requests.
-    """
-    # Global Success Code
-    SUCCESS = 0
-    # Job error codes
-    NO_ITEMS_ON_QUEUE = 1000
-    INVALID_JOB_SYNTAX = 1001
-    TOO_MANY_QUEUED_JOBS = 1002
-    JOB_DOES_NOT_EXIST = 1003
-    # User error codes
-    NOT_LOGGED_IN = 2000
-    # AWS Error Codes
-    AWS_AUTHENTICATION_FAILED = 3000
-    S3_URL_GENERATION_FAILED = 3001
-    # Acquisition Error Codes
-    FAILURE_VALIDATING_JOB = 4000
-    FAILURE_ALLOCATING_JOB = 4001
-    FAILURE_PROCESSING_JOB = 4002
-    # Analysis Error Codes
-    TVLA_FAILURE = 4003
-
 class APIAbs( abc.ABC ) :
   def __init__( self ) :
     super().__init__()  
@@ -47,7 +23,7 @@ class APIAbs( abc.ABC ) :
   def _request( self, request, url, params = dict(), headers = dict(), json = dict() ) :
     url = urllib.parse.urljoin( self.url, url )
        
-    headers = { **headers, "Authorization" : "infrastructure " + os.environ[ 'INFRASTRUCTURE_TOKEN' ] }
+    headers = { **headers, 'Authorization' : 'infrastructure' + ' ' + os.environ[ 'INFRASTRUCTURE_TOKEN' ] }
 
     for i in range( self.retry_count ) :
       response = request( url, params = params, headers = headers, json = json )
@@ -55,7 +31,7 @@ class APIAbs( abc.ABC ) :
       if ( response.status_code == 200 ):
         response = response.json()
 
-        if ( response[ "status" ] == JSONStatus.SUCCESS ):
+        if ( response[ 'status' ] == sca3s_mw.share.status.Status.SUCCESS ) :
           return response
         else :
           return None
@@ -75,14 +51,14 @@ class APIAbs( abc.ABC ) :
 
         time.sleep( self.retry_wait )
 
-    raise Exception()
+    raise Exception( 'failed to complete API request' )
 
   @abc.abstractmethod
   def retrieve( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def complete( self, job_id, error_code = None ) :
+  def complete( self, job_id, status = None ) :
     raise NotImplementedError()
 
   @abc.abstractmethod

@@ -30,6 +30,7 @@ class BoardAbs( abc.ABC ) :
 
     self.driver_version = None
     self.driver_id      = None
+
     self.kernel_id      = None
 
   @abc.abstractmethod
@@ -72,24 +73,22 @@ class BoardAbs( abc.ABC ) :
     if   ( t[ 0 ] == '+' ) :
       return t[ 1 : ]
     elif ( t[ 0 ] == '-' ) :
-      raise Exception()
+      raise Exception( 'board interaction failed => ack=-' )
     elif ( t[ 0 ] == '~' ) :
-      raise Exception()
+      raise Exception( 'board interaction failed => ack=~' )
     else :
-      raise Exception()
+      raise Exception( 'board interaction failed => ack=?' )
 
   def prepare( self ) :
     t = self.interact( '?kernel_id' ).split( ':' )
 
     if ( len( t ) != 3 ) :
-      raise Exception()
+      raise Exception( 'unparsable kernel identifier' )
 
     self.driver_version = t[ 0 ]
     self.driver_id      = t[ 1 ]
-    self.kernel_id      = t[ 2 ]
 
-    if ( self.driver_version != sca3s_be.share.version.VERSION ) :
-      raise Exception()
+    self.kernel_id      = t[ 2 ]
 
     self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
     self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )

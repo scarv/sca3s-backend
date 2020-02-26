@@ -9,23 +9,17 @@ from sca3s import middleware as sca3s_mw
 
 import importlib, multiprocessing, os, shutil, signal, tempfile, time
 
-STATUS_SUCCESS                = 0
-
-STATUS_FAILURE_VALIDATING_JOB = 1
-STATUS_FAILURE_ALLOCATING_JOB = 2
-STATUS_FAILURE_PROCESSING_JOB = 3
-
 def process( manifest ) :
-  id = None ; result = STATUS_SUCCESS
+  id = None ; status = sca3s_mw.share.status.Status.SUCCESS
 
   try :
-    sca3s_be.share.sys.log.info( 'validating job' )
-  
+    sca3s_be.share.sys.log.info( 'process job: prologue' )
+
     try :
       if ( manifest.has(    'job_id' ) ) :
         id = manifest.get( 'job_id' )
       else :
-        raise sca3s_be.share.exception.BackEndException( message = sca3s_mw.share.status.INVALID_CONF )
+        raise Exception( 'job manifest has no identifier' )
 
       db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
     
@@ -37,47 +31,42 @@ def process( manifest ) :
             manifest.put( key, value )
 
         else :
-          raise sca3s_be.share.exception.BackEndException( message = sca3s_mw.share.status.INVALID_CONF )
+          raise Exception( 'device database has no such device identifier' )
     
-      sca3s_mw.share.schema.validate( manifest, task_mw.schema.SCHEMA_MANIFEST )
-  
-    except Exception as e :
-      result = STATUS_FAILURE_VALIDATING_JOB ; raise e
+      sca3s_mw.share.schema.validate( manifest, task_mw.schema.MANIFEST_REQ )
 
-    sca3s_be.share.sys.log.info( 'allocating job' )
-
-    try :
       path = tempfile.mkdtemp( prefix = id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
-
       job  = task_be.job.JobImp( manifest, path, log )
 
     except Exception as e :
-      result = STATUS_FAILURE_ALLOCATING_JOB ; raise e
+      status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROLOGUE ; raise e
 
-    sca3s_be.share.sys.log.info( 'processing job' )
+    sca3s_be.share.sys.log.info( 'process job: process'  )
 
     try :    
       job.process_prologue()
       job.process()
   
     except Exception as e :
-      if isinstance(e, sca3s_be.share.exception.OKException):
-        result = e
-      else:
-        result = STATUS_FAILURE_PROCESSING_JOB
-        raise e
+      status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROCESS  ; raise e
 
     finally :
       job.process_epilogue()
 
-    if ( sca3s_be.share.sys.conf.get( 'clean', section = 'job' ) ) :
-      shutil.rmtree( path, ignore_errors = True )
+    sca3s_be.share.sys.log.info( 'process job: epilogue' )
+
+    try :    
+      if ( sca3s_be.share.sys.conf.get( 'clean', section = 'job' ) ) :
+        shutil.rmtree( path, ignore_errors = True )
+
+    except Exception as e :
+      status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_EPILOGUE ; raise e
 
   except Exception as e :
-    sca3s_be.share.exception.dump( e, log = sca3s_be.share.sys.log )
+    sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
 
-  return ( id, result )
+  return ( id, status )
 
 def run_mode_cli() :
   if   ( sca3s_be.share.sys.conf.has( 'manifest_file', section = 'job' ) ) :
@@ -85,7 +74,7 @@ def run_mode_cli() :
   elif ( sca3s_be.share.sys.conf.has( 'manifest_data', section = 'job' ) ) :
     manifest = sca3s_be.share.conf.Conf( conf = sca3s_be.share.sys.conf.get( 'manifest_data', section = 'job' ) )
   else :
-    raise sca3s_be.share.exception.BackEndException( message = sca3s_mw.share.status.INVALID_CONF )
+    raise Exception( 'undefined manifest' )
 
   process( manifest )
 
@@ -119,13 +108,16 @@ def run_mode_api() :
       try :
         api.announce()
 
+        if ( api_term ) :
+          sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
+
         if ( ( ping % api_announce_ping ) == 0 ) :
           sca3s_be.share.sys.log.info( 'activity ping: announce thread' )
 
         ping += 1 ; time.sleep( api_announce_wait )
 
       except Exception as e :
-        sca3s_be.share.exception.dump( e, log = sca3s_be.share.sys.log )
+        sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
     
   def retrieveHandler() :
     ping = 0 ; 
@@ -135,21 +127,10 @@ def run_mode_api() :
         manifest = api.retrieve()
     
         if ( manifest != None ) :
-          ( id, result ) = process( sca3s_be.share.conf.Conf( conf = manifest ) )
+          ( id, status ) = process( sca3s_be.share.conf.Conf( conf = manifest ) )
   
           if ( id != None ) :
-            if   ( result == STATUS_SUCCESS                ) :
-              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.SUCCESS                )
-            elif ( result == STATUS_FAILURE_VALIDATING_JOB ) :
-              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.FAILURE_VALIDATING_JOB )
-            elif ( result == STATUS_FAILURE_ALLOCATING_JOB ) :
-              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.FAILURE_ALLOCATING_JOB )
-            elif ( result == STATUS_FAILURE_PROCESSING_JOB ) :
-              api.complete( id, error_code = sca3s_be.share.api.JSONStatus.FAILURE_PROCESSING_JOB )
-            elif ( isinstance( result, sca3s_be.share.exception.OKException ) ):
-              api.complete( id, error_code = result.status )
-
-          ping = 0
+            api.complete( id, status = status )
     
         if ( api_term ) :
           sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
@@ -160,7 +141,7 @@ def run_mode_api() :
         ping += 1 ; time.sleep( api_retrieve_wait )
   
       except Exception as e :
-        sca3s_be.share.exception.dump( e, log = sca3s_be.share.sys.log )
+        sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
 
   multiprocessing.Process( target = announceHandler ).start() ; retrieveHandler()
 
@@ -175,14 +156,14 @@ if ( __name__ == '__main__' ) :
       task_be = importlib.import_module( 'sca3s.backend.analyse' )
       task_mw = importlib.import_module( 'sca3s.middleware.analyse' )
     else :
-      raise sca3s_be.share.exception.BackEndException( message = sca3s_mw.share.status.INVALID_CONF )
+      raise Exception( 'unknown task' )
 
     if   ( sca3s_be.share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'     ) :
       run_mode_cli()
     elif ( sca3s_be.share.sys.conf.get( 'mode', section = 'sys' ) == 'api'     ) :
       run_mode_api()
     else :
-      raise sca3s_be.share.exception.BackEndException( message = sca3s_mw.share.status.INVALID_CONF )
+      raise Exception( 'unknown mode' )
 
   except Exception as e :
     raise e

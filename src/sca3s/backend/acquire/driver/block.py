@@ -70,7 +70,7 @@ class DriverImp( driver.DriverAbs ) :
       t = self.kernel.enc( k, m )
 
       if ( ( t != None ) and ( t != c ) ) :
-        raise Exception()  
+        raise Exception( 'failed I/O verification during acquisition => enc( k, m ) != c' )  
 
     cycle_enc = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop' )
@@ -111,7 +111,7 @@ class DriverImp( driver.DriverAbs ) :
       t = self.kernel.dec( k, c )
 
       if ( ( t != None ) and ( t != m ) ) :
-        raise Exception()  
+        raise Exception( 'failed I/O verification during acquisition => dec( k, c ) != m' )  
 
     cycle_dec = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop' )
@@ -249,24 +249,26 @@ class DriverImp( driver.DriverAbs ) :
   # 4. check the model supports whatever policy is selected
 
   def prepare( self ) : 
-    if ( self.job.board.driver_id != 'block' ) :
-      raise Exception()
+    if ( self.job.board.driver_version != sca3s_be.share.version.VERSION ) :
+      raise Exception( 'mismatched driver version'    )
+    if ( self.job.board.driver_id      != 'block'                        ) :
+      raise Exception( 'mismatched driver identifier' )
 
     ( kernel_nameof, kernel_typeof ) = self.job.board.kernel_id.split( '/' )
     
     if ( kernel_nameof not in [ 'generic', 'aes' ] ) :
-      raise Exception()
+      raise Exception( 'unsupported kernel name'   )
     if ( kernel_typeof not in [     'enc', 'dec' ] ) :
-      raise Exception()
+      raise Exception( 'unsupported kernel type'   )
     
     if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'm' ] ) ) ) :
-      raise Exception()
+      raise Exception( 'inconsistent kernel I/O spec.' )
     if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'c' ] ) ) ) :
-      raise Exception()
+      raise Exception( 'inconsistent kernel I/O spec.' )
     if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_o != set( [ 'c'           ] ) ) ) :
-      raise Exception()
+      raise Exception( 'inconsistent kernel I/O spec.' )
     if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_o != set( [ 'm'           ] ) ) ) :
-      raise Exception()
+      raise Exception( 'inconsistent kernel I/O spec.' )
 
     kernel_sizeof_r = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?data r' ) ), 2 ** 8 )
     kernel_sizeof_k = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?data k' ) ), 2 ** 8 )
@@ -284,7 +286,7 @@ class DriverImp( driver.DriverAbs ) :
       raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'kernel', self.job.board.kernel_id ) )
 
     if ( not self.kernel.supports( self.policy_id ) ) :
-      raise Exception()
+      raise Exception( 'unsupported kernel policy' )
 
   # Process the driver:
   #
