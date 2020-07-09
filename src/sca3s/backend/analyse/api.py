@@ -30,7 +30,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     return self._request( requests.get, 'api/analyse/job', params = params )
 
   def complete( self, job_id, status = None ):
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/analyse/job', job_id ), json = { 'status' : status } )
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/analyse/job/', job_id ), json = { 'status' : status } )
 
   def announce( self ):
     return self._request( requests.post, 'api/analyse/advertise' )

@@ -30,7 +30,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     return self._request( requests.get, 'api/acquire/job', params = params )
 
   def complete( self, job_id, status = None ):
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job', job_id ), json = { 'status' : status } )
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job/', job_id ), json = { 'status' : status } )
 
   def announce( self ):
     db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
