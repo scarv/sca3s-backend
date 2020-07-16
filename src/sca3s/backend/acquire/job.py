@@ -64,7 +64,6 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     self.exec_docker( 'inspect-harness', env = env, vol = vol )
 
     self.board.program()
-    self.board.prepare()
 
     self.exec_docker(   'clean-harness', env = env, vol = vol )
 

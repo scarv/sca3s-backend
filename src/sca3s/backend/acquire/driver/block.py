@@ -51,13 +51,13 @@ class DriverImp( driver.DriverAbs ) :
     self.job.board.interact( '>data k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
     self.job.board.interact( '>data m %s' % sca3s_be.share.util.str2octetstr( m ).upper() )
   
-    _                   = self.job.scope.prepare()
+    _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
 
     self.job.board.interact( '!kernel_prologue' )
     self.job.board.interact( '!kernel'          )
     self.job.board.interact( '!kernel_epilogue' )
   
-    ( trigger, signal ) = self.job.scope.acquire()
+    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
   
     c = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data c' ) )
 
@@ -92,13 +92,13 @@ class DriverImp( driver.DriverAbs ) :
     self.job.board.interact( '>data k %s' % sca3s_be.share.util.str2octetstr( k ).upper() )
     self.job.board.interact( '>data c %s' % sca3s_be.share.util.str2octetstr( c ).upper() )
   
-    _                   = self.job.scope.prepare()
+    _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
   
     self.job.board.interact( '!kernel_prologue' )
     self.job.board.interact( '!kernel'          )
     self.job.board.interact( '!kernel_epilogue' )
   
-    ( trigger, signal ) = self.job.scope.acquire()
+    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
   
     m = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data m' ) )
 
