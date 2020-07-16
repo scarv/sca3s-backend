@@ -3,7 +3,7 @@
 
     "user_id"      :  4567,
 
-  "device_id"      : "scale_m3",
+  "device_id"      : "giles",
 
   "driver_id"      : "block",
   "driver_spec"    : {

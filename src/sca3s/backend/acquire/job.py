@@ -15,7 +15,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import docker, git, importlib, json, logging, os, re, sys
+import git, importlib, json, logging, os, re, sys
 
 class JobImp( sca3s_be.share.job.JobAbs ) :
   def __init__( self, conf, path, log ) :
@@ -26,44 +26,81 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     self.job_version =      self.conf.get(  'job_version' )
     self.job_id      =      self.conf.get(  'job_id'      )
 
-  def _build_board( self ) :
-    t = self.conf.get(  'board_id' )
+    self.board       = None
+    self.scope       = None
 
-    try :
-      return importlib.import_module( 'sca3s.backend.acquire.board'  + '.' + t.replace( '/', '.' ) ).BoardImp( self )
-    except :
-      raise ImportError( 'failed to construct %s instance with id = %s ' % (  'board', t ) )
-  
-  def _build_scope( self ) :
-    t = self.conf.get(  'scope_id' )
-  
-    try :
-      return importlib.import_module( 'sca3s.backend.acquire.scope'  + '.' + t.replace( '/', '.' ) ).ScopeImp( self )  
-    except :
-      raise ImportError( 'failed to construct %s instance with id = %s ' % (  'scope', t ) )
-  
-  def _build_driver( self ) :
-    t = self.conf.get( 'driver_id' )
-    try :
-      return importlib.import_module( 'sca3s.backend.acquire.driver' + '.' + t.replace( '/', '.' ) ).DriverImp( self )
-    except :
-      raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'driver', t ) )
+    self.driver      = None
 
-  def _build_repo( self ) :
-    t = self.conf.get(   'repo_id' )
+    self.repo        = None
+    self.depo        = None
 
+  # Construct a parameterised job-related object.
+
+  def _object( self, id, module, cons ) :
     try :
-      return importlib.import_module( 'sca3s.backend.acquire.repo'   + '.' + t.replace( '/', '.' ) ).RepoImp( self )
+      t = importlib.import_module( 'sca3s.backend.acquire.%s' % ( module )  + '.' + id.replace( '/', '.' ) ) ; t = getattr( t, cons ) ; return t( self )
     except :
-      raise ImportError( 'failed to construct %s instance with id = %s ' % (   'repo', t ) )
+      raise ImportError( 'failed to construct %s instance with id = %s ' % ( module, id ) )
 
-  def _build_depo( self ) :
-    t = self.conf.get(   'depo_id' )
+  # Prepare the board:
+  # 
+  # 1. define parameters
+  #    - construct the image name
+  #    - construct the volume and environment mappings
+  #    - remap volume mappings to reflect configuration (e.g., for Docker-by-Docker)
+  # 2. build
+  #    - fetch dependencies
+  #    - build dependencies
+  #    - build
+  # 3. report
+  # 4. program
+  # 5. clean
 
-    try :
-      return importlib.import_module( 'sca3s.backend.acquire.depo'   + '.' + t.replace( '/', '.' ) ).DepoImp( self )
-    except :
-      raise ImportError( 'failed to construct %s instance with id = %s ' % (   'depo', t ) )
+  def _prepare_board( self ) :
+    vol = self.board.get_build_context_vol()
+    env = self.board.get_build_context_env()
+
+    self.exec_docker(   'build-harness', env = env, vol = vol )
+    self.exec_docker( 'inspect-harness', env = env, vol = vol )
+
+    self.board.program()
+    self.board.prepare()
+
+    self.exec_docker(   'clean-harness', env = env, vol = vol )
+
+  # Prepare the scope:
+  # 
+  # 1. transfer board parameters
+  # 2. calibrate
+
+  def _prepare_scope( self ) :
+    trace_spec            = self.conf.get( 'trace_spec' )
+
+    trace_resolution_id   =      trace_spec.get( 'resolution_id'   )
+    trace_resolution_spec = int( trace_spec.get( 'resolution_spec' ) )
+
+    trace_period_id       =      trace_spec.get( 'period_id'       )
+    trace_period_spec     = int( trace_spec.get( 'period_spec'     ) )
+
+    trace_type            =      trace_spec.get( 'type'            )
+
+    if   ( trace_resolution_id == 'bit'  ) :
+      trace_resolution = trace_resolution_spec
+    elif ( trace_resolution_id == 'min'  ) :
+      trace_resolution = scope.RESOLUTION_MIN
+    elif ( trace_resolution_id == 'max'  ) :
+      trace_resolution = scope.RESOLUTION_MAX
+
+    if   ( trace_period_id == 'auto'      ) :
+      t = self.driver.calibrate( resolution = trace_resolution, dtype = trace_type )
+    elif ( trace_period_id == 'interval'  ) :
+      t = self.scope.calibrate( scope.CALIBRATE_MODE_INTERVAL,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    elif ( trace_period_id == 'frequency' ) :
+      t = self.scope.calibrate( scope.CALIBRATE_MODE_FREQUENCY, trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    elif ( trace_period_id == 'duration'  ) :
+      t = self.scope.calibrate( scope.CALIBRATE_MODE_DURATION,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+
+    self.log.info( 'conf = %s', t )
 
   # Prepare the repo.:
   # 
@@ -112,87 +149,6 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     if ( fail ) :
       raise Exception( 'failed to complete repo. preparation' )
 
-  # Prepare the board:
-  # 
-  # 1. define parameters
-  #    - construct the image name
-  #    - construct the volume and environment mappings
-  #    - remap volume mappings to reflect configuration (e.g., for Docker-by-Docker)
-  # 2. build
-  #    - fetch dependencies
-  #    - build dependencies
-  #    - build
-  # 3. report
-  # 4. program
-  # 5. clean
-
-  def _prepare_board( self ) :
-    img = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board_id' ).replace( '/', '-' ) + ':' + sca3s_be.share.version.VERSION
-    
-    vol = { os.path.join( self.path, 'target' ) : { 'bind' : '/mnt/scarv/sca3s/harness', 'mode' : 'rw' } }
-    
-    env = { 'DOCKER_GID' : os.getgid(), 
-            'DOCKER_UID' : os.getuid(), 'CONTEXT' : 'native', 'BOARD' : self.conf.get( 'board_id' ), 'KERNEL' : self.conf.get( 'driver_id' ), 'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) }
-
-    vol = { **vol, **self.board.get_build_context_vol() }
-    env = { **env, **self.board.get_build_context_env() }
-
-    self.log.info( 'docker image       = %s', img )
-    self.log.info( 'docker volume      = %s', vol )
-    self.log.info( 'docker environment = %s', env )
-
-    def step( cmd, privileged = False ) :
-      self.log.indent_inc( message = 'docker build context => %s' % ( cmd ) )
-      self.drain( 'stdout', docker.from_env().containers.run( img, command = cmd, environment = env, volumes = vol, privileged = privileged, detach = False, auto_remove = True, stdout = True, stderr = True ) )
-      self.log.indent_dec()
-
-    step(  'build-harness', privileged = False )
-    step( 'report-harness', privileged = False )
-
-    self.board.program()
-    self.board.prepare()
-
-    step(  'clean-harness', privileged = False )
-
-  # Prepare the scope:
-  # 
-  # 1. transfer board parameters
-  # 2. calibrate
-
-  def _prepare_scope( self ) :
-    trace_spec            = self.conf.get( 'trace_spec' )
-
-    trace_resolution_id   =      trace_spec.get( 'resolution_id'   )
-    trace_resolution_spec = int( trace_spec.get( 'resolution_spec' ) )
-
-    trace_period_id       =      trace_spec.get( 'period_id'       )
-    trace_period_spec     = int( trace_spec.get( 'period_spec'     ) )
-
-    trace_type            =      trace_spec.get( 'type'            )
-
-    self.scope.channel_trigger_range     = self.board.get_channel_trigger_range()
-    self.scope.channel_trigger_threshold = self.board.get_channel_trigger_threshold()
-    self.scope.channel_acquire_range     = self.board.get_channel_acquire_range()
-    self.scope.channel_acquire_threshold = self.board.get_channel_acquire_threshold()
-
-    if   ( trace_resolution_id == 'bit'  ) :
-      trace_resolution = trace_resolution_spec
-    elif ( trace_resolution_id == 'min'  ) :
-      trace_resolution = scope.RESOLUTION_MIN
-    elif ( trace_resolution_id == 'max'  ) :
-      trace_resolution = scope.RESOLUTION_MAX
-
-    if   ( trace_period_id == 'auto'      ) :
-      t = self.driver.calibrate( resolution = trace_resolution, dtype = trace_type)
-    elif ( trace_period_id == 'interval'  ) :
-      t = self.scope.calibrate( scope.CALIBRATE_MODE_INTERVAL,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    elif ( trace_period_id == 'frequency' ) :
-      t = self.scope.calibrate( scope.CALIBRATE_MODE_FREQUENCY, trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    elif ( trace_period_id == 'duration'  ) :
-      t = self.scope.calibrate( scope.CALIBRATE_MODE_DURATION,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-
-    self.log.info( 'conf = %s', t )
-
   # Execute job process prologue (i.e., *before* process):
   #
   # 1. dump configuration
@@ -205,25 +161,32 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     self.conf.dump( self.log, level = logging.INFO )
     self.log.indent_dec()
 
-    self.log.indent_inc( message = 'construct board  object' )
-    self.board = self._build_board()
-    self.log.indent_dec()
+    if ( self.conf.get( 'board_id' ) == self.conf.get( 'scope_id' ) ) :
+      self.log.indent_inc( message = 'construct hybrid object' )
+      self.hybrid = self._object( self.conf.get(  'board_id' ), 'hybrid', 'HybridImp' ) ; self.board = self.hybrid ; self.scope = self.hybrid
+      self.log.indent_dec()
+    
+    else :
+      self.log.indent_inc( message = 'construct board  object' )
+      self.board  = self._object( self.conf.get(  'board_id' ),  'board',  'BoardImp' )
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'construct scope  object' )
+      self.scope  = self._object( self.conf.get(  'scope_id' ),  'scope',  'ScopeImp' )
+      self.log.indent_dec()
 
-    self.log.indent_inc( message = 'construct scope  object' )
-    self.scope = self._build_scope()
-    self.log.indent_dec()
+    if ( True ) :
+      self.log.indent_inc( message = 'construct driver object' )
+      self.driver = self._object( self.conf.get( 'driver_id' ), 'driver', 'DriverImp' )
+      self.log.indent_dec()
 
-    self.log.indent_inc( message = 'construct driver object' )
-    self.driver= self._build_driver()
-    self.log.indent_dec()
+      self.log.indent_inc( message = 'construct repo   object' )
+      self.repo   = self._object( self.conf.get(   'repo_id' ),   'repo',   'RepoImp' )
+      self.log.indent_dec()
 
-    self.log.indent_inc( message = 'construct repo   object' )
-    self.repo  = self._build_repo()
-    self.log.indent_dec()
-
-    self.log.indent_inc( message = 'construct depo   object' )
-    self.depo  = self._build_depo()
-    self.log.indent_dec()
+      self.log.indent_inc( message = 'construct depo   object' )
+      self.depo   = self._object( self.conf.get(   'depo_id' ),   'depo',   'DepoImp' )
+      self.log.indent_dec()
 
     self.log.indent_inc( message = 'open  board' )
     self.board.open()
@@ -278,10 +241,14 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   # 2. close board object
 
   def process_epilogue( self ) :
-    self.log.indent_inc( message = 'close scope' )
-    self.scope.close()
-    self.log.indent_dec()
+    self.log.indent_rst()
 
-    self.log.indent_inc( message = 'close board' )
-    self.board.close()
-    self.log.indent_dec()
+    if( self.scope != None ) :
+      self.log.indent_inc( message = 'close scope' )
+      self.scope.close()
+      self.log.indent_dec()
+
+    if( self.board != None ) :
+      self.log.indent_inc( message = 'close board' )
+      self.board.close()
+      self.log.indent_dec()

@@ -35,20 +35,7 @@ class ScopeType( scope.ScopeAbs ) :
     self.channel_acquire_id = self.scope_spec.get( 'channel_acquire_id' )
     self.channel_disable_id = self.scope_spec.get( 'channel_disable_id' )
 
-  def  open( self ) :
-    self.scope_object = self.api( serialNumber = self.connect_id.encode(), connect = True )
-
-    if ( self.scope_object == None ) :
-      raise Exception( 'failed to open scope' )
-
-    for t in self.scope_object.getAllUnitInfo().split( '\n' ) :
-      self.job.log.info( t )
-
-  def close( self ) :
-    if ( self.scope_object != None ) :
-      self.scope_object.close()
-
-  def calibrate( self, mode, x, resolution = 8, dtype = '<f8' ) :  
+  def calibrate( self, x, mode = scope.CALIBRATE_MODE_DURATION, x, resolution = 8, dtype = '<f8' ) :  
     resolution = sca3s_be.share.util.closest( resolution, self._resolutions() )
 
     if   ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
@@ -75,6 +62,11 @@ class ScopeType( scope.ScopeAbs ) :
       self.scope_object.setResolution( resolution )
   
     # configure channels
+    self.channel_trigger_range     = self.job.board.get_channel_trigger_range()
+    self.channel_trigger_threshold = self.job.board.get_channel_trigger_threshold()
+    self.channel_acquire_range     = self.job.board.get_channel_acquire_range()
+    self.channel_acquire_threshold = self.job.board.get_channel_acquire_threshold()
+
     self.scope_object.setChannel( channel = self.channel_trigger_id, enabled = True, coupling = 'DC', VRange = self.channel_trigger_range )
     self.scope_object.setChannel( channel = self.channel_acquire_id, enabled = True, coupling = 'DC', VRange = self.channel_acquire_range )
   
@@ -93,22 +85,36 @@ class ScopeType( scope.ScopeAbs ) :
 
     return { 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'resolution' : self.signal_resolution, 'type' : self.signal_type, 'length' : self.signal_length }
 
-  def   prepare( self ) :
-    # configure trigger
-    self.scope_object.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.connect_timeout )
+  def   acquire( self,    mode = scope.ACQUIRE_MODE_PRIME | ACQUIRE_MODE_FETCH ) :
+    if ( mode | ACQUIRE_MODE_PRIME ) :
+      # configure trigger
+      self.scope_object.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.connect_timeout )
     
-    # start acquisition
-    self.scope_object.runBlock()
+      # start acquisition
+      self.scope_object.runBlock()
 
-  def   acquire( self ) :
-    # wait for acquisition to complete  
-    self.scope_object.waitReady()
+    if ( mode | ACQUIRE_MODE_FETCH ) :
+      # wait for acquisition to complete  
+      self.scope_object.waitReady()
     
-    # configure buffers, then transfer
-    signal_trigger = self.scope_object.getDataV( channel = self.channel_trigger_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
-    signal_acquire = self.scope_object.getDataV( channel = self.channel_acquire_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
+      # configure buffers, then transfer
+      signal_trigger = self.scope_object.getDataV( channel = self.channel_trigger_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
+      signal_acquire = self.scope_object.getDataV( channel = self.channel_acquire_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
 
-    # stop  acquisition
-    self.scope_object.stop()
+      # stop  acquisition
+      self.scope_object.stop()
 
-    return ( signal_trigger, signal_acquire )
+      return ( signal_trigger, signal_acquire )
+
+  def      open( self ) :
+    self.scope_object = self.api( serialNumber = self.connect_id.encode(), connect = True )
+
+    if ( self.scope_object == None ) :
+      raise Exception( 'failed to open scope' )
+
+    for t in self.scope_object.getAllUnitInfo().split( '\n' ) :
+      self.job.log.info( t )
+
+  def     close( self ) :
+    if ( self.scope_object != None ) :
+      self.scope_object.close()

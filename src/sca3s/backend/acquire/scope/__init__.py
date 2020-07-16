@@ -24,15 +24,17 @@ CALIBRATE_MODE_DURATION  =    2
 RESOLUTION_MIN           =    0
 RESOLUTION_MAX           = 1024
 
+ACQUIRE_MODE_PRIME       = 0x01
+ACQUIRE_MODE_FETCH       = 0x02
+
 class ScopeAbs( abc.ABC ) :
   def __init__( self, job ) :
-    super().__init__()  
-
     self.job                       = job
 
     self.scope_object              = None
     self.scope_id                  = self.job.conf.get( 'scope_id'   )
     self.scope_spec                = self.job.conf.get( 'scope_spec' )
+    self.scope_mode                = self.job.conf.get( 'scope_mode' )
     self.scope_path                = self.job.conf.get( 'scope_path' )
 
     self.channel_trigger_range     = None
@@ -48,21 +50,17 @@ class ScopeAbs( abc.ABC ) :
     self.signal_length             = None
 
   @abc.abstractmethod
-  def  open( self ) :
+  def calibrate( self, x, mode = scope.CALIBRATE_MODE_DURATION, resolution = 8, dtype = '<f8' ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def close( self ) :
+  def   acquire( self,    mode = scope.ACQUIRE_MODE_PRIME | ACQUIRE_MODE_FETCH ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def calibrate( self, mode, x, resolution = 8, dtype = '<f8' ) :
+  def      open( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def   prepare( self ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def   acquire( self ) :
+  def     close( self ) :
     raise NotImplementedError()

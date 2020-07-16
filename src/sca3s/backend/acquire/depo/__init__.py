@@ -19,8 +19,6 @@ import abc
 
 class DepoAbs( abc.ABC ) :
   def __init__( self, job ) :
-    super().__init__()  
-
     self.job       = job
 
     self.depo_id   = self.job.conf.get( 'depo_id'   )

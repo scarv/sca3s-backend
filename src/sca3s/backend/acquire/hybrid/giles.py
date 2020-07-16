@@ -15,23 +15,25 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import os
+from sca3s.backend.acquire import hybrid as hybrid
 
-class BoardImp( board.scale.BoardType ) :
+class HybridImp( hybrid.HybridAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
+  # board
+
   def get_channel_trigger_range( self ) :
-    return   5.0E-0
+    return 1.0E-0
 
   def get_channel_trigger_threshold( self ) :
-    return   2.0E-0
+    return 1.0E-0
 
   def get_channel_acquire_range( self ) :
-    return 500.0E-3
+    return 1.0E-0
 
   def get_channel_acquire_threshold( self ) :
-    return None
+    return 1.0E-0
 
   def get_build_context_vol( self ) :
     return {}
@@ -39,5 +41,33 @@ class BoardImp( board.scale.BoardType ) :
   def get_build_context_env( self ) :
     return {}
 
-  def   program( self ) :  
+  def uart_send( self, x ) :
+    pass
+
+  def uart_recv( self    ) :
+    pass
+
+  def  interact( self, x ) :
+    pass
+
+  def   program( self ) :
+    pass
+
+  # scope
+
+  def calibrate( self, x, mode = None, resolution = 8, dtype = '<f8' ) :
+    pass
+
+  def   prepare( self ) :
+    pass
+
+  def   acquire( self ) :
+    pass
+
+  # hybrid
+
+  def      open( self ) :
+    pass
+
+  def     close( self ) :
     pass

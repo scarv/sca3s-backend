@@ -56,4 +56,4 @@ class DriverImp( driver.DriverAbs ) :
 
     fd.close()
 
-    self.job.run( [ 'gzip', '--quiet', os.path.join( self.job.path, 'acquire.hdf5' ) ] )
+    self.job.exec_native( [ 'gzip', '--quiet', os.path.join( self.job.path, 'acquire.hdf5' ) ] )

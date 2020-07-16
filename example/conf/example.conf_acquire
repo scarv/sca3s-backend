@@ -18,6 +18,7 @@
     "scale_m3" : {
       "board_id"   : "scale/lpc1313fbd48",
       "board_desc" : "description of scale/lpc1313fbd48",
+      "board_mode" :     "interactive",
       "board_spec" : {      
                 "connect_id"      : "/dev/ttyUSB0",
                 "connect_timeout" :             10,
@@ -30,6 +31,7 @@
 
       "scope_id"   : "picoscope/ps2206b",
       "scope_desc" : "description of picoscope/ps2206b",
+      "scope_mode" :     "interactive",
       "scope_spec" : {
                 "connect_id"      :   "FU837/0324",
                 "connect_timeout" :          10000,
@@ -39,6 +41,22 @@
         "channel_disable_id"      : []
       },
       "scope_path" : []
+    },
+    "giles"    : {
+      "board_id"   : "giles",
+      "board_desc" : "description of giles",
+      "board_mode" : "non-interactive",
+      "board_spec" : {      
+      },
+      "board_path" : [ ],
+
+      "scope_id"   : "giles",
+      "scope_desc" : "description of giles",
+      "scope_mode" : "non-interactive",
+      "scope_spec" : {
+      },
+      "scope_path" : []
     }
+
   }
 }

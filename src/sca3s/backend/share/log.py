@@ -23,6 +23,9 @@ class LogAdapter( logging.LoggerAdapter ):
       handler.flush() ; handler.close() 
 
     self.logger.handlers.clear()
+
+  def indent_rst( self, indent = 0 ) :
+    self.indent = indent
       
   def indent_inc( self, level = logging.INFO, n = 1, message = None ) :
     if ( message != None ) :

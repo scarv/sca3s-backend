@@ -19,8 +19,6 @@ import abc
 
 class RepoAbs( abc.ABC ) :
   def __init__( self, job ) :
-    super().__init__()  
-
     self.job       = job
 
     self.repo_id   = self.job.conf.get( 'repo_id'   )

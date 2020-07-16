@@ -47,38 +47,52 @@ CONF = {
       '^.*$' : { 'type' : 'object', 'default' : {},
         'allOf' : [ {
           'oneOf' : [ { # options: board
-            'properties' : {
-               'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc1313fbd48' ] },
-               'board_desc' : { 'type' : 'string'                                    },
+            'properties' : { # scale/lpc1313fbd48
+               'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc1313fbd48' ]             },
+               'board_desc' : { 'type' : 'string'                                                },
+               'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
                'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                         'connect_id'      : { 'type' : 'string'           },
-                         'connect_timeout' : { 'type' : 'number'           },
+                         'connect_id'      : { 'type' : 'string'                                                },
+                         'connect_timeout' : { 'type' : 'number'                                                },
         
-                         'program_id'      : { 'type' : 'string'           },
-                         'program_timeout' : { 'type' : 'number'           },
-                         'program_mode'    : { 'enum' : [ 'usb', 'jlink' ] },
+                         'program_id'      : { 'type' : 'string'                                                },
+                         'program_timeout' : { 'type' : 'number'                                                },
+                         'program_mode'    : { 'type' : 'string', 'enum' : [ 'usb', 'jlink' ]                   },
                }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
+               'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+                 'type' : 'string' 
+               } }
+            }
+          }, {
+            'properties' : { # giles
+               'board_id'   : { 'type' : 'string', 'enum' : [ 'giles' ]                          },
+               'board_desc' : { 'type' : 'string'                                                },
+               'board_mode' : { 'type' : 'string', 'enum' : [                'non-interactive' ] },
+               'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+
+               }, 'required' : [] },
                'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
                  'type' : 'string' 
                } }
             }
           } ] }, {
           'oneOf' : [ { # options: scope
-            'properties' : {
-               'scope_id'   : { 'enum' : [ 'picoscope/ps2206b' ]                     },
-               'scope_desc' : { 'type' : 'string'                                    },
+            'properties' : { # picoscope/ps2206b
+               'scope_id'   : { 'enum' : [ 'picoscope/ps2206b' ]                                 },
+               'scope_desc' : { 'type' : 'string'                                                },
+               'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
                'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
                          'connect_id'      : { 'type' : 'string' },
                          'connect_timeout' : { 'type' : 'number' },
       
                  'channel_trigger_id'      : { 
-                   'enum' : [ 'A', 'B' ] 
+                   'type' : 'string', 'enum' : [ 'A', 'B' ] 
                   },
                  'channel_acquire_id'      : {
-                   'enum' : [ 'A', 'B' ]
+                   'type' : 'string', 'enum' : [ 'A', 'B' ]
                   },
                  'channel_disable_id'      : { 'type' :  'array', 'default' : [], 'items' : {
-                   'enum' : [ 'A', 'B' ]
+                   'type' : 'string', 'enum' : [ 'A', 'B' ]
                  } },
                }, 'required' : [ 'connect_id', 'connect_timeout', 'channel_trigger_id', 'channel_acquire_id' ] },
                'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
@@ -86,23 +100,36 @@ CONF = {
                } }
             }
           }, {
-            'properties' : {
-               'scope_id'   : { 'enum' : [ 'picoscope/ps3406b' ]                     },
-               'scope_desc' : { 'type' : 'string'                                    },
+            'properties' : { # picoscope/ps3406b
+               'scope_id'   : { 'enum' : [ 'picoscope/ps3406b' ]                                 },
+               'scope_desc' : { 'type' : 'string'                                                },
+               'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
                'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
                          'connect_id'      : { 'type' : 'string' },
                          'connect_timeout' : { 'type' : 'number' },
         
                  'channel_trigger_id'      : { 
-                   'enum' : [ 'A', 'B', 'C', 'D' ] 
+                   'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ] 
                   },
                  'channel_acquire_id'      : {
-                   'enum' : [ 'A', 'B', 'C', 'D' ]
+                   'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ]
                   },
                  'channel_disable_id'      : { 'type' :  'array', 'default' : [], 'items' : {
-                   'enum' : [ 'A', 'B', 'C', 'D' ]
+                   'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ]
                  } }
                }, 'required' : [ 'connect_id', 'connect_timeout', 'channel_trigger_id', 'channel_acquire_id' ] },
+               'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+                 'type' : 'string' 
+               } }
+            }
+          }, {
+            'properties' : { # giles
+               'scope_id'   : { 'enum' : [ 'giles' ]                                             },
+               'scope_desc' : { 'type' : 'string'                                                },
+               'scope_mode' : { 'type' : 'string', 'enum' : [                'non-interactive' ] },
+               'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+
+               }, 'required' : [] },
                'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
                  'type' : 'string' 
                } }

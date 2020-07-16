@@ -39,7 +39,7 @@ class BoardImp( board.scale.BoardType ) :
   def get_build_context_env( self ) :
     return { 'JLINK' : self.program_id }
 
-  def program( self ) :  
+  def   program( self ) :  
     target = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
 
     if ( not os.path.isfile( target ) ) :
@@ -52,4 +52,4 @@ class BoardImp( board.scale.BoardType ) :
     else :
       raise Exception( 'unknown programming mode' )
 
-    self.job.run( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_timeout )
+    self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_timeout )

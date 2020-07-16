@@ -19,19 +19,49 @@ import abc
 
 class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
-    super().__init__()  
+    self.job                       = job
 
-    self.job            = job
+    self.board_object              = None
+    self.board_id                  = self.job.conf.get( 'board_id'   )
+    self.board_spec                = self.job.conf.get( 'board_spec' )
+    self.board_mode                = self.job.conf.get( 'board_mode' )
+    self.board_path                = self.job.conf.get( 'board_path' )
 
-    self.board_object   = None
-    self.board_id       = self.job.conf.get( 'board_id'   )
-    self.board_spec     = self.job.conf.get( 'board_spec' )
-    self.board_path     = self.job.conf.get( 'board_path' )
+    self.driver_version            = None
+    self.driver_id                 = None
 
-    self.driver_version = None
-    self.driver_id      = None
+    self.kernel_id                 = None
 
-    self.kernel_id      = None
+  def _inspect( self ) :
+    if   ( self.board_mode ==     'interactive' ) :
+      t = self.interact( '?kernel_id' ).split( ':' )
+  
+      if ( len( t ) != 3 ) :
+        raise Exception( 'unparsable kernel identifier' )
+  
+      self.driver_version = t[ 0 ]
+      self.driver_id      = t[ 1 ]
+  
+      self.kernel_id      = t[ 2 ]
+  
+      self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
+      self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )
+      self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
+  
+      self.kernel_data_i = set( self.job.board.interact( '?kernel_data <' ).split( ',' ) )
+      self.kernel_data_o = set( self.job.board.interact( '?kernel_data >' ).split( ',' ) )
+  
+      self.job.log.info( '?kernel_data -> kernel data  input = %s', self.kernel_data_i  )
+      self.job.log.info( '?kernel_data -> kernel data output = %s', self.kernel_data_o  )
+
+    elif ( self.board_mode == 'non-interactive' ) :
+      self.driver_version = '0.1.0'
+      self.driver_id      = 'block'
+
+      self.kernel_id      = 'enc'
+
+      self.kernel_data_i  = [ 'r', 'k', 'm' ]
+      self.kernel_data_o  = [           'c' ]
 
   @abc.abstractmethod
   def get_channel_trigger_range( self ) :
@@ -58,16 +88,16 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def _uart_send( self, x ) :
+  def uart_send( self, x ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def _uart_recv( self    ) :
+  def uart_recv( self    ) :
     raise NotImplementedError()
 
-  def interact( self, x ) :
+  def  interact( self, x ) :
     sca3s_be.share.sys.log.debug( '> uart : %s', x )
-    self._uart_send( x ) ; t = self._uart_recv()
+    self.uart_send( x ) ; t = self.uart_recv()
     sca3s_be.share.sys.log.debug( '< uart : %s', t )
 
     if   ( t[ 0 ] == '+' ) :
@@ -79,35 +109,14 @@ class BoardAbs( abc.ABC ) :
     else :
       raise Exception( 'board interaction failed => ack=?' )
 
-  def prepare( self ) :
-    t = self.interact( '?kernel_id' ).split( ':' )
-
-    if ( len( t ) != 3 ) :
-      raise Exception( 'unparsable kernel identifier' )
-
-    self.driver_version = t[ 0 ]
-    self.driver_id      = t[ 1 ]
-
-    self.kernel_id      = t[ 2 ]
-
-    self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
-    self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )
-    self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
-
-    self.kernel_data_i = set( self.job.board.interact( '?kernel_data <' ).split( ',' ) )
-    self.kernel_data_o = set( self.job.board.interact( '?kernel_data >' ).split( ',' ) )
-
-    self.job.log.info( '?kernel_data -> kernel data  input = %s', self.kernel_data_i  )
-    self.job.log.info( '?kernel_data -> kernel data output = %s', self.kernel_data_o  )
-
   @abc.abstractmethod
-  def program( self ) :
+  def   program( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def  open( self ) :
+  def      open( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def close( self ) :
+  def     close( self ) :
     raise NotImplementedError()

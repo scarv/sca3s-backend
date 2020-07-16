@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import abc, os, subprocess
+import abc, docker, os, subprocess
 
 class JobAbs( abc.ABC ) :
   def __init__( self, conf, path, log ) :
@@ -18,7 +18,7 @@ class JobAbs( abc.ABC ) :
     self.path    = path
     self.log     = log
 
-  def drain( self, id, lines ) :
+  def _drain( self, id, lines ) :
     lines = lines.decode().split( '\n' )
       
     if ( ( len( lines ) > 0 ) and ( lines[ -1 ] == '' ) ) :
@@ -27,7 +27,7 @@ class JobAbs( abc.ABC ) :
     for line in lines :
       self.log.info( '< %s : %s', id, line )
 
-  def run( self, cmd, env = None, timeout = None, quiet = False, fail = True ) :
+  def exec_native( self, cmd, env = None, timeout = None ) :
     if ( env     == None ) :
       env     =      sca3s_be.share.sys.conf.get( 'env',     section = 'run' )
     if ( timeout == None ) :
@@ -50,8 +50,8 @@ class JobAbs( abc.ABC ) :
       pd = subprocess.run( cmd, cwd = self.path, env = env, timeout = timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 
       if ( not quiet ) :
-        self.drain( 'stdout', pd.stdout )
-        self.drain( 'stderr', pd.stderr )
+        self._drain( 'stdout', pd.stdout )
+        self._drain( 'stderr', pd.stderr )
 
       result = pd.returncode ; result_str = 'success' if ( result == 0 ) else 'failure'
 
@@ -68,6 +68,32 @@ class JobAbs( abc.ABC ) :
       raise Exception( 'failed to complete command execution' )
 
     return ( result == 0 )
+
+  def exec_docker( self, cmd, env = None, vol = None ) :
+    if ( env == None ) :
+      env = dict()
+    if ( vol == None ) :
+      vol = dict()
+
+    image = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board_id' ).replace( '/', '-' ) + ':' + sca3s_be.share.version.VERSION
+
+    env.update( { 'DOCKER_GID' : os.getgid() } )
+    env.update( { 'DOCKER_UID' : os.getuid() } )
+
+    env.update( {    'CONTEXT' : 'native'                                                                                            } )
+    env.update( {      'BOARD' : self.conf.get(  'board_id' )                                                                        } ) 
+    env.update( {     'KERNEL' : self.conf.get( 'driver_id' )                                                                        } )
+    env.update( {       'CONF' : ' '.join( [ '-D' + str( k ) + '=' + '"' + str( v ) + '"' for ( k, v ) in self.repo.conf.items() ] ) } )
+
+    vol.update( { os.path.join( self.path, 'target' ) : { 'bind' : '/mnt/scarv/sca3s/harness', 'mode' : 'rw' } } )
+
+    self.log.info( 'docker image       = %s', image )
+    self.log.info( 'docker environment = %s', env   )
+    self.log.info( 'docker volume      = %s', vol   )
+
+    self.log.indent_inc( message = 'docker build context => %s' % ( cmd ) )
+    self._drain( 'stdout', docker.from_env().containers.run( image, command = cmd, environment = env, volumes = vol, privileged = False, detach = False, auto_remove = True, stdout = True, stderr = True ) )
+    self.log.indent_dec()
 
   @abc.abstractmethod
   def process_prologue( self ) :

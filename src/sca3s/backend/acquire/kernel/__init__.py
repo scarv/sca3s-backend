@@ -19,8 +19,6 @@ import abc
 
 class KernelAbs( abc.ABC ) :
   def __init__( self, func ) :
-    super().__init__()  
-
     self.func = func
 
   @abc.abstractmethod

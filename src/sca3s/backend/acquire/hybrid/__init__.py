@@ -15,13 +15,11 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import os
+from sca3s.backend.acquire import hybrid as hybrid
 
-class RepoImp( repo.RepoAbs ) :
+import abc
+
+class HybridAbs( board.BoardAbs, scope.ScopeAbs ) :
   def __init__( self, job ) :
-    super().__init__( job )
-
-    self.path = self.repo_spec.get( 'path' )
-
-  def transfer( self ) :
-    self.job.exec_native( [ 'cp', '--recursive', self.path, os.path.join( self.job.path, 'target' ) ] )
+    board.BoardAbs.__init__( self, job )
+    scope.ScopeAbs.__init__( self, job )
