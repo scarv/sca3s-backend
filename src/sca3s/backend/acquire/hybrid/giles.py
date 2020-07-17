@@ -39,7 +39,7 @@ class HybridImp( hybrid.HybridAbs ) :
     return {}
 
   def get_build_context_env( self ) :
-    return {}
+    return {} # insert each input data item as definition
 
   def uart_send( self, x ) :
     pass
@@ -54,7 +54,7 @@ class HybridImp( hybrid.HybridAbs ) :
       return self.kernel_io[ x ]
     else :
       if   ( x.startswith( '<data' ) ) :
-        pass
+        pass # insert into database, ready for use
       elif ( x.startswith( '>data' ) ) :
         pass
 
@@ -63,7 +63,7 @@ class HybridImp( hybrid.HybridAbs ) :
       elif ( x == '?kernel_epiloge'  ) :
         pass
       elif ( x == '?kernel'          ) :
-        pass
+        pass # compile and simulate
 
       elif ( x == '?nop'             ) :
         pass
