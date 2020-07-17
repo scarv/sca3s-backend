@@ -48,21 +48,41 @@ class HybridImp( hybrid.HybridAbs ) :
     pass
 
   def  interact( self, x ) :
-    pass
+    print( 'interact: %s' % ( x ) )
+
+    if ( x in self.kernel_io ) :
+      return self.kernel_io[ x ]
+    else :
+      if   ( x.startswith( '<data' ) ) :
+        pass
+      elif ( x.startswith( '>data' ) ) :
+        pass
+
+      elif ( x == '?kernel_prologue' ) :
+        pass
+      elif ( x == '?kernel_epiloge'  ) :
+        pass
+      elif ( x == '?kernel'          ) :
+        pass
+
+      elif ( x == '?nop'             ) :
+        pass
+
 
   def   program( self ) :
     pass
 
   # scope
 
-  def calibrate( self, x, mode = None, resolution = 8, dtype = '<f8' ) :
+  def calibrate( self, x, mode = scope.CALIBRATE_MODE_DURATION, resolution = 8, dtype = '<f8' ) :
     pass
 
-  def   prepare( self ) :
-    pass
+  def   acquire( self,    mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
+    if ( mode | scope.ACQUIRE_MODE_PRIME ) :
+      pass
 
-  def   acquire( self ) :
-    pass
+    if ( mode | scope.ACQUIRE_MODE_FETCH ) :
+      return ( [], [] )
 
   # hybrid
 

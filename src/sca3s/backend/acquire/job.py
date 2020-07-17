@@ -44,28 +44,32 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
   # Prepare the board:
   # 
-  # 1. define parameters
-  #    - construct the image name
-  #    - construct the volume and environment mappings
-  #    - remap volume mappings to reflect configuration (e.g., for Docker-by-Docker)
-  # 2. build
+  # 1. build
   #    - fetch dependencies
   #    - build dependencies
   #    - build
-  # 3. report
-  # 4. program
+  # 2. report  
+  #    - dump  target image structure via, e.g., readelf
+  #    - dump  non-interactive I/O responses
+  #    - parse non-interactive I/O responses
+  # 3. program
+  # 4. prepare
   # 5. clean
 
   def _prepare_board( self ) :
     vol = self.board.get_build_context_vol()
     env = self.board.get_build_context_env()
 
-    self.exec_docker(   'build-harness', env = env, vol = vol )
-    self.exec_docker( 'inspect-harness', env = env, vol = vol )
+    self.exec_docker(  'build-harness', env = env, vol = vol )
+    self.exec_docker( 'report-harness', env = env, vol = vol )
+    self.exec_docker(     'io-harness', env = env, vol = vol )
+
+    self.board.io()
 
     self.board.program()
+    self.board.prepare()
 
-    self.exec_docker(   'clean-harness', env = env, vol = vol )
+    self.exec_docker(  'clean-harness', env = env, vol = vol )
 
   # Prepare the scope:
   # 
@@ -93,11 +97,11 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     if   ( trace_period_id == 'auto'      ) :
       t = self.driver.calibrate( resolution = trace_resolution, dtype = trace_type )
     elif ( trace_period_id == 'interval'  ) :
-      t = self.scope.calibrate( scope.CALIBRATE_MODE_INTERVAL,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+      t = self.scope.calibrate( trace_period_spec, mode = scope.CALIBRATE_MODE_INTERVAL,  resolution = trace_resolution, dtype = trace_type )
     elif ( trace_period_id == 'frequency' ) :
-      t = self.scope.calibrate( scope.CALIBRATE_MODE_FREQUENCY, trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+      t = self.scope.calibrate( trace_period_spec, mode = scope.CALIBRATE_MODE_FREQUENCY, resolution = trace_resolution, dtype = trace_type )
     elif ( trace_period_id == 'duration'  ) :
-      t = self.scope.calibrate( scope.CALIBRATE_MODE_DURATION,  trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+      t = self.scope.calibrate( trace_period_spec, mode = scope.CALIBRATE_MODE_DURATION,  resolution = trace_resolution, dtype = trace_type )
 
     self.log.info( 'conf = %s', t )
 

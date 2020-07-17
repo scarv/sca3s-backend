@@ -54,7 +54,7 @@ class ScopeAbs( abc.ABC ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def   acquire( self,    mode = scope.ACQUIRE_MODE_PRIME | ACQUIRE_MODE_FETCH ) :
+  def   acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
     raise NotImplementedError()
 
   @abc.abstractmethod

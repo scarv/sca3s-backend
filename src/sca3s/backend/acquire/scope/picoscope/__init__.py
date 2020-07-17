@@ -85,7 +85,7 @@ class ScopeType( scope.ScopeAbs ) :
 
     return { 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'resolution' : self.signal_resolution, 'type' : self.signal_type, 'length' : self.signal_length }
 
-  def   acquire( self,    mode = scope.ACQUIRE_MODE_PRIME | ACQUIRE_MODE_FETCH ) :
+  def   acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
     if ( mode | ACQUIRE_MODE_PRIME ) :
       # configure trigger
       self.scope_object.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.connect_timeout )

@@ -33,17 +33,17 @@ class DriverAbs( abc.ABC ) :
   def calibrate( self, resolution = 8, dtype = '<f8' ) :
     l = sca3s_be.share.sys.conf.get( 'timeout', section = 'job' )
 
-    t = self.job.scope.calibrate( self.job.board, scope.CALIBRATE_MODE_DURATION, 1 * l, resolution = resolution, dtype = dtype )
+    t = self.job.scope.calibrate( 1 * l, mode = scope.CALIBRATE_MODE_DURATION, resolution = resolution, dtype = dtype )
 
     self.job.log.info( 'auto-calibration step #1, conf = %s', t )
 
     trace = self.acquire() ; l = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_DURATION, trace[ 'trace/trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval
-    t = self.job.scope.calibrate( self.job.board, scope.CALIBRATE_MODE_DURATION, 2 * l, resolution = resolution, dtype = dtype )
+    t = self.job.scope.calibrate( 2 * l, mode = scope.CALIBRATE_MODE_DURATION, resolution = resolution, dtype = dtype )
 
     self.job.log.info( 'auto-calibration step #2, conf = %s', t )
 
     trace = self.acquire() ; l = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_DURATION, trace[ 'trace/trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval
-    t = self.job.scope.calibrate( self.job.board, scope.CALIBRATE_MODE_DURATION, 1 * l, resolution = resolution, dtype = dtype )
+    t = self.job.scope.calibrate( 1 * l, mode = scope.CALIBRATE_MODE_DURATION, resolution = resolution, dtype = dtype )
 
     self.job.log.info( 'auto-calibration step #3, conf = %s', t )
 

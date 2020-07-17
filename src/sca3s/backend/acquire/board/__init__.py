@@ -15,7 +15,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc
+import abc, os, struct
 
 class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
@@ -31,37 +31,7 @@ class BoardAbs( abc.ABC ) :
     self.driver_id                 = None
 
     self.kernel_id                 = None
-
-  def _inspect( self ) :
-    if   ( self.board_mode ==     'interactive' ) :
-      t = self.interact( '?kernel_id' ).split( ':' )
-  
-      if ( len( t ) != 3 ) :
-        raise Exception( 'unparsable kernel identifier' )
-  
-      self.driver_version = t[ 0 ]
-      self.driver_id      = t[ 1 ]
-  
-      self.kernel_id      = t[ 2 ]
-  
-      self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
-      self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )
-      self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
-  
-      self.kernel_data_i = set( self.job.board.interact( '?kernel_data <' ).split( ',' ) )
-      self.kernel_data_o = set( self.job.board.interact( '?kernel_data >' ).split( ',' ) )
-  
-      self.job.log.info( '?kernel_data -> kernel data  input = %s', self.kernel_data_i  )
-      self.job.log.info( '?kernel_data -> kernel data output = %s', self.kernel_data_o  )
-
-    elif ( self.board_mode == 'non-interactive' ) :
-      self.driver_version = '0.1.0'
-      self.driver_id      = 'block'
-
-      self.kernel_id      = 'enc'
-
-      self.kernel_data_i  = [ 'r', 'k', 'm' ]
-      self.kernel_data_o  = [           'c' ]
+    self.kernel_io                 = dict()
 
   @abc.abstractmethod
   def get_channel_trigger_range( self ) :
@@ -108,6 +78,71 @@ class BoardAbs( abc.ABC ) :
       raise Exception( 'board interaction failed => ack=~' )
     else :
       raise Exception( 'board interaction failed => ack=?' )
+
+  def        io( self ) :
+    fn = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.io' )
+
+    if ( not os.path.isfile( fn ) ) :
+      raise Exception( 'failed to open %s' % ( fn ) )
+
+    fd = open( fn, 'r' )
+
+    for line in fd.readlines() :
+      t = line.split( '=' ) 
+
+      if ( len( t ) != 2 ) :
+        continue
+
+      k = t[ 0 ].strip()
+      v = t[ 1 ].strip()
+        
+      self.kernel_io[ k ] = v
+
+    # produce dummy data for each potential input and output
+
+    def f( x ) :
+      if ( x in self.kernel_io ) :
+        for id in self.kernel_io[ x ].split( ',' ) :
+          if ( ( '?data %s' % ( id ) ) in self.kernel_io ) :
+            n = int( self.kernel_io[ '?data %s' % ( id ) ] )
+
+            self.kernel_io[ '>data %s' % ( id ) ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * n ) )
+            self.kernel_io[ '<data %s' % ( id ) ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * n ) )
+
+    f( '?kernel_data <' )
+    f( '?kernel_data >' )
+
+    # convert integer sizes into octet strings
+
+    for ( k, v ) in self.kernel_io.items() :
+      if ( k.startswith( '?data' ) ) :
+        self.kernel_io[ k ] = sca3s_be.share.util.str2octetstr( struct.pack( '<I', int( v ) ) )
+
+    for ( k, v ) in self.kernel_io.items() :
+      self.job.log.info( 'parsed non-interactive I/O response: %s => %s' % ( k, v ) )
+
+    fd.close()
+
+  def   prepare( self ) :
+    t = self.interact( '?kernel_id' ).split( ':' )
+  
+    if ( len( t ) != 3 ) :
+      raise Exception( 'unparsable kernel identifier' )
+  
+    self.driver_version = t[ 0 ]
+    self.driver_id      = t[ 1 ]
+  
+    self.kernel_id      = t[ 2 ]
+  
+    self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
+    self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )
+    self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
+  
+    self.kernel_data_i = set( self.job.board.interact( '?kernel_data <' ).split( ',' ) )
+    self.kernel_data_o = set( self.job.board.interact( '?kernel_data >' ).split( ',' ) )
+  
+    self.job.log.info( '?kernel_data -> kernel data  input = %s', self.kernel_data_i  )
+    self.job.log.info( '?kernel_data -> kernel data output = %s', self.kernel_data_o  )
 
   @abc.abstractmethod
   def   program( self ) :
