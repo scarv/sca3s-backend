@@ -66,11 +66,11 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
     sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
 
-    if ( self.driver_spec.get( 'verify' ) ) :
+    if ( self.driver_spec.get( 'verify' ) and self.job.board.board_mode == 'interactive' ) :
       t = self.kernel.enc( k, m )
 
       if ( ( t != None ) and ( t != c ) ) :
-        raise Exception( 'failed I/O verification during acquisition => enc( k, m ) != c' )  
+        raise Exception( 'failed I/O verification => enc( k, m ) != c' )  
 
     cycle_enc = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop' )
@@ -107,11 +107,14 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : c = %s', binascii.b2a_hex( c ) )
     sca3s_be.share.sys.log.debug( 'acquire : m = %s', binascii.b2a_hex( m ) )
 
-    if ( self.driver_spec.get( 'verify' ) ) :
+    if ( self.driver_spec.get( 'verify' ) and self.job.board.board_mode == 'interactive' ) :
       t = self.kernel.dec( k, c )
 
       if ( ( t != None ) and ( t != m ) ) :
-        raise Exception( 'failed I/O verification during acquisition => dec( k, c ) != m' )  
+        raise Exception( 'failed I/O verification => dec( k, c ) != m' )  
+
+      elif ( self.job.board.board_mode == 'non-interactive' ) :
+        self.job.log.info( 'skipping non-interactive I/O verification' )
 
     cycle_dec = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
     self.job.board.interact( '!nop' )
@@ -136,6 +139,7 @@ class DriverImp( driver.DriverAbs ) :
     
           ( 'signal_resolution', self.job.scope.signal_resolution, '<u8'                            ),
           ( 'signal_type',       self.job.scope.signal_type,       h5py.special_dtype( vlen = str ) ),
+
           ( 'signal_length',     self.job.scope.signal_length,     '<u8'                            ) ]
     
     for ( k, v, t ) in T :

@@ -47,6 +47,7 @@ class ScopeAbs( abc.ABC ) :
 
     self.signal_resolution         = None
     self.signal_type               = None
+
     self.signal_length             = None
 
   @abc.abstractmethod

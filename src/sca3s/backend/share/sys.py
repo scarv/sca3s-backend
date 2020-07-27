@@ -22,28 +22,31 @@ CONF = {
       'pattern' : { 'type' :  'string', 'default' : 'README.md|sca3s.json|src/kernel/.*'     }
     } },
 
-    'api:instance'      : { 'enum' : [ '1', '2', '*' ], 'default' :                       '*' },
-    'api:url'           : { 'type' :  'string',         'default' : 'https://sca3s.scarv.org' },
+    'api:instance'        : { 'enum' : [ '1', '2', '*' ], 'default' :                       '*' },
+    'api:url'             : { 'type' :  'string',         'default' : 'https://sca3s.scarv.org' },
 
-    'api:retry_wait'    : { 'type' :  'number',         'default' :                         3 },
-    'api:retry_count'   : { 'type' :  'number',         'default' :                         3 },
+    'api:retry_wait'      : { 'type' :  'number',         'default' :                         3 },
+    'api:retry_count'     : { 'type' :  'number',         'default' :                         3 },
 
-    'api:announce_wait' : { 'type' :  'number',         'default' :                       600 },
-    'api:announce_ping' : { 'type' :  'number',         'default' :                         1 },
-    'api:retrieve_wait' : { 'type' :  'number',         'default' :                        30 },
-    'api:retrieve_ping' : { 'type' :  'number',         'default' :                        10 },
+    'api:announce_wait'   : { 'type' :  'number',         'default' :                       600 },
+    'api:announce_ping'   : { 'type' :  'number',         'default' :                         1 },
+    'api:retrieve_wait'   : { 'type' :  'number',         'default' :                        30 },
+    'api:retrieve_ping'   : { 'type' :  'number',         'default' :                        10 },
 
-    'run:env'           : { 'type' :  'object',         'default' :                        {} },
-    'run:timeout'       : { 'type' :  'number',         'default' :                        60 },
+    'exec_native:env'     : { 'type' :  'object',         'default' :                        {} },
+    'exec_native:timeout' : { 'type' :  'number',         'default' :                        60 },
+    'exec_docker:env'     : { 'type' :  'object',         'default' :                        {} },
+    'exec_docker:vol'     : { 'type' :  'object',         'default' :                        {} },
+    'exec_docker:timeout' : { 'type' :  'number',         'default' :                         0 },
   
-    'job:timeout'       : { 'type' :  'number',         'default' :                         1 },
+    'job:timeout'         : { 'type' :  'number',         'default' :                         1 },
 
-    'job:manifest_file' : { 'type' :  'string'                                                },
-    'job:manifest_data' : { 'type' :  'string'                                                },
+    'job:manifest_file'   : { 'type' :  'string'                                                },
+    'job:manifest_data'   : { 'type' :  'string'                                                },
  
-    'job:clean'         : { 'type' : 'boolean',         'default' :                     False },
+    'job:clean'           : { 'type' : 'boolean',         'default' :                     False },
 
-    'job:device_db'     : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
+    'job:device_db'       : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {},
         'allOf' : [ {
           'oneOf' : [ { # options: board

@@ -17,6 +17,8 @@ from sca3s.backend.acquire import depo   as depo
 
 from sca3s.backend.acquire import hybrid as hybrid
 
+import os, trsfile
+
 class HybridImp( hybrid.HybridAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
@@ -33,13 +35,22 @@ class HybridImp( hybrid.HybridAbs ) :
     return 1.0E-0
 
   def get_channel_acquire_threshold( self ) :
-    return 1.0E-0
+    return None
 
-  def get_build_context_vol( self ) :
+  def get_docker_vol ( self ) :
     return {}
 
-  def get_build_context_env( self ) :
-    return {} # insert each input data item as definition
+  def get_docker_env ( self ) :
+    return {}
+
+  def get_docker_conf( self ) :
+    t = [ '-DDRIVER_NONINTERACTIVE' ]
+
+    if ( '?kernel_data >' in self.kernel_io ) :
+      for id in self.kernel_io[ '?kernel_data <' ].split( ',' ) :
+        t.append( '-DKERNEL_INITOF_%s="%s"' % ( id.upper(), ','.join( [ '0x%02X' % ( x ) for x in sca3s_be.share.util.octetstr2str( self.interact( '<data %s' % ( id ) ) ) ] ) ) )
+
+    return t
 
   def uart_send( self, x ) :
     pass
@@ -48,26 +59,44 @@ class HybridImp( hybrid.HybridAbs ) :
     pass
 
   def  interact( self, x ) :
-    print( 'interact: %s' % ( x ) )
+    def get_cached( k    ) :
+      if( not k in self.kernel_io ) :
+        raise Exception( 'unable to respond to non-interactive I/O request: %s' % ( k ) )
 
-    if ( x in self.kernel_io ) :
-      return self.kernel_io[ x ]
-    else :
-      if   ( x.startswith( '<data' ) ) :
-        pass # insert into database, ready for use
-      elif ( x.startswith( '>data' ) ) :
-        pass
+      v = self.kernel_io[ k ] ; return v
 
-      elif ( x == '?kernel_prologue' ) :
-        pass
-      elif ( x == '?kernel_epiloge'  ) :
-        pass
-      elif ( x == '?kernel'          ) :
-        pass # compile and simulate
+    def set_cached( k, v ) :
+      self.kernel_io[ k ] = v ; return v
 
-      elif ( x == '?nop'             ) :
-        pass
+    if   ( x.startswith( '?data'            ) ) :
+      return get_cached( x              )
 
+    elif ( x.startswith( '<data'            ) ) :
+      x = x.split( ' ' )
+      return get_cached( x[ 1 ]         )
+    elif ( x.startswith( '>data'            ) ) :
+      x = x.split( ' ' ) ; 
+      return set_cached( x[ 1 ], x[ 2 ] )
+
+    elif ( x.startswith( '?kernel_id'       ) ) :
+      return get_cached( x              )
+    elif ( x.startswith( '?kernel_data'     ) ) :
+      return get_cached( x              )
+
+    elif ( x.startswith( '!kernel_prologue' ) ) :
+      pass
+    elif ( x.startswith( '!kernel_epiloge'  ) ) :
+      pass
+    elif ( x.startswith( '!kernel'          ) ) :
+      self.job.exec_docker(    'clean-harness', quiet = True )
+      self.job.exec_docker(    'build-harness', quiet = True )
+
+      self.job.exec_docker( 'simulate-harness', quiet = True )
+
+    elif ( x.startswith( '!nop'             ) ) :
+      pass
+
+    return ''
 
   def   program( self ) :
     pass
@@ -75,14 +104,32 @@ class HybridImp( hybrid.HybridAbs ) :
   # scope
 
   def calibrate( self, x, mode = scope.CALIBRATE_MODE_DURATION, resolution = 8, dtype = '<f8' ) :
-    pass
+    self.channel_trigger_range     = self.get_channel_trigger_range()
+    self.channel_trigger_threshold = self.get_channel_trigger_threshold()
+    self.channel_acquire_range     = self.get_channel_acquire_range()
+    self.channel_acquire_threshold = self.get_channel_acquire_threshold()
+
+    self.signal_interval   = 1
+    self.signal_duration   = None
+
+    self.signal_resolution = resolution
+    self.signal_type       = dtype
+
+    self.signal_length     = None
 
   def   acquire( self,    mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
-    if ( mode | scope.ACQUIRE_MODE_PRIME ) :
+    if ( mode & scope.ACQUIRE_MODE_PRIME ) :
       pass
 
-    if ( mode | scope.ACQUIRE_MODE_FETCH ) :
-      return ( [], [] )
+    if ( mode & scope.ACQUIRE_MODE_FETCH ) :
+      fn = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.trs' )
+
+      if ( not os.path.isfile( fn ) ) :
+        raise Exception( 'failed to open %s' % ( fn ) )
+
+      fd = trsfile.open( fn, 'r' ) ; signal = fd[ 0 ] ; fd.close()
+
+      return ( signal, [ self.get_channel_trigger_threshold() ] * len( signal ) )
 
   # hybrid
 

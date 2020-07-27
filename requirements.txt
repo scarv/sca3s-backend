@@ -2,6 +2,7 @@ boto3
 docker
 gitpython
 h5py
+joulescope
 jsonmerge
 jsonschema
 more-itertools
@@ -11,6 +12,7 @@ PyJWT
 pyserial
 requests
 scipy
+trsfile
 numpy
 matplotlib
 

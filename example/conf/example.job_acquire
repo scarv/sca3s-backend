@@ -28,10 +28,7 @@
     "repo_id"      : "git",
     "repo_spec"    : { 
     "url"           : "git@github.com:scarv/sca3s-demo.git",
-    "conf"          : {
-      "foo" : 1,
-      "bar" : 2
-    }
+    "conf"          : [ "-Dfoo=1", "-Dbar=2" ]
   },
 
     "depo_id"      : "s3",

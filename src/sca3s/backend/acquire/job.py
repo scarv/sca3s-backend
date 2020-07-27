@@ -44,32 +44,29 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
   # Prepare the board:
   # 
-  # 1. build
+  # 1. clean
+  # 2. build
   #    - fetch dependencies
   #    - build dependencies
   #    - build
-  # 2. report  
+  # 3. report  
   #    - dump  target image structure via, e.g., readelf
   #    - dump  non-interactive I/O responses
   #    - parse non-interactive I/O responses
-  # 3. program
-  # 4. prepare
-  # 5. clean
+  # 4. program
+  # 5. prepare
 
   def _prepare_board( self ) :
-    vol = self.board.get_build_context_vol()
-    env = self.board.get_build_context_env()
+    self.exec_docker(  'clean-harness' )
+    self.exec_docker(  'build-harness' )
 
-    self.exec_docker(  'build-harness', env = env, vol = vol )
-    self.exec_docker( 'report-harness', env = env, vol = vol )
-    self.exec_docker(     'io-harness', env = env, vol = vol )
+    self.exec_docker( 'report-harness' )
+    self.exec_docker(     'io-harness' )
 
     self.board.io()
 
     self.board.program()
     self.board.prepare()
-
-    self.exec_docker(  'clean-harness', env = env, vol = vol )
 
   # Prepare the scope:
   # 

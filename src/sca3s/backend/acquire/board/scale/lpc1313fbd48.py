@@ -33,13 +33,16 @@ class BoardImp( board.scale.BoardType ) :
   def get_channel_acquire_threshold( self ) :
     return None
 
-  def get_build_context_vol( self ) :
+  def get_docker_vol ( self ) :
     return {}
 
-  def get_build_context_env( self ) :
+  def get_docker_env ( self ) :
     return { 'JLINK' : self.program_id }
 
-  def   program( self ) :  
+  def get_docker_conf( self ) :
+    return []
+
+  def program( self ) :  
     target = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
 
     if ( not os.path.isfile( target ) ) :

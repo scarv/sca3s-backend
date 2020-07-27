@@ -50,11 +50,15 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def get_build_context_vol( self ) :
+  def get_docker_vol ( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def get_build_context_env( self ) :
+  def get_docker_env ( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def get_docker_conf( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
@@ -65,7 +69,7 @@ class BoardAbs( abc.ABC ) :
   def uart_recv( self    ) :
     raise NotImplementedError()
 
-  def  interact( self, x ) :
+  def interact( self, x ) :
     sca3s_be.share.sys.log.debug( '> uart : %s', x )
     self.uart_send( x ) ; t = self.uart_recv()
     sca3s_be.share.sys.log.debug( '< uart : %s', t )
@@ -79,7 +83,7 @@ class BoardAbs( abc.ABC ) :
     else :
       raise Exception( 'board interaction failed => ack=?' )
 
-  def        io( self ) :
+  def io( self ) :
     fn = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.io' )
 
     if ( not os.path.isfile( fn ) ) :
@@ -98,19 +102,19 @@ class BoardAbs( abc.ABC ) :
         
       self.kernel_io[ k ] = v
 
-    # produce dummy data for each potential input and output
+    # dump parsed responses
 
-    def f( x ) :
-      if ( x in self.kernel_io ) :
-        for id in self.kernel_io[ x ].split( ',' ) :
-          if ( ( '?data %s' % ( id ) ) in self.kernel_io ) :
-            n = int( self.kernel_io[ '?data %s' % ( id ) ] )
+    for ( k, v ) in self.kernel_io.items() :
+      self.job.log.info( 'parsed non-interactive I/O response: %s => %s' % ( k, v ) )
 
-            self.kernel_io[ '>data %s' % ( id ) ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * n ) )
-            self.kernel_io[ '<data %s' % ( id ) ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * n ) )
+    # produce dummy data for each potential output (including TSC as a special case)
 
-    f( '?kernel_data <' )
-    f( '?kernel_data >' )
+    if ( '?kernel_data >' in self.kernel_io ) :
+      for id in self.kernel_io[ '?kernel_data >' ].split( ',' ) :
+        if ( ( '?data %s' % ( id ) ) in self.kernel_io ) :
+          self.kernel_io[ id ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * int( self.kernel_io[ '?data %s' % ( id ) ] ) ) )
+
+    self.kernel_io[ 'tsc' ] = '01:00'
 
     # convert integer sizes into octet strings
 
@@ -118,12 +122,13 @@ class BoardAbs( abc.ABC ) :
       if ( k.startswith( '?data' ) ) :
         self.kernel_io[ k ] = sca3s_be.share.util.str2octetstr( struct.pack( '<I', int( v ) ) )
 
-    for ( k, v ) in self.kernel_io.items() :
-      self.job.log.info( 'parsed non-interactive I/O response: %s => %s' % ( k, v ) )
-
     fd.close()
 
-  def   prepare( self ) :
+  @abc.abstractmethod
+  def program( self ) :
+    raise NotImplementedError()
+
+  def prepare( self ) :
     t = self.interact( '?kernel_id' ).split( ':' )
   
     if ( len( t ) != 3 ) :
@@ -145,13 +150,9 @@ class BoardAbs( abc.ABC ) :
     self.job.log.info( '?kernel_data -> kernel data output = %s', self.kernel_data_o  )
 
   @abc.abstractmethod
-  def   program( self ) :
+  def  open( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def      open( self ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def     close( self ) :
+  def close( self ) :
     raise NotImplementedError()

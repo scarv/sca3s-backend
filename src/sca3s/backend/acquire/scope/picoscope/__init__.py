@@ -81,19 +81,20 @@ class ScopeType( scope.ScopeAbs ) :
 
     self.signal_resolution = resolution
     self.signal_type       = dtype
+
     self.signal_length     = samples
 
     return { 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'resolution' : self.signal_resolution, 'type' : self.signal_type, 'length' : self.signal_length }
 
-  def   acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
-    if ( mode | ACQUIRE_MODE_PRIME ) :
+  def acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
+    if ( mode & scope.ACQUIRE_MODE_PRIME ) :
       # configure trigger
       self.scope_object.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.connect_timeout )
     
       # start acquisition
       self.scope_object.runBlock()
 
-    if ( mode | ACQUIRE_MODE_FETCH ) :
+    if ( mode & scope.ACQUIRE_MODE_FETCH ) :
       # wait for acquisition to complete  
       self.scope_object.waitReady()
     
@@ -106,7 +107,7 @@ class ScopeType( scope.ScopeAbs ) :
 
       return ( signal_trigger, signal_acquire )
 
-  def      open( self ) :
+  def  open( self ) :
     self.scope_object = self.api( serialNumber = self.connect_id.encode(), connect = True )
 
     if ( self.scope_object == None ) :
@@ -115,6 +116,6 @@ class ScopeType( scope.ScopeAbs ) :
     for t in self.scope_object.getAllUnitInfo().split( '\n' ) :
       self.job.log.info( t )
 
-  def     close( self ) :
+  def close( self ) :
     if ( self.scope_object != None ) :
       self.scope_object.close()
