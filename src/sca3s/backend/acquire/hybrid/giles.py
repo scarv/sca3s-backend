@@ -103,19 +103,39 @@ class HybridImp( hybrid.HybridAbs ) :
 
   # scope
 
-  def calibrate( self, x, mode = scope.CALIBRATE_MODE_DURATION, resolution = 8, dtype = '<f8' ) :
+  def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :  
+    def mode_duration( x ) :
+      interval = 1
+      duration = x
+
+      return ( interval, duration )
+
+    if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
+      ( interval, duration ) = mode_duration ( self.scope_spec.get( 'acquire_timeout' ) )
+    elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
+      ( interval, duration ) = mode_duration ( value                                    )
+    elif ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
+      raise Exception( 'unsupported calibration mode' )
+    elif ( mode == scope.CALIBRATE_MODE_FREQUENCY ) :
+      raise Exception( 'unsupported calibration mode' )
+
+    samples = duration
+
+    # configure channel
     self.channel_trigger_range     = self.get_channel_trigger_range()
     self.channel_trigger_threshold = self.get_channel_trigger_threshold()
     self.channel_acquire_range     = self.get_channel_acquire_range()
     self.channel_acquire_threshold = self.get_channel_acquire_threshold()
 
-    self.signal_interval   = 1
-    self.signal_duration   = None
-
+    # configure signal
     self.signal_resolution = resolution
-    self.signal_type       = dtype
+    self.signal_dtype      = dtype
 
-    self.signal_length     = None
+    self.signal_interval   = interval
+    self.signal_duration   = duration
+    self.signal_samples    = samples
+
+    return { 'resolution' : self.signal_resolution, 'dtype' : self.signal_dtype, 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'samples' : self.signal_samples }
 
   def   acquire( self,    mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
     if ( mode & scope.ACQUIRE_MODE_PRIME ) :
@@ -127,9 +147,14 @@ class HybridImp( hybrid.HybridAbs ) :
       if ( not os.path.isfile( fn ) ) :
         raise Exception( 'failed to open %s' % ( fn ) )
 
-      fd = trsfile.open( fn, 'r' ) ; signal = fd[ 0 ] ; fd.close()
+      fd = trsfile.open( fn, 'r' ) ; 
 
-      return ( signal, [ self.get_channel_trigger_threshold() ] * len( signal ) )
+      signal_trigger = f( [ self.get_channel_trigger_threshold() ] * len( fd[ 0 ] ) )
+      signal_acquire = f(                                                 fd[ 0 ]   )
+
+      fd.close()
+
+      return ( signal_trigger, signal_acquire )
 
   # hybrid
 

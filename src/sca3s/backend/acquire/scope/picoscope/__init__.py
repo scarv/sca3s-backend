@@ -35,29 +35,55 @@ class ScopeType( scope.ScopeAbs ) :
     self.channel_acquire_id = self.scope_spec.get( 'channel_acquire_id' )
     self.channel_disable_id = self.scope_spec.get( 'channel_disable_id' )
 
-  def calibrate( self, x, mode = scope.CALIBRATE_MODE_DURATION, x, resolution = 8, dtype = '<f8' ) :  
+  def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :  
     resolution = sca3s_be.share.util.closest( resolution, self._resolutions() )
 
-    if   ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
-      interval =     x
-      timebase = self._interval2timebase( resolution, interval )
-      interval = self._timebase2interval( resolution, timebase ) ; duration =         interval * self._maxSamples( resolution )
-  
-    elif ( mode == scope.CALIBRATE_MODE_FREQUENCY ) :
-      interval = 1 / x
-      timebase = self._interval2timebase( resolution, interval )
-      interval = self._timebase2interval( resolution, timebase ) ; duration =         interval * self._maxSamples( resolution )
-  
-    elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
+    def mode_duration ( x ) :
+      if ( x == None ) :
+        raise Exception( 'unsupported calibration mode' )
+
       interval =     x / self._maxSamples( resolution )
       timebase = self._interval2timebase( resolution, interval )
-      interval = self._timebase2interval( resolution, timebase ) ; duration = min( x, interval * self._maxSamples( resolution ) )
+      interval = self._timebase2interval( resolution, timebase ) 
+      duration = min( x, interval * self._maxSamples( resolution ) )
 
-    # configure segments   (if supported)
+      return ( interval, duration )
+
+    def mode_interval ( x ) :
+      if ( x == None ) :
+        raise Exception( 'unsupported calibration mode' )
+
+      interval =     x
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) 
+      duration =         interval * self._maxSamples( resolution )
+
+      return ( interval, duration )
+
+    def mode_frequency( x ) :
+      if ( x == None ) :
+        raise Exception( 'unsupported calibration mode' )
+
+      interval = 1 / x
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) 
+      duration =         interval * self._maxSamples( resolution )
+
+      return ( interval, duration )
+
+    if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
+      ( interval, duration ) = mode_duration ( self.scope_spec.get( 'acquire_timeout' ) )
+    elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
+      ( interval, duration ) = mode_duration ( value                                    )
+    elif ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
+      ( interval, duration ) = mode_interval ( value                                    )
+    elif ( mode == scope.CALIBRATE_MODE_FREQUENCY ) :
+      ( interval, duration ) = mode_frequency( value                                    )   
+
+    # configure segmentation (if supported)
     if ( hasattr( self.scope_object, '_lowLevelMemorySegments'      ) ) :
       self.scope_object.memorySegments( 1 )
-  
-    # configure resolution (if supported)
+    # configure resolution   (if supported)
     if ( hasattr( self.scope_object, '_lowLevelSetDeviceResolution' ) ) :
       self.scope_object.setResolution( resolution )
   
@@ -72,19 +98,18 @@ class ScopeType( scope.ScopeAbs ) :
   
     for channel in self.channel_disable_id :
       self.scope_object.setChannel( channel = channel, enabled = False )
-  
-    # configure timebase
+
     ( _, samples, samples_max ) = self.scope_object.setSamplingInterval( interval, duration )
+  
+    # configure signal
+    self.signal_resolution = resolution
+    self.signal_dtype      = dtype
 
     self.signal_interval   = interval
     self.signal_duration   = duration
+    self.signal_samples    = samples
 
-    self.signal_resolution = resolution
-    self.signal_type       = dtype
-
-    self.signal_length     = samples
-
-    return { 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'resolution' : self.signal_resolution, 'type' : self.signal_type, 'length' : self.signal_length }
+    return { 'resolution' : self.signal_resolution, 'dtype' : self.signal_dtype, 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'samples' : self.signal_samples }
 
   def acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
     if ( mode & scope.ACQUIRE_MODE_PRIME ) :

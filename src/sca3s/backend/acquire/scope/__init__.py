@@ -17,9 +17,10 @@ from sca3s.backend.acquire import depo   as depo
 
 import abc
 
-CALIBRATE_MODE_INTERVAL  =    0
-CALIBRATE_MODE_FREQUENCY =    1
-CALIBRATE_MODE_DURATION  =    2
+CALIBRATE_MODE_DEFAULT   =    0
+CALIBRATE_MODE_DURATION  =    1
+CALIBRATE_MODE_INTERVAL  =    2
+CALIBRATE_MODE_FREQUENCY =    3
 
 RESOLUTION_MIN           =    0
 RESOLUTION_MAX           = 1024
@@ -42,16 +43,15 @@ class ScopeAbs( abc.ABC ) :
     self.channel_acquire_range     = None
     self.channel_acquire_threshold = None
 
+    self.signal_resolution         = None
+    self.signal_dtype              = None
+
     self.signal_interval           = None
     self.signal_duration           = None
-
-    self.signal_resolution         = None
-    self.signal_type               = None
-
-    self.signal_length             = None
+    self.signal_samples            = None
 
   @abc.abstractmethod
-  def calibrate( self, x, mode = scope.CALIBRATE_MODE_DURATION, resolution = 8, dtype = '<f8' ) :
+  def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :
     raise NotImplementedError()
 
   @abc.abstractmethod

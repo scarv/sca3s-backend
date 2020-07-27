@@ -72,7 +72,7 @@ def measure( mode, samples, threshold ) :
       done = False ; edge_neg = i ; break
 
   if   ( mode == MEASURE_MODE_DURATION    ) :
-    return edge_neg - edge_pos
+    return edge_neg - edge_pos + 1
   elif ( mode == MEASURE_MODE_TRIGGER_POS ) :
     return            edge_pos
   elif ( mode == MEASURE_MODE_TRIGGER_NEG ) :

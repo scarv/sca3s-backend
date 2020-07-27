@@ -35,12 +35,11 @@ CONF = {
 
     'exec_native:env'     : { 'type' :  'object',         'default' :                        {} },
     'exec_native:timeout' : { 'type' :  'number',         'default' :                        60 },
+
     'exec_docker:env'     : { 'type' :  'object',         'default' :                        {} },
     'exec_docker:vol'     : { 'type' :  'object',         'default' :                        {} },
     'exec_docker:timeout' : { 'type' :  'number',         'default' :                         0 },
   
-    'job:timeout'         : { 'type' :  'number',         'default' :                         1 },
-
     'job:manifest_file'   : { 'type' :  'string'                                                },
     'job:manifest_data'   : { 'type' :  'string'                                                },
  
@@ -60,7 +59,7 @@ CONF = {
         
                          'program_id'      : { 'type' : 'string'                                                },
                          'program_timeout' : { 'type' : 'number'                                                },
-                         'program_mode'    : { 'type' : 'string', 'enum' : [ 'usb', 'jlink' ]                   },
+                         'program_mode'    : { 'type' : 'string', 'enum' : [ 'usb', 'jlink' ]                   }
                }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
                'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
                  'type' : 'string' 
@@ -88,6 +87,8 @@ CONF = {
                          'connect_id'      : { 'type' : 'string' },
                          'connect_timeout' : { 'type' : 'number' },
       
+                         'acquire_timeout' : { 'type' : 'number' },
+
                  'channel_trigger_id'      : { 
                    'type' : 'string', 'enum' : [ 'A', 'B' ] 
                   },
@@ -110,6 +111,8 @@ CONF = {
                'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
                          'connect_id'      : { 'type' : 'string' },
                          'connect_timeout' : { 'type' : 'number' },
+
+                         'acquire_timeout' : { 'type' : 'number' },
         
                  'channel_trigger_id'      : { 
                    'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ] 
@@ -131,7 +134,7 @@ CONF = {
                'scope_desc' : { 'type' : 'string'                                                },
                'scope_mode' : { 'type' : 'string', 'enum' : [                'non-interactive' ] },
                'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-
+                         'acquire_timeout' : { 'type' : 'number' }
                }, 'required' : [] },
                'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
                  'type' : 'string' 

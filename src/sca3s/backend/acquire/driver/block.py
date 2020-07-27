@@ -134,31 +134,30 @@ class DriverImp( driver.DriverAbs ) :
           ( 'kernel_sizeof_m',   self.kernel.sizeof_m,             '<u8'                            ),
           ( 'kernel_sizeof_c',   self.kernel.sizeof_c,             '<u8'                            ),
 
-          ( 'signal_interval',   self.job.scope.signal_interval,   '<f8'                            ),
-          ( 'signal_duration',   self.job.scope.signal_duration,   '<f8'                            ),
-    
           ( 'signal_resolution', self.job.scope.signal_resolution, '<u8'                            ),
-          ( 'signal_type',       self.job.scope.signal_type,       h5py.special_dtype( vlen = str ) ),
+          ( 'signal_dtype',      self.job.scope.signal_dtype,      h5py.special_dtype( vlen = str ) ),
 
-          ( 'signal_length',     self.job.scope.signal_length,     '<u8'                            ) ]
+          ( 'signal_interval',   self.job.scope.signal_interval,   '<f8'                            ),
+          ( 'signal_duration',   self.job.scope.signal_duration,   '<f8'                            ),  
+          ( 'signal_samples',    self.job.scope.signal_samples,    '<u8'                            ) ]
     
     for ( k, v, t ) in T :
       fd.attrs.create( k, v, dtype = t )
 
   def _hdf5_add_data( self, fd, n ) :
-    T = [ ( 'trace/trigger',  ( n, self.job.scope.signal_length ), self.job.scope.signal_type                       ),
-          ( 'trace/signal',   ( n, self.job.scope.signal_length ), self.job.scope.signal_type                       ),
+    T = [ ( 'trace/trigger',  ( n, self.job.scope.signal_samples ), self.job.scope.signal_dtype                      ),
+          ( 'trace/signal',   ( n, self.job.scope.signal_samples ), self.job.scope.signal_dtype                      ),
    
-          (  'crop/trigger',  ( n,                              ), h5py.special_dtype( ref = h5py.RegionReference ) ),
-          (  'crop/signal',   ( n,                              ), h5py.special_dtype( ref = h5py.RegionReference ) ),
+          (  'crop/trigger',  ( n,                               ), h5py.special_dtype( ref = h5py.RegionReference ) ),
+          (  'crop/signal',   ( n,                               ), h5py.special_dtype( ref = h5py.RegionReference ) ),
    
-          (  'perf/cycle',    ( n,                              ), '<u8'                                            ),
-          (  'perf/duration', ( n,                              ), '<f8'                                            ),
+          (  'perf/cycle',    ( n,                               ), '<u8'                                            ),
+          (  'perf/duration', ( n,                               ), '<f8'                                            ),
    
-          ( 'r',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
-          ( 'k',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
-          ( 'm',              ( n, self.kernel.sizeof_k         ),   'B'                                            ),
-          ( 'c',              ( n, self.kernel.sizeof_k         ),   'B'                                            ) ]
+          ( 'r',              ( n, self.kernel.sizeof_k          ),   'B'                                            ),
+          ( 'k',              ( n, self.kernel.sizeof_k          ),   'B'                                            ),
+          ( 'm',              ( n, self.kernel.sizeof_k          ),   'B'                                            ),
+          ( 'c',              ( n, self.kernel.sizeof_k          ),   'B'                                            ) ]
 
     for ( k, v, t ) in T :
       if ( k in self.trace_content ) :

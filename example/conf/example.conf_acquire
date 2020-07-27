@@ -36,6 +36,8 @@
                 "connect_id"      :   "FU837/0324",
                 "connect_timeout" :          10000,
 
+                "acquire_timeout" :              1,
+
         "channel_trigger_id"      :   "A",
         "channel_acquire_id"      :   "B",
         "channel_disable_id"      : []
@@ -54,6 +56,8 @@
       "scope_desc" : "description of giles",
       "scope_mode" : "non-interactive",
       "scope_spec" : {
+                "acquire_timeout" :          65536
+
       },
       "scope_path" : []
     }
