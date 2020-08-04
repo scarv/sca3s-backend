@@ -149,10 +149,10 @@ class DriverImp( driver.DriverAbs ) :
   # HDF5 file manipulation: add data
 
   def _hdf5_add_data( self, fd, ks, n        ) :
-    T = [ ( 'r', ( n, self.kernel.sizeof_k ), 'B' ),
+    T = [ ( 'r', ( n, self.kernel.sizeof_r ), 'B' ),
           ( 'k', ( n, self.kernel.sizeof_k ), 'B' ),
-          ( 'm', ( n, self.kernel.sizeof_k ), 'B' ),
-          ( 'c', ( n, self.kernel.sizeof_k ), 'B' ) ]
+          ( 'm', ( n, self.kernel.sizeof_m ), 'B' ),
+          ( 'c', ( n, self.kernel.sizeof_c ), 'B' ) ]
 
     self.job.board.hdf5_add_data( fd, ks, n        )
     self.job.scope.hdf5_add_data( fd, ks, n        )
