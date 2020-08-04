@@ -48,7 +48,7 @@ class ScopeType( scope.ScopeAbs ) :
       duration =             interval * self._maxSamples( resolution )  
 
     elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
-      interval =     value                                    / self._maxSamples( resolution )
+      interval =     value                                / self._maxSamples( resolution )
       timebase = self._interval2timebase( resolution, interval )
       interval = self._timebase2interval( resolution, timebase ) 
       duration = min( value, interval * self._maxSamples( resolution ) )
@@ -112,8 +112,8 @@ class ScopeType( scope.ScopeAbs ) :
       self.scope_object.waitReady()
     
       # configure buffers, then transfer
-      signal_trigger = self.scope_object.getDataV( channel = self.channel_trigger_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
-      signal_acquire = self.scope_object.getDataV( channel = self.channel_acquire_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_type ).type )
+      signal_trigger = self.scope_object.getDataV( channel = self.channel_trigger_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_dtype ).type )
+      signal_acquire = self.scope_object.getDataV( channel = self.channel_acquire_id, downSampleMode = self._downSampleMode( PICOSCOPE_DOWNSAMPLE_MODE_NONE ), dtype = numpy.dtype( self.signal_dtype ).type )
 
       # stop  acquisition
       self.scope_object.stop()
