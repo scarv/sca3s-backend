@@ -38,7 +38,10 @@ class ScopeType( scope.ScopeAbs ) :
     self.channel_disable_id = self.scope_spec.get( 'channel_disable_id' )
 
   def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :  
+    print( resolution )
+    print( self._resolutions() )
     resolution = sca3s_be.share.util.closest( self._resolutions(), resolution )
+    print( resolution )
 
     # select configuration
     if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
