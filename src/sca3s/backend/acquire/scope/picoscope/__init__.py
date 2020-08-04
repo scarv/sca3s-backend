@@ -38,24 +38,14 @@ class ScopeType( scope.ScopeAbs ) :
     self.channel_disable_id = self.scope_spec.get( 'channel_disable_id' )
 
   def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :  
-    print( resolution )
-    print( self._resolutions() )
     resolution = sca3s_be.share.util.closest( self._resolutions(), resolution )
-    print( resolution )
 
     # select configuration
     if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
       interval = self.scope_spec.get( 'acquire_timeout' ) / self._maxSamples( resolution )
-      print( interval )
       timebase = self._interval2timebase( resolution, interval )
-      print( timebase )
       interval = self._timebase2interval( resolution, timebase ) 
-      print( '---' )
-      print( interval )
-      print( self._maxSamples( resolution ) )
-      print( interval * self._maxSamples( resolution ) )
-      duration = min( value, interval * self._maxSamples( resolution ) )
-      print( duration )
+      duration =             interval * self._maxSamples( resolution )  
 
     elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
       interval =     value                                    / self._maxSamples( resolution )
