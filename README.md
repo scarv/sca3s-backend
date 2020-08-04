@@ -40,6 +40,7 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
             ├── acquire       - acquire-specific functionality
             │   ├── depo        - depository implementations
             │   ├── board       - board      implementations
+            │   ├── hybrid      - hybrid     implementations (i.e., "merged" board + scope)
             │   ├── scope       - scope      implementations
             │   ├── driver      - driver     implementations
             │   └── repo        - repository implementations
