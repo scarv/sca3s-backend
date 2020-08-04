@@ -21,32 +21,28 @@ class APIAbs( abc.ABC ) :
     self.retry_count = int( sca3s_be.share.sys.conf.get( 'retry_count', section = 'api' ) )
 
   def _request( self, request, url, params = dict(), headers = dict(), json = dict() ) :
-    url = urllib.parse.urljoin( self.url, url )
-       
-    headers = { **headers, 'Authorization' : 'infrastructure' + ' ' + os.environ[ 'INFRASTRUCTURE_TOKEN' ] }
+    url = urllib.parse.urljoin( self.url, url ) ; headers = { **headers, 'Authorization' : 'infrastructure' + ' ' + os.environ[ 'INFRASTRUCTURE_TOKEN' ] }
 
     for i in range( self.retry_count ) :
       response = request( url, params = params, headers = headers, json = json )
 
       if ( response.status_code == 200 ):
-        response = response.json()
+        response = response.json() ; status_code = sca3s_mw.share.status.Status.build( response[ 'status' ] )
 
-        if ( response[ 'status' ] == sca3s_mw.share.status.Status.SUCCESS ) :
+        sca3s_be.share.sys.log.indent_inc( message = 'API request success (%d of %d)' % ( i + 1, self.retry_count ) )
+        sca3s_be.share.sys.log.debug( '> request  = %s( %s, params = %s, headers = %s, json = %s' % ( str( request  ), url, params, headers, json ) )
+        sca3s_be.share.sys.log.debug( '< response = %s'                                           % ( str( response )                             ) )
+        sca3s_be.share.sys.log.indent_dec()
+     
+        if ( status_code == sca3s_mw.share.status.Status.SUCCESS ) :
           return response
         else :
           return None
 
       else :
-        sca3s_be.share.sys.log.indent_inc( message = 'API request failed (%d of %d)' % ( i + 1, self.retry_count ) )
-
-        sca3s_be.share.sys.log.info( 'config: url      = ' + str( url      ) )
-        sca3s_be.share.sys.log.info( 'config: params   = ' + str( params   ) )
-        sca3s_be.share.sys.log.info( 'config: headers  = ' + str( headers  ) )
-        sca3s_be.share.sys.log.info( 'config: json     = ' + str( json     ) )
-
-        sca3s_be.share.sys.log.info( '> request        = ' + str( request  ) )
-        sca3s_be.share.sys.log.info( '< response       = ' + str( response ) )
-
+        sca3s_be.share.sys.log.indent_inc( message = 'API request failure (%d of %d)' % ( i + 1, self.retry_count ) )
+        sca3s_be.share.sys.log.debug( '> request  = %s( %s, params = %s, headers = %s, json = %s' % ( str( request  ), url, params, headers, json ) )
+        sca3s_be.share.sys.log.debug( '< response = %s'                                           % ( str( response )                             ) )
         sca3s_be.share.sys.log.indent_dec()
 
         time.sleep( self.retry_wait )

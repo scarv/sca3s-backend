@@ -125,7 +125,7 @@ def run_mode_api() :
     while( True ) :
       try :
         manifest = api.retrieve()
-    
+
         if ( manifest != None ) :
           ( id, status ) = process( sca3s_be.share.conf.Conf( conf = manifest ) )
   
