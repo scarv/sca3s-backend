@@ -82,7 +82,7 @@ class ScopeAbs( abc.ABC ) :
 
     self.job.log.indent_inc( message = 'auto-calibration step #2' )
 
-    ls = trials( trace_calibrate_trials ) ; l  = max( ls ) ; l = int( ( 2 * l )                                            )
+    ls = trials( trace_calibrate_trials ) ; l  = max( ls ) ; l = ( 2 * l )
     t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
@@ -94,7 +94,7 @@ class ScopeAbs( abc.ABC ) :
 
     self.job.log.indent_inc( message = 'auto-calibration step #3' )
 
-    ls = trials( 1                      ) ; l  = max( ls ) ; l = int( ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l ) )
+    ls = trials( 1                      ) ; l  = max( ls ) ; l = ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l )
     t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )

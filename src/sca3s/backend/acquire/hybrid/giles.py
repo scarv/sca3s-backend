@@ -116,11 +116,11 @@ class HybridImp( hybrid.HybridAbs ) :
       # select configuration
       if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
         interval = 1
-        duration = self.scope_spec.get( 'acquire_timeout' )
+        duration = int( self.scope_spec.get( 'acquire_timeout' ) )
 
       elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
         interval = 1
-        duration = value
+        duration = int( value                                    )
 
       elif ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
         raise Exception( 'unsupported calibration mode' )
