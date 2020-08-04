@@ -46,9 +46,13 @@ class ScopeType( scope.ScopeAbs ) :
     # select configuration
     if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
       interval = self.scope_spec.get( 'acquire_timeout' ) / self._maxSamples( resolution )
+      print( interval )
       timebase = self._interval2timebase( resolution, interval )
+      print( timebase )
       interval = self._timebase2interval( resolution, timebase ) 
+      print( interval )
       duration = min( value, interval * self._maxSamples( resolution ) )
+      print( duration )
 
     elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
       interval =     value                                    / self._maxSamples( resolution )
