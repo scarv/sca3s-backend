@@ -9,6 +9,8 @@ from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import hybrid as hybrid
+
 from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
@@ -91,14 +93,14 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     elif ( trace_resolution_id == 'max'  ) :
       trace_resolution = scope.RESOLUTION_MAX
 
-    if   ( trace_period_id == 'auto'      ) :
-      t = self.driver.calibrate( resolution = trace_resolution, dtype = trace_type )
+    if   ( trace_period_id == 'duration'  ) :
+      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_DURATION,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
     elif ( trace_period_id == 'interval'  ) :
-      t = self.scope.calibrate( trace_period_spec, mode = scope.CALIBRATE_MODE_INTERVAL,  resolution = trace_resolution, dtype = trace_type )
+      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_INTERVAL,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
     elif ( trace_period_id == 'frequency' ) :
-      t = self.scope.calibrate( trace_period_spec, mode = scope.CALIBRATE_MODE_FREQUENCY, resolution = trace_resolution, dtype = trace_type )
-    elif ( trace_period_id == 'duration'  ) :
-      t = self.scope.calibrate( trace_period_spec, mode = scope.CALIBRATE_MODE_DURATION,  resolution = trace_resolution, dtype = trace_type )
+      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_FREQUENCY, value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    elif ( trace_period_id == 'auto'      ) :
+      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_AUTO,                                 resolution = trace_resolution, dtype = trace_type )
 
     self.log.info( 'conf = %s', t )
 
@@ -163,7 +165,12 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     if ( self.conf.get( 'board_id' ) == self.conf.get( 'scope_id' ) ) :
       self.log.indent_inc( message = 'construct hybrid object' )
-      self.hybrid = self._object( self.conf.get(  'board_id' ), 'hybrid', 'HybridImp' ) ; self.board = self.hybrid ; self.scope = self.hybrid
+
+      self.hybrid = self._object( self.conf.get(  'board_id' ), 'hybrid', 'HybridImp' ) 
+
+      self.board  = self.hybrid.get_board() 
+      self.scope  = self.hybrid.get_scope()
+
       self.log.indent_dec()
     
     else :

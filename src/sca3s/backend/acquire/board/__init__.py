@@ -9,13 +9,15 @@ from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import hybrid as hybrid
+
 from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc, os, struct
+import abc, h5py, os, struct
 
 class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
@@ -68,6 +70,32 @@ class BoardAbs( abc.ABC ) :
   @abc.abstractmethod
   def uart_recv( self    ) :
     raise NotImplementedError()
+
+  def hdf5_add_attr( self, fd, ks           ) :
+    T = [ ( 'driver_version', self.driver_version, h5py.special_dtype( vlen = str ) ),
+          ( 'driver_id',      self.driver_id,      h5py.special_dtype( vlen = str ) ),
+
+          ( 'kernel_id',      self.kernel_id,      h5py.special_dtype( vlen = str ) ),
+          ( 'kernel_io',      self.kernel_io,      h5py.special_dtype( vlen = str ) ) ]
+
+    for ( k, v, t ) in T :
+      fd.attrs.create( k, v, dtype = t )
+
+  def hdf5_add_data( self, fd, ks, n        ) :
+    T = [ ( 'perf/cycle',    ( n, ), '<u8' ),
+          ( 'perf/duration', ( n, ), '<f8' ) ]
+
+    for ( k, v, t ) in T :
+      if ( k in ks ) :
+        fd.create_dataset( k, v, t )
+
+  def hdf5_set_data( self, fd, ks, i, trace ) :
+    T = [ ( 'perf/cycle',    lambda trace : trace[ 'perf/cycle'    ] ),
+          ( 'perf/duration', lambda trace : trace[ 'perf/duration' ] ) ]
+
+    for ( k, f ) in T :
+      if ( ( k in ks ) and ( k in trace ) ) :
+        fd[ k ][ i ] = f( trace )
 
   def interact( self, x ) :
     sca3s_be.share.sys.log.debug( '> uart : %s', x )

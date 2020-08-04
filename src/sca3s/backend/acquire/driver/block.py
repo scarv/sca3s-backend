@@ -9,6 +9,8 @@ from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import hybrid as hybrid
+
 from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
@@ -30,6 +32,12 @@ class DriverImp( driver.DriverAbs ) :
 
     self.policy_id     = self.driver_spec.get( 'policy_id'   )
     self.policy_spec   = self.driver_spec.get( 'policy_spec' )
+
+  def _measure( self, trigger ) :
+    edge_lo = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
+    edge_hi = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
+      
+    return ( edge_hi, edge_lo, float( edge_hi - edge_lo ) * self.job.scope.signal_interval )
 
   def _acquire_log_inc( self, i, n, message = None ) :
     width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
@@ -122,64 +130,50 @@ class DriverImp( driver.DriverAbs ) :
 
     ( edge_hi, edge_lo, duration ) = self._measure( trigger )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c }    
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c } 
 
-  def _hdf5_add_attr( self, fd ) :
-    T = [ ( 'driver_version',    self.job.board.driver_version,    h5py.special_dtype( vlen = str ) ),
-          ( 'driver_id',         self.job.board.driver_id,         h5py.special_dtype( vlen = str ) ),
-          ( 'kernel_id',         self.job.board.kernel_id,         h5py.special_dtype( vlen = str ) ),
-
-          ( 'kernel_sizeof_k',   self.kernel.sizeof_k,             '<u8'                            ),
-          ( 'kernel_sizeof_r',   self.kernel.sizeof_r,             '<u8'                            ),
-          ( 'kernel_sizeof_m',   self.kernel.sizeof_m,             '<u8'                            ),
-          ( 'kernel_sizeof_c',   self.kernel.sizeof_c,             '<u8'                            ),
-
-          ( 'signal_resolution', self.job.scope.signal_resolution, '<u8'                            ),
-          ( 'signal_dtype',      self.job.scope.signal_dtype,      h5py.special_dtype( vlen = str ) ),
-
-          ( 'signal_interval',   self.job.scope.signal_interval,   '<f8'                            ),
-          ( 'signal_duration',   self.job.scope.signal_duration,   '<f8'                            ),  
-          ( 'signal_samples',    self.job.scope.signal_samples,    '<u8'                            ) ]
+  # HDF5 file manipulation: add attributes
+   
+  def _hdf5_add_attr( self, fd, ks           ) :
+    T = [ ( 'kernel_sizeof_k', self.kernel.sizeof_k, '<u8' ),
+          ( 'kernel_sizeof_r', self.kernel.sizeof_r, '<u8' ),
+          ( 'kernel_sizeof_m', self.kernel.sizeof_m, '<u8' ),
+          ( 'kernel_sizeof_c', self.kernel.sizeof_c, '<u8' ) ]
     
+    self.job.board.hdf5_add_attr( fd, ks           )
+    self.job.scope.hdf5_add_attr( fd, ks           )
+
     for ( k, v, t ) in T :
       fd.attrs.create( k, v, dtype = t )
 
-  def _hdf5_add_data( self, fd, n ) :
-    T = [ ( 'trace/trigger',  ( n, self.job.scope.signal_samples ), self.job.scope.signal_dtype                      ),
-          ( 'trace/signal',   ( n, self.job.scope.signal_samples ), self.job.scope.signal_dtype                      ),
-   
-          (  'crop/trigger',  ( n,                               ), h5py.special_dtype( ref = h5py.RegionReference ) ),
-          (  'crop/signal',   ( n,                               ), h5py.special_dtype( ref = h5py.RegionReference ) ),
-   
-          (  'perf/cycle',    ( n,                               ), '<u8'                                            ),
-          (  'perf/duration', ( n,                               ), '<f8'                                            ),
-   
-          ( 'r',              ( n, self.kernel.sizeof_k          ),   'B'                                            ),
-          ( 'k',              ( n, self.kernel.sizeof_k          ),   'B'                                            ),
-          ( 'm',              ( n, self.kernel.sizeof_k          ),   'B'                                            ),
-          ( 'c',              ( n, self.kernel.sizeof_k          ),   'B'                                            ) ]
+  # HDF5 file manipulation: add data
+
+  def _hdf5_add_data( self, fd, ks, n        ) :
+    T = [ ( 'r', ( n, self.kernel.sizeof_k ), 'B' ),
+          ( 'k', ( n, self.kernel.sizeof_k ), 'B' ),
+          ( 'm', ( n, self.kernel.sizeof_k ), 'B' ),
+          ( 'c', ( n, self.kernel.sizeof_k ), 'B' ) ]
+
+    self.job.board.hdf5_add_data( fd, ks, n        )
+    self.job.scope.hdf5_add_data( fd, ks, n        )
 
     for ( k, v, t ) in T :
-      if ( k in self.trace_content ) :
+      if ( k in ks ) :
         fd.create_dataset( k, v, t )
  
-  def _hdf5_set_data( self, fd, trace, i ) :
-    T = [ ( 'trace/trigger',  lambda trace : trace[ 'trace/trigger'  ]                                                         ),
-          ( 'trace/signal',   lambda trace : trace[ 'trace/signal'   ]                                                         ),
+  # HDF5 file manipulation: set data
 
-          (  'crop/trigger',  lambda trace :    fd[ 'trace/trigger'  ].regionref[ i, trace[ 'edge/lo' ] : trace[ 'edge/hi' ] ] ),
-          (  'crop/signal',   lambda trace :    fd[ 'trace/signal'   ].regionref[ i, trace[ 'edge/lo' ] : trace[ 'edge/hi' ] ] ),
+  def _hdf5_set_data( self, fd, ks, i, trace ) :
+    T = [ ( 'r', lambda trace : numpy.frombuffer( trace[ 'r' ], dtype = numpy.uint8 ) ),
+          ( 'k', lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 ) ),
+          ( 'm', lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 ) ),
+          ( 'c', lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 ) ) ]
 
-          (  'perf/cycle',    lambda trace : trace[  'perf/cycle'    ]                                                         ),
-          (  'perf/duration', lambda trace : trace[  'perf/duration' ]                                                         ),
-
-          ( 'r',              lambda trace : numpy.frombuffer( trace[ 'r' ], dtype = numpy.uint8 )                             ),
-          ( 'k',              lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 )                             ),
-          ( 'm',              lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 )                             ),
-          ( 'c',              lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 )                             ) ]
+    self.job.board.hdf5_set_data( fd, ks, i, trace )
+    self.job.scope.hdf5_set_data( fd, ks, i, trace )
 
     for ( k, f ) in T :
-      if ( k in self.trace_content ) :
+      if ( k in ks ) :
         fd[ k ][ i ] = f( trace )
 
   # Driver policy: user-driven
@@ -187,13 +181,13 @@ class DriverImp( driver.DriverAbs ) :
   def _policy_user( self, fd ) :
     n   = 1 * self.trace_count
 
-    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
+    self._hdf5_add_attr( fd, self.trace_content ) ; self._hdf5_add_data( fd, self.trace_content, n )
 
     ( k, x ) = self.kernel.policy_user_init( self.policy_spec )
 
     for i in range( n ) :
       self._acquire_log_inc( i, n )
-      self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
+      self._hdf5_set_data( fd, self.trace_content, i, self.acquire( k = k, x = x ) )
       self._acquire_log_dec( i, n )
 
       ( k, x ) = self.kernel.policy_user_iter( self.policy_spec, k, x, i )
@@ -216,13 +210,13 @@ class DriverImp( driver.DriverAbs ) :
     if ( 'tvla/rhs' in self.trace_content ) :
       fd[ 'tvla/rhs' ] = rhs
 
-    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
+    self._hdf5_add_attr( fd, self.trace_content ) ; self._hdf5_add_data( fd, self.trace_content, n )
 
     ( k, x ) = self.kernel.policy_tvla_init_lhs( self.policy_spec )
 
     for i in lhs :
       self._acquire_log_inc( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
+      self._hdf5_set_data( fd, self.trace_content, i, self.acquire( k = k, x = x ) )
       self._acquire_log_dec( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       ( k, x ) = self.kernel.policy_tvla_iter_lhs( self.policy_spec, k, x, i )
@@ -231,7 +225,7 @@ class DriverImp( driver.DriverAbs ) :
 
     for i in rhs :
       self._acquire_log_inc( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, self.acquire( k = k, x = x ), i )
+      self._hdf5_set_data( fd, self.trace_content, i, self.acquire( k = k, x = x ) )
       self._acquire_log_dec( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, k, x, i )

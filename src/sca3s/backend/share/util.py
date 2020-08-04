@@ -55,7 +55,7 @@ def seq2int( x, b, endian = LE ) :
 
   return sum( [ t * ( b ** i ) for ( i, t ) in x ] )
 
-def closest( x, xs ) :
+def closest( xs, x ) :
   return min( xs, key = lambda t : abs( t - x ) )
 
 MEASURE_MODE_DURATION    = 0

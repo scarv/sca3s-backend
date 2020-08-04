@@ -9,6 +9,8 @@ from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import hybrid as hybrid
+
 from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 

@@ -9,6 +9,8 @@ from sca3s import middleware as sca3s_mw
 
 from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
+from sca3s.backend.acquire import hybrid as hybrid
+
 from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
 
@@ -36,49 +38,35 @@ class ScopeType( scope.ScopeAbs ) :
     self.channel_disable_id = self.scope_spec.get( 'channel_disable_id' )
 
   def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :  
-    resolution = sca3s_be.share.util.closest( resolution, self._resolutions() )
+    resolution = sca3s_be.share.util.closest( self._resolutions(), resolution )
 
-    def mode_duration ( x ) :
-      if ( x == None ) :
-        raise Exception( 'unsupported calibration mode' )
-
-      interval =     x / self._maxSamples( resolution )
-      timebase = self._interval2timebase( resolution, interval )
-      interval = self._timebase2interval( resolution, timebase ) 
-      duration = min( x, interval * self._maxSamples( resolution ) )
-
-      return ( interval, duration )
-
-    def mode_interval ( x ) :
-      if ( x == None ) :
-        raise Exception( 'unsupported calibration mode' )
-
-      interval =     x
-      timebase = self._interval2timebase( resolution, interval )
-      interval = self._timebase2interval( resolution, timebase ) 
-      duration =         interval * self._maxSamples( resolution )
-
-      return ( interval, duration )
-
-    def mode_frequency( x ) :
-      if ( x == None ) :
-        raise Exception( 'unsupported calibration mode' )
-
-      interval = 1 / x
-      timebase = self._interval2timebase( resolution, interval )
-      interval = self._timebase2interval( resolution, timebase ) 
-      duration =         interval * self._maxSamples( resolution )
-
-      return ( interval, duration )
-
+    # select configuration
     if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
-      ( interval, duration ) = mode_duration ( self.scope_spec.get( 'acquire_timeout' ) )
+      interval = self.scope_spec.get( 'acquire_timeout' ) / self._maxSamples( resolution )
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) 
+      duration = min( value, interval * self._maxSamples( resolution ) )
+
     elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
-      ( interval, duration ) = mode_duration ( value                                    )
+      interval =     value                                    / self._maxSamples( resolution )
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) 
+      duration = min( value, interval * self._maxSamples( resolution ) )
+
     elif ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
-      ( interval, duration ) = mode_interval ( value                                    )
+      interval =     value
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) 
+      duration =             interval * self._maxSamples( resolution )
+
     elif ( mode == scope.CALIBRATE_MODE_FREQUENCY ) :
-      ( interval, duration ) = mode_frequency( value                                    )   
+      interval = 1 / value
+      timebase = self._interval2timebase( resolution, interval )
+      interval = self._timebase2interval( resolution, timebase ) 
+      duration =             interval * self._maxSamples( resolution )
+
+    elif ( mode == scope.CALIBRATE_MODE_AUTO      ) :
+      return self._calibrate_auto( resolution = resolution, dtype = dtype )
 
     # configure segmentation (if supported)
     if ( hasattr( self.scope_object, '_lowLevelMemorySegments'      ) ) :
