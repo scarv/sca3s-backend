@@ -50,7 +50,10 @@ class ScopeType( scope.ScopeAbs ) :
       timebase = self._interval2timebase( resolution, interval )
       print( timebase )
       interval = self._timebase2interval( resolution, timebase ) 
+      print( '---' )
       print( interval )
+      print( self._maxSamples( resolution ) )
+      print( interval * self._maxSamples( resolution ) )
       duration = min( value, interval * self._maxSamples( resolution ) )
       print( duration )
 
