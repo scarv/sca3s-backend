@@ -173,7 +173,7 @@ class DriverImp( driver.DriverAbs ) :
     self.job.scope.hdf5_set_data( fd, ks, i, trace )
 
     for ( k, f ) in T :
-      if ( k in ks ) :
+      if ( ( k in ks ) and ( k in trace ) ) :
         fd[ k ][ i ] = f( trace )
 
   # Driver policy: user-driven
