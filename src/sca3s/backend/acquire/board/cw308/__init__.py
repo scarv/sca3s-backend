@@ -47,7 +47,7 @@ class BoardType( board.BoardAbs ) :
     return r
 
   def  open( self ) :
-    self.board_object = serial.Serial( port = self.connect_id, timeout = self.connect_timeout, baudrate =  9600, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE )
+    self.board_object = serial.Serial( port = self.connect_id, timeout = self.connect_timeout, baudrate = 38400, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE )
 
     if ( self.board_object == None ) :
       raise Exception( 'failed to open board' )
