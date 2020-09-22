@@ -19,7 +19,7 @@ from sca3s.backend.acquire import depo   as depo
 
 import os
 
-class BoardImp( board.scale.BoardType ) :
+class BoardImp( board.cw308.BoardType ) :
   def __init__( self, job ) :
     super().__init__( job )
 

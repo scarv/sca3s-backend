@@ -49,6 +49,18 @@ CONF = {
       '^.*$' : { 'type' : 'object', 'default' : {},
         'allOf' : [ {
           'oneOf' : [ { # options: board
+            'properties' : { # giles
+               'board_id'   : { 'type' : 'string', 'enum' : [ 'giles' ]                          },
+               'board_desc' : { 'type' : 'string'                                                },
+               'board_mode' : { 'type' : 'string', 'enum' : [                'non-interactive' ] },
+               'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+
+               }, 'required' : [] },
+               'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+                 'type' : 'string' 
+               } }
+            }
+          }, {
             'properties' : { # scale/lpc1313fbd48
                'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc1313fbd48' ]             },
                'board_desc' : { 'type' : 'string'                                                },
@@ -59,20 +71,42 @@ CONF = {
         
                          'program_id'      : { 'type' : 'string'                                                },
                          'program_timeout' : { 'type' : 'number'                                                },
-                         'program_mode'    : { 'type' : 'string', 'enum' : [ 'usb', 'jlink' ]                   }
+                         'program_mode'    : { 'type' : 'string', 'enum' : [ 'jlink', 'usb' ]                   }
                }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
                'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
                  'type' : 'string' 
                } }
             }
           }, {
-            'properties' : { # giles
-               'board_id'   : { 'type' : 'string', 'enum' : [ 'giles' ]                          },
+            'properties' : { # cw308/stm32f071rbt6
+               'board_id'   : { 'type' : 'string', 'enum' : [ 'cw308/stm32f071rbt6' ]            },
                'board_desc' : { 'type' : 'string'                                                },
-               'board_mode' : { 'type' : 'string', 'enum' : [                'non-interactive' ] },
+               'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
                'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-
-               }, 'required' : [] },
+                         'connect_id'      : { 'type' : 'string'                                                },
+                         'connect_timeout' : { 'type' : 'number'                                                },
+        
+                         'program_id'      : { 'type' : 'string'                                                },
+                         'program_timeout' : { 'type' : 'number'                                                },
+                         'program_mode'    : { 'type' : 'string', 'enum' : [ 'jlink' ]                          }
+               }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
+               'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+                 'type' : 'string' 
+               } }
+            }
+          }, {
+            'properties' : { # cw308/stm32f405rgt6
+               'board_id'   : { 'type' : 'string', 'enum' : [ 'cw308/stm32f405rgt6' ]            },
+               'board_desc' : { 'type' : 'string'                                                },
+               'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
+               'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                         'connect_id'      : { 'type' : 'string'                                                },
+                         'connect_timeout' : { 'type' : 'number'                                                },
+        
+                         'program_id'      : { 'type' : 'string'                                                },
+                         'program_timeout' : { 'type' : 'number'                                                },
+                         'program_mode'    : { 'type' : 'string', 'enum' : [ 'jlink' ]                          }
+               }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
                'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
                  'type' : 'string' 
                } }
