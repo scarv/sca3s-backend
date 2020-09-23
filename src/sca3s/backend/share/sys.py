@@ -161,16 +161,16 @@ CONF = {
     }
   },
   'type' : 'object', 'default' : {}, 'properties' : {
-    'path:job'          : { 'type' :  'string',         'default' : tempfile.tempdir },
-    'path:log'          : { 'type' :  'string',         'default' : tempfile.tempdir },
+    'path:job'            : { 'type' :  'string',                             'default' : tempfile.tempdir          },
+    'path:log'            : { 'type' :  'string',                             'default' : tempfile.tempdir          },
 
-    'security:creds'    : { 'type' :  'object',         'default' : {}               },
-
-    'security:template' : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
+    'security:template'   : { 'type' :  'object',                             'default' : {}, 'patternProperties' : {
           'url' : { 'type' :  'string', 'default' : 'git@github.com/scarv/sca3s-harness.git' },
           'tag' : { 'type' :  'string', 'default' : 'master'                                 },
       'pattern' : { 'type' :  'string', 'default' : 'README.md|sca3s.json|src/kernel/.*'     }
     } },
+
+    'security:creds'      : { 'type' :  'object',                             'default' :                        {} },
 
     'api:instance'        : { 'type' :  'string', 'enum' : [ '1', '2', '*' ], 'default' :                       '*' },
     'api:url'             : { 'type' :  'string',                             'default' : 'https://sca3s.scarv.org' },
