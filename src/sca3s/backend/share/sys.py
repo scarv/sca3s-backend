@@ -11,7 +11,7 @@ import argparse, logging, os, sys, tempfile
 
 CONF = {
   'definitions' : {
-    'board:giles'              : { # giles
+    'board:giles'               : { # board: giles
       'properties' : { 
         'board_id'   : { 'type' : 'string', 'enum' : [ 'giles' ]                          },
         'board_desc' : { 'type' : 'string'                                                },
@@ -24,7 +24,7 @@ CONF = {
         } }
       }
     }, 
-    'board:scale-lpc1313fbd48' : { # scale/lpc1313fbd48
+    'board:scale-lpc1313fbd48'  : { # board: scale/lpc1313fbd48
       'properties' : { 
         'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc1313fbd48' ]             },
         'board_desc' : { 'type' : 'string'                                                },
@@ -42,7 +42,7 @@ CONF = {
         } }
       }
     }, 
-    'board:cw308-stm32f071rbt6' : { # cw308/stm32f071rbt6
+    'board:cw308-stm32f071rbt6' : { # board: cw308/stm32f071rbt6
       'properties' : { 
         'board_id'   : { 'type' : 'string', 'enum' : [ 'cw308/stm32f071rbt6' ]            },
         'board_desc' : { 'type' : 'string'                                                },
@@ -60,7 +60,7 @@ CONF = {
         } }
       }
     },
-    'board:cw308-stm32f405rgt6' : { # cw308/stm32f405rgt6
+    'board:cw308-stm32f405rgt6' : { # board: cw308/stm32f405rgt6
       'properties' : { 
         'board_id'   : { 'type' : 'string', 'enum' : [ 'cw308/stm32f405rgt6' ]            },
         'board_desc' : { 'type' : 'string'                                                },
@@ -78,7 +78,7 @@ CONF = {
         } }
       }
     },
-    'scope:giles'               : { # giles
+    'scope:giles'               : { # scope: giles
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'giles' ]                                             },
         'scope_desc' : { 'type' : 'string'                                                },
@@ -91,7 +91,7 @@ CONF = {
         } }
       }
     },
-    'scope:picoscope-ps2206b'   : { # picoscope/ps2206b
+    'scope:picoscope-ps2206b'   : { # scope: picoscope/ps2206b
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'picoscope/ps2206b' ]                                 },
         'scope_desc' : { 'type' : 'string'                                                },
@@ -117,7 +117,7 @@ CONF = {
         } }
       }
     }, 
-    'scope:picoscope-ps3406b'   : { # picoscope/ps3406b
+    'scope:picoscope-ps3406b'   : { # scope: picoscope/ps3406b
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'picoscope/ps3406b' ]                                 },
         'scope_desc' : { 'type' : 'string'                                                },
@@ -142,6 +142,22 @@ CONF = {
           'type' : 'string' 
         } }
       }
+    },
+    'scope:joulescope-js110'    : { # scope: joulescope/js110
+      'properties' : { 
+        'scope_id'   : { 'enum' : [ 'joulescope/js110' ]                                  },
+        'scope_desc' : { 'type' : 'string'                                                },
+        'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
+        'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                  'connect_id'      : { 'type' : 'string' },
+                  'connect_timeout' : { 'type' : 'number' },
+
+                  'acquire_timeout' : { 'type' : 'number' }
+        }, 'required' : [] },
+        'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+          'type' : 'string' 
+        } }
+      }
     }
   },
   'type' : 'object', 'default' : {}, 'properties' : {
@@ -156,30 +172,30 @@ CONF = {
       'pattern' : { 'type' :  'string', 'default' : 'README.md|sca3s.json|src/kernel/.*'     }
     } },
 
-    'api:instance'        : { 'enum' : [ '1', '2', '*' ], 'default' :                       '*' },
-    'api:url'             : { 'type' :  'string',         'default' : 'https://sca3s.scarv.org' },
+    'api:instance'        : { 'type' :  'string', 'enum' : [ '1', '2', '*' ], 'default' :                       '*' },
+    'api:url'             : { 'type' :  'string',                             'default' : 'https://sca3s.scarv.org' },
 
-    'api:retry_wait'      : { 'type' :  'number',         'default' :                         3 },
-    'api:retry_count'     : { 'type' :  'number',         'default' :                         3 },
+    'api:retry_wait'      : { 'type' :  'number',                             'default' :                         3 },
+    'api:retry_count'     : { 'type' :  'number',                             'default' :                         3 },
 
-    'api:announce_wait'   : { 'type' :  'number',         'default' :                       600 },
-    'api:announce_ping'   : { 'type' :  'number',         'default' :                         1 },
-    'api:retrieve_wait'   : { 'type' :  'number',         'default' :                        30 },
-    'api:retrieve_ping'   : { 'type' :  'number',         'default' :                        10 },
+    'api:announce_wait'   : { 'type' :  'number',                             'default' :                       600 },
+    'api:announce_ping'   : { 'type' :  'number',                             'default' :                         1 },
+    'api:retrieve_wait'   : { 'type' :  'number',                             'default' :                        30 },
+    'api:retrieve_ping'   : { 'type' :  'number',                             'default' :                        10 },
 
-    'exec_native:env'     : { 'type' :  'object',         'default' :                        {} },
-    'exec_native:timeout' : { 'type' :  'number',         'default' :                        60 },
+    'exec_native:env'     : { 'type' :  'object',                             'default' :                        {} },
+    'exec_native:timeout' : { 'type' :  'number',                             'default' :                        60 },
 
-    'exec_docker:env'     : { 'type' :  'object',         'default' :                        {} },
-    'exec_docker:vol'     : { 'type' :  'object',         'default' :                        {} },
-    'exec_docker:timeout' : { 'type' :  'number',         'default' :                         0 },
-  
-    'job:manifest_file'   : { 'type' :  'string'                                                },
-    'job:manifest_data'   : { 'type' :  'string'                                                },
+    'exec_docker:env'     : { 'type' :  'object',                             'default' :                        {} },
+    'exec_docker:vol'     : { 'type' :  'object',                             'default' :                        {} },
+    'exec_docker:timeout' : { 'type' :  'number',                             'default' :                         0 },
  
-    'job:clean'           : { 'type' : 'boolean',         'default' :                     False },
-
-    'job:device_db'       : { 'type' :  'object',         'default' : {}, 'patternProperties' : {
+    'job:clean'           : { 'type' : 'boolean',                             'default' :                     False },
+ 
+    'job:manifest_file'   : { 'type' :  'string'                                                                    },
+    'job:manifest_data'   : { 'type' :  'string'                                                                    },
+ 
+    'job:device_db'       : { 'type' :  'object',                             'default' : {}, 'patternProperties' : {
       '^.*$' : { 'type' : 'object', 'default' : {},
         'allOf' : [ {
           'oneOf' : [ 
@@ -192,7 +208,8 @@ CONF = {
           'oneOf' : [ 
             { '$ref' : '#/definitions/scope:giles'               },
             { '$ref' : '#/definitions/scope:picoscope-ps2206b'   },
-            { '$ref' : '#/definitions/scope:picoscope-ps3406b'   }
+            { '$ref' : '#/definitions/scope:picoscope-ps3406b'   },
+            { '$ref' : '#/definitions/scope:joulescope-js110'    }
           ] 
         } ],
         'required' : [ 'board_id', 'board_desc', 'board_spec', 'scope_id', 'scope_desc', 'scope_spec' ]
