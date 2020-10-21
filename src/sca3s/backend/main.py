@@ -109,10 +109,10 @@ def run_mode_api() :
         api.announce()
 
         if ( api_term ) :
-          sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
+          sca3s_be.share.sys.log.info( 'announce thread: handled SIG{ABRT,TERM} => terminating' ) ; return
 
         if ( ( ping % api_announce_ping ) == 0 ) :
-          sca3s_be.share.sys.log.info( 'activity ping: announce thread' )
+          sca3s_be.share.sys.log.info( 'announce thread: activity ping' )
 
         ping += 1 ; time.sleep( api_announce_wait )
 
@@ -133,10 +133,10 @@ def run_mode_api() :
             api.complete( id, status = status )
     
         if ( api_term ) :
-          sca3s_be.share.sys.log.info( 'handled SIGABRT or SIGTERM: terminating' ) ; return
+          sca3s_be.share.sys.log.info( 'retrieve thread: handled SIG{ABRT,TERM} => terminating' ) ; return
 
         if ( ( ping % api_retrieve_ping ) == 0 ) :
-          sca3s_be.share.sys.log.info( 'activity ping: retrieve thread' )
+          sca3s_be.share.sys.log.info( 'retrieve thread: activity ping' )
     
         ping += 1 ; time.sleep( api_retrieve_wait )
   
