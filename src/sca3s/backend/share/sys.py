@@ -143,6 +143,32 @@ CONF = {
         } }
       }
     },
+    'scope:picoscope-ps5444b'   : { # scope: picoscope/ps5444b
+      'properties' : { 
+        'scope_id'   : { 'enum' : [ 'picoscope/ps5444b' ]                                 },
+        'scope_desc' : { 'type' : 'string'                                                },
+        'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
+        'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                  'connect_id'      : { 'type' : 'string' },
+                  'connect_timeout' : { 'type' : 'number' },
+
+                  'acquire_timeout' : { 'type' : 'number' },
+        
+          'channel_trigger_id'      : { 
+            'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ] 
+           },
+          'channel_acquire_id'      : {
+            'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ]
+           },
+          'channel_disable_id'      : { 'type' :  'array', 'default' : [], 'items' : {
+            'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ]
+          } }
+        }, 'required' : [ 'connect_id', 'connect_timeout', 'channel_trigger_id', 'channel_acquire_id' ] },
+        'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+          'type' : 'string' 
+        } }
+      }
+    },
     'scope:joulescope-js110'    : { # scope: joulescope/js110
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'joulescope/js110' ]                                  },
@@ -209,6 +235,7 @@ CONF = {
             { '$ref' : '#/definitions/scope:giles'               },
             { '$ref' : '#/definitions/scope:picoscope-ps2206b'   },
             { '$ref' : '#/definitions/scope:picoscope-ps3406b'   },
+            { '$ref' : '#/definitions/scope:picoscope-ps5444b'   },
             { '$ref' : '#/definitions/scope:joulescope-js110'    }
           ] 
         } ],
