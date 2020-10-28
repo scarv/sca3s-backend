@@ -191,9 +191,9 @@ CONF = {
     'path:log'            : { 'type' :  'string',                             'default' : tempfile.tempdir          },
 
     'security:template'   : { 'type' :  'object',                             'default' : {}, 'patternProperties' : {
-          'url' : { 'type' :  'string', 'default' : 'git@github.com/scarv/sca3s-harness.git' },
-          'tag' : { 'type' :  'string', 'default' : 'master'                                 },
-      'pattern' : { 'type' :  'string', 'default' : 'README.md|sca3s.json|src/kernel/.*'     }
+          'url' : { 'type' :  'string', 'default' : 'https://github.com/scarv/sca3s-harness.git'                             },
+          'tag' : { 'type' :  'string', 'default' : 'master'                                                                 },
+      'pattern' : { 'type' :  'string', 'default' : '^README.md$|^sca3s.json$|^src/sca3s/harness/kernel/.*/kernel_imp.[ch]$' }
     } },
 
     'security:creds'      : { 'type' :  'object',                             'default' :                        {} },
