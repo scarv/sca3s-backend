@@ -52,7 +52,7 @@ class ScopeImp( scope.picoscope.ScopeType ) :
       if   ( x <   2.0e-9 ) :
         t = 1
       elif ( x <   8.0e-9 ) :
-        t = math.log( ( x - 0 ) *   1.0e9, 2 )
+        t = math.log( x *   1.0e9, 2 ) + 0
       else :
         t = ( x * 125.0e6 ) + 2
 
@@ -60,23 +60,19 @@ class ScopeImp( scope.picoscope.ScopeType ) :
       if   ( x <   4.0e-9 ) :
         t = 2
       elif ( x <  16.0e-9 ) :
-        t = math.log( ( x - 1 ) * 500.0e6, 2 )
+        t = math.log( x * 500.0e6, 2 ) + 1
       else :
         t = ( x *  62.5e6 ) + 3
 
     elif ( resolution == 14 ) :
-      if   ( x <   8.0e-9 ) :
+      if   ( x <  16.0e-9 ) :
         t = 3
-      elif ( x <  16.0e-9 ) :
-        t = 1 / 125.0e6
       else :
         t = ( x * 125.0e6 ) + 2
 
     elif ( resolution == 15 ) :
-      if   ( x <   8.0e-9 ) :
+      if   ( x <  16.0e-9 ) :
         t = 3
-      elif ( x <  16.0e-9 ) :
-        t = 1 / 125.0e6
       else :
         t = ( x * 125.0e6 ) + 2
 
@@ -84,9 +80,32 @@ class ScopeImp( scope.picoscope.ScopeType ) :
 
   def _timebase2interval( self, resolution, x ) :
     if   ( resolution ==  8 ) :
+      if   ( x <  2 ) :
+        t = 2.0e-9
+      elif ( x <  3 ) :
+        t = math.pow( 2, x - 0 ) /   1.0e9
+      else :
+        t = ( x - 2 ) / 125.0e6
+
     elif ( resolution == 12 ) :
+      if   ( x <  2 ) :
+        t = 4.0e-9
+      elif ( x <  3 ) :
+        t = math.pow( 2, x - 1 ) / 500.0e6
+      else :
+        t = ( x - 3 ) /  62.5e6
+
     elif ( resolution == 14 ) :
+      if   ( x <  4 ) :
+        t = 1 / 125.0e6
+      else :
+        t = ( x - 2 ) / 125.0e6
+
     elif ( resolution == 15 ) :
+      if   ( x <  4 ) :
+        t = 1 / 125.0e6
+      else :
+        t = ( x - 2 ) / 125.0e6
 
     return        t
 

@@ -30,7 +30,6 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
 ```
 ├── bin                     - scripts (e.g., environment configuration)
 ├── build                   - working directory for build
-├── example                 - working directory for example configuration(s) and data
 ├── extern                  - external resources (e.g., submodules)
 │   ├── sca3s-middleware      - submodule: scarv/sca3s-middleware
 │   └── wiki                  - submodule: scarv/sca3s-backend.wiki
