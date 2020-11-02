@@ -73,7 +73,7 @@ class ScopeType( scope.ScopeAbs ) :
       self.scope_object.memorySegments( 1 )
     # configure resolution   (if supported)
     if ( hasattr( self.scope_object, '_lowLevelSetDeviceResolution' ) ) :
-      self.scope_object.setResolution( resolution )
+      self.scope_object.setResolution( str( resolution ) )
   
     # configure channels
     self.channel_trigger_range     = self.job.board.get_channel_trigger_range()
