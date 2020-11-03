@@ -78,11 +78,11 @@ class ScopeAbs( abc.ABC ) :
 
     self.job.log.indent_dec()
 
-    # step #2: n *   wide trials
+    # step #2: 1 *   wide trial
 
     self.job.log.indent_inc( message = 'auto-calibration step #2: wide   trial(s)' )
 
-    ls = trials( trace_calibrate_trials ) ; l  = max( ls ) ; l = ( 2 * l )
+    ls = trials( 1                      ) ; l  = max( ls ) ; l = ( 2 * l )
     t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
@@ -90,11 +90,11 @@ class ScopeAbs( abc.ABC ) :
 
     self.job.log.indent_dec()
 
-    # step #3: 1 * narrow trials + margin
+    # step #3: n * narrow trials + margin
 
     self.job.log.indent_inc( message = 'auto-calibration step #3: narrow trial(s)' )
 
-    ls = trials( 1                      ) ; l  = max( ls ) ; l = ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l )
+    ls = trials( trace_calibrate_trials ) ; l  = max( ls ) ; l = ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l )
     t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
