@@ -72,11 +72,11 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   def hdf5_add_attr( self, fd, ks           ) :
-    T = [ ( 'driver_version', self.driver_version, h5py.special_dtype( vlen = str ) ),
-          ( 'driver_id',      self.driver_id,      h5py.special_dtype( vlen = str ) ),
+    T = [ ( 'driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
+          ( 'driver_id',      str( self.driver_id      ), h5py.special_dtype( vlen = str ) ),
 
-          ( 'kernel_id',      self.kernel_id,      h5py.special_dtype( vlen = str ) ),
-          ( 'kernel_io',      self.kernel_io,      h5py.special_dtype( vlen = str ) ) ]
+          ( 'kernel_id',      str( self.kernel_id      ), h5py.special_dtype( vlen = str ) ),
+          ( 'kernel_io',      str( self.kernel_io      ), h5py.special_dtype( vlen = str ) ) ]
 
     for ( k, v, t ) in T :
       fd.attrs.create( k, v, dtype = t )

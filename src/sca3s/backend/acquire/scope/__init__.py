@@ -105,12 +105,12 @@ class ScopeAbs( abc.ABC ) :
     return t
 
   def hdf5_add_attr( self, fd, ks           ) :
-    T = [ ( 'signal_resolution', self.signal_resolution, '<u8'                            ),
-          ( 'signal_dtype',      self.signal_dtype,      h5py.special_dtype( vlen = str ) ),
+    T = [ ( 'signal_resolution',    ( self.signal_resolution ), '<u8'                            ),
+          ( 'signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) ),
 
-          ( 'signal_interval',   self.signal_interval,   '<f8'                            ),
-          ( 'signal_duration',   self.signal_duration,   '<f8'                            ),  
-          ( 'signal_samples',    self.signal_samples,    '<u8'                            ) ]
+          ( 'signal_interval',      ( self.signal_interval   ), '<f8'                            ),
+          ( 'signal_duration',      ( self.signal_duration   ), '<f8'                            ),  
+          ( 'signal_samples',       ( self.signal_samples    ), '<u8'                            ) ]
 
     for ( k, v, t ) in T :
       fd.attrs.create( k, v, dtype = t )
