@@ -7,14 +7,6 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-from sca3s.backend.acquire import board  as board
-from sca3s.backend.acquire import scope  as scope
-from sca3s.backend.acquire import kernel as kernel
-from sca3s.backend.acquire import driver as driver
-
-from sca3s.backend.acquire import repo   as repo
-from sca3s.backend.acquire import depo   as depo
-
 import requests, urllib.parse
 
 class APIImp( sca3s_be.share.api.APIAbs ):
@@ -22,15 +14,19 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     super().__init__()  
 
   def retrieve( self ):
-    params = dict()
+    json = {}
 
-    if ( self.instance != '*' ) :
-      params[ 'queue' ] = instance
-
-    return self._request( requests.get, 'api/analyse/job', params = params )
+    return self._request( requests.get,   urllib.parse.urljoin( 'api/analyse/job'          ), json = json )
 
   def complete( self, job_id, status = None ):
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/analyse/job/', job_id ), json = { 'status' : status } )
+    json = { 'status' : status }
+
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/analyse/job/', job_id ), json = json )
 
   def announce( self ):
-    return self._request( requests.post, 'api/analyse/advertise' )
+    json = {}
+
+    if ( self.instance != '*' ) :
+      json[ 'queue' ] = self.instance
+
+    return self._request( requests.post,  urllib.parse.urljoin( 'api/analyse/advertise'    ), json = json )

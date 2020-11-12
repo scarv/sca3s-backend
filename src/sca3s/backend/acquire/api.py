@@ -23,21 +23,25 @@ class APIImp( sca3s_be.share.api.APIAbs ):
   def __init__( self ) :
     super().__init__()  
 
-  def _device_db( self ) :
-    db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
-
-    return { k : { v : db[ k ][ v ] for v in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] } for k in db.keys() }
-
   def retrieve( self ):
-    params = { 'device_db' : self._device_db() }
+    json = {}
 
-    if ( self.instance != '*' ) :
-      params[ 'queue' ] = instance
-
-    return self._request( requests.get, 'api/acquire/job', params = params )
+    return self._request( requests.get,   urllib.parse.urljoin( 'api/acquire/job'          ), json = json )
 
   def complete( self, job_id, status = None ):
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job/', job_id ), json = { 'status' : status } )
+    json = { 'status' : status }
+
+    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job/', job_id ), json = json )
 
   def announce( self ):
-    return self._request( requests.post, 'api/acquire/advertise', json = self._device_db() )
+    json = {}
+
+    if ( self.instance != '*' ) :
+      json[ 'queue' ] = self.instance
+
+    json[ 'device_db' ] = dict()
+
+    for ( device_id, device_spec ) in sca3s_be.share.sys.conf.get( 'device_db', section = 'job' ).items() :
+      json[ 'device_db' ][ device_id ] = { k : device_spec[ k ] for k in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] }
+
+    return self._request( requests.post,  urllib.parse.urljoin( 'api/acquire/advertise'    ), json = json )
