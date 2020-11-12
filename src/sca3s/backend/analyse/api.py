@@ -14,19 +14,22 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     super().__init__()  
 
   def retrieve( self ):
+    url  =                       'api/analyse/job'
     json = {}
 
-    return self._request( requests.get,   urllib.parse.urljoin( 'api/analyse/job'          ), json = json )
+    return self._request( requests.get,   url, json = json )
 
   def complete( self, job_id, status = None ):
+    url  = urllib.parse.urljoin( 'api/analyse/job/', job_id )
     json = { 'status' : status }
 
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/analyse/job/', job_id ), json = json )
+    return self._request( requests.patch, url, json = json )
 
   def announce( self ):
+    url  =                       'api/analyse/advertise'
     json = {}
 
     if ( self.instance != '*' ) :
       json[ 'queue' ] = self.instance
 
-    return self._request( requests.post,  urllib.parse.urljoin( 'api/analyse/advertise'    ), json = json )
+    return self._request( requests.post,  url, json = json )

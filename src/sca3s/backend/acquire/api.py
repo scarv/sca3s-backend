@@ -24,16 +24,19 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     super().__init__()  
 
   def retrieve( self ):
+    url  =                       'api/acquire/job'
     json = {}
 
-    return self._request( requests.get,   urllib.parse.urljoin( 'api/acquire/job'          ), json = json )
+    return self._request( requests.get,   url, json = json )
 
   def complete( self, job_id, status = None ):
+    url  = urllib.parse.urljoin( 'api/acquire/job/', job_id )
     json = { 'status' : status }
 
-    return self._request( requests.patch, urllib.parse.urljoin( 'api/acquire/job/', job_id ), json = json )
+    return self._request( requests.patch, url, json = json )
 
   def announce( self ):
+    url  =                       'api/acquire/advertise'
     json = {}
 
     if ( self.instance != '*' ) :
@@ -44,4 +47,4 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     for ( device_id, device_spec ) in sca3s_be.share.sys.conf.get( 'device_db', section = 'job' ).items() :
       json[ 'device_db' ][ device_id ] = { k : device_spec[ k ] for k in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] }
 
-    return self._request( requests.post,  urllib.parse.urljoin( 'api/acquire/advertise'    ), json = json )
+    return self._request( requests.post,  url, json = json )
