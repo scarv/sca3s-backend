@@ -31,7 +31,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
 
   def complete( self, job_id, status = None ):
     url  = urllib.parse.urljoin( 'api/acquire/job/', job_id )
-    json = { 'status' : status }
+    json = { 'status' : status.hex() }
 
     return self._request( requests.patch, url, json = json )
 
