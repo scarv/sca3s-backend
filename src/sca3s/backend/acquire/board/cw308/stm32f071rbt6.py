@@ -51,7 +51,7 @@ class BoardImp( board.cw308.BoardType ) :
       raise Exception( 'failed to open target program' )
 
     if   ( self.program_mode == 'jlink' ) :
-      cmd = [ 'openocd', '--file', 'interface/jlink.cfg', '--command', 'jlink serial %s' % ( self.program_id ), '--command', 'transport select swd', '--file', 'target/stm32f0x.cfg', '--command', 'init', '--command', 'targets', '--command', 'halt', '--command', 'flash write_image erase %s' % ( target ), '--command', 'verify_image %s' % ( target ), '--command', 'reset run', '--command', 'shutdown' ]
+      cmd = [ 'openocd', '--file', 'interface/jlink.cfg', '--command', 'jlink serial %s' % ( self.program_id ), '--command', 'transport select swd', '--file', 'target/stm32f0x.cfg', '--command', 'init', '--command', 'targets', '--command', 'halt', '--command', 'flash write_image erase %s' % ( target ), '--command', 'reset run', '--command', 'shutdown' ]
     else :
       raise Exception( 'unknown programming mode' )
 
