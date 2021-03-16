@@ -119,19 +119,19 @@ class ScopeAbs( abc.ABC ) :
     T = [ ( 'trace/trigger',  ( n, self.signal_samples ), self.signal_dtype ),
           ( 'trace/signal',   ( n, self.signal_samples ), self.signal_dtype ),
    
-          (  'crop/trigger',  ( n,                     ), h5py.special_dtype( ref = h5py.RegionReference ) ),
-          (  'crop/signal',   ( n,                     ), h5py.special_dtype( ref = h5py.RegionReference ) ) ]
+          (  'crop/trigger',  ( n,                     ), h5py.regionref_dtype ),
+          (  'crop/signal',   ( n,                     ), h5py.regionref_dtype ) ]
 
     for ( k, v, t ) in T :
       if ( k in ks ) :
         fd.create_dataset( k, v, t )
 
   def hdf5_set_data( self, fd, ks, i, trace ) :
-    T = [ ( 'trace/trigger',  lambda trace : trace[ 'trace/trigger' ]                                                         ),
-          ( 'trace/signal',   lambda trace : trace[ 'trace/signal'  ]                                                         ),
+    T = [ ( 'trace/trigger',  lambda trace : trace[ 'trace/trigger' ]                                                           ),
+          ( 'trace/signal',   lambda trace : trace[ 'trace/signal'  ]                                                           ),
 
-          (  'crop/trigger',  lambda trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/lo' ] : trace[ 'edge/hi' ] ] ),
-          (  'crop/signal',   lambda trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/lo' ] : trace[ 'edge/hi' ] ] ) ]
+          (  'crop/trigger',  lambda trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ),
+          (  'crop/signal',   lambda trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) ]
 
     def resize( xs, n ) :
       if   ( len( xs ) <  n ) :
@@ -145,13 +145,13 @@ class ScopeAbs( abc.ABC ) :
       trace[ 'trace/trigger' ] = resize( trace[ 'trace/trigger' ], self.signal_samples     )
     if ( 'trace/signal'  in trace ) :
       trace[ 'trace/signal'  ] = resize( trace[ 'trace/signal'  ], self.signal_samples     )
-    if ( 'edge/hi'       in trace ) :
-      trace[ 'edge/hi'      ] =     min( trace[ 'edge/hi'       ], self.signal_samples - 1 )
-    if ( 'edge/lo'       in trace ) :
-      trace[ 'edge/lo'      ] =     min( trace[ 'edge/lo'       ], self.signal_samples - 1 )
+    if ( 'edge/pos'      in trace ) :
+      trace[ 'edge/pos'      ] =    min( trace[ 'edge/pos'      ], self.signal_samples - 1 )
+    if ( 'edge/neg'      in trace ) :
+      trace[ 'edge/neg'      ] =    min( trace[ 'edge/neg'      ], self.signal_samples - 1 )
 
     for ( k, f ) in T :
-      if ( ( k in ks ) and ( k in trace ) ) :
+      if ( k in ks ) :
         fd[ k ][ i ] = f( trace )
 
   @abc.abstractmethod

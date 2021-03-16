@@ -34,10 +34,10 @@ class DriverImp( driver.DriverAbs ) :
     self.policy_spec   = self.driver_spec.get( 'policy_spec' )
 
   def _measure( self, trigger ) :
-    edge_lo = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
-    edge_hi = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
+    edge_pos = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
+    edge_neg = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
       
-    return ( edge_hi, edge_lo, float( edge_hi - edge_lo ) * self.job.scope.signal_interval )
+    return ( edge_pos, edge_neg, float( edge_neg - edge_pos ) * self.job.scope.signal_interval )
 
   def _acquire_log_inc( self, i, n, message = None ) :
     width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
@@ -84,9 +84,9 @@ class DriverImp( driver.DriverAbs ) :
     self.job.board.interact( '!nop' )
     cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
 
-    ( edge_hi, edge_lo, duration ) = self._measure( trigger )
+    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c }
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c }
 
   def _acquire_dec( self, r = None, k = None, c = None ) :
     if ( r == None ) :
@@ -128,9 +128,9 @@ class DriverImp( driver.DriverAbs ) :
     self.job.board.interact( '!nop' )
     cycle_nop = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data tsc' ) ), 2 ** 8 )
 
-    ( edge_hi, edge_lo, duration ) = self._measure( trigger )
+    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/hi' : edge_hi, 'edge/lo' : edge_lo, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c } 
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c } 
 
   # HDF5 file manipulation: add attributes
    

@@ -45,6 +45,8 @@ def process( manifest ) :
     sca3s_be.share.sys.log.info( 'process job: process'  )
 
     try :    
+      job.log.banner()
+
       job.process_prologue()
       job.process()
   

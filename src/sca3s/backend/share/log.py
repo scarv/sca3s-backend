@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import logging, logging.handlers, os, sys
+import art, cowpy, logging, logging.handlers, os, sys
 
 TYPE_SYS = 0
 TYPE_JOB = 1
@@ -27,17 +27,40 @@ class LogAdapter( logging.LoggerAdapter ):
   def indent_rst( self, indent = 0 ) :
     self.indent = indent
       
-  def indent_inc( self, level = logging.INFO, n = 1, message = None ) :
+  def indent_inc( self, level = logging.INFO, message = None, n = 1 ) :
     if ( message != None ) :
       self.log( level, message )
 
     self.indent = min( 10, self.indent + n )
       
-  def indent_dec( self, level = logging.INFO, n = 1, message = None ) :
+  def indent_dec( self, level = logging.INFO, message = None, n = 1 ) :
     self.indent = max(  0, self.indent - n )
       
     if ( message != None ) :
       self.log( level, message )
+
+  def banner( self, level = logging.INFO ) :
+    n = 0 ; lines = art.text2art( 'SCA3S', font = 'assalt_m' )
+  
+    for line in lines.split( '\n' ) :
+      line = line.rstrip()
+    
+      if ( line != '' ) :
+        self.log( level, line ) ; n = max( n, len( line ) )
+  
+    self.log( level, '' )
+    self.log( level, ( 'Side-Channel Analysis As A Service' ).center( n, ' ' ) )
+    self.log( level, (     'https://sca3s.scarv.org'        ).center( n, ' ' ) )
+    self.log( level, '' )
+  
+  def cowsay( self, message, level = logging.INFO, eyes = 'default', tongue = False ) :
+    n = 0 ; lines = cow.Moose( eyes = eyes, tongue = tongue ).milk( message )
+  
+    for line in lines.split( '\n' ) :
+      line = line.rstrip()
+    
+      if ( line != '' ) :
+        self.log( level, line ) ; n = max( n, len( line ) )
 
   def log( self, level, message, *args, **kwargs ):
     if ( self.logger.isEnabledFor( level ) ) :
@@ -62,7 +85,7 @@ class LogAdapter( logging.LoggerAdapter ):
 #    - output produced by adaptor that supports indentation and replacement
 #    - threshold fixed to avoid any debug-level output
 #
-# in a given path, with a file name matching the backend task.
+# in a given path, with a file name matching the task.
 
 def build_log( type, path, id = None, replace = dict() ) :
   name = sca3s_be.share.sys.conf.get( 'task', section = 'sys' ) + '.log'

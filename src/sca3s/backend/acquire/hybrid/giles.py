@@ -161,8 +161,8 @@ class HybridImp( hybrid.HybridAbs ) :
   
         fd = trsfile.open( fn, 'r' ) ; n = len( fd[ 0 ] )
   
-        signal_trigger = numpy.array( [ 0 ] * len( fd[ 0 ] ), dtype = self.signal_dtype )
-        signal_acquire = numpy.array(            ( fd[ 0 ] ), dtype = self.signal_dtype )
+        signal_trigger = numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd[ 0 ] ), dtype = self.signal_dtype )
+        signal_acquire = numpy.array(                                                   ( fd[ 0 ] ), dtype = self.signal_dtype )
   
         fd.close()
   

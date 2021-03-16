@@ -94,7 +94,7 @@ class BoardAbs( abc.ABC ) :
           ( 'perf/duration', lambda trace : trace[ 'perf/duration' ] ) ]
 
     for ( k, f ) in T :
-      if ( ( k in ks ) and ( k in trace ) ) :
+      if ( k in ks ) :
         fd[ k ][ i ] = f( trace )
 
   def interact( self, x ) :
