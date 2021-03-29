@@ -187,6 +187,10 @@ CONF = {
     }
   },
   'type' : 'object', 'default' : {}, 'properties' : {
+    'version:major'       : { 'type' :  'string',                             'default' : '0'                       },
+    'version:minor'       : { 'type' :  'string',                             'default' : '0'                       },
+    'version:patch'       : { 'type' :  'string',                             'default' : '0'                       },
+
     'path:job'            : { 'type' :  'string',                             'default' : tempfile.tempdir          },
     'path:log'            : { 'type' :  'string',                             'default' : tempfile.tempdir          },
 
@@ -256,7 +260,6 @@ def init() :
   parser = argparse.ArgumentParser( add_help = False )
   
   parser.add_argument( '--sys:help',          action =    'help'                                                                               )
-  parser.add_argument( '--sys:version',       action = 'version',                                     version = sca3s_be.share.version.VERSION )
   parser.add_argument( '--sys:debug',         action =   'count',                                     default = 0                              )
 
   parser.add_argument( '--sys:conf',          action =   'store', type = str                                                                   )

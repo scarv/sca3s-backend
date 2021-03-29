@@ -9,8 +9,31 @@ from sca3s import middleware as sca3s_mw
 
 import os
 
-VERSION_MAJOR = os.environ[ 'REPO_VERSION_MAJOR' ]
-VERSION_MINOR = os.environ[ 'REPO_VERSION_MINOR' ]
-VERSION_PATCH = os.environ[ 'REPO_VERSION_PATCH' ]
+MAJOR = 0x01
+MINOR = 0x02
+PATCH = 0x04
 
-VERSION       = os.environ[ 'REPO_VERSION'       ]
+def ident() :
+  x  = str( sca3s_be.share.sys.conf.get( 'major', section = 'version' ) )
+  x += '.'
+  x += str( sca3s_be.share.sys.conf.get( 'minor', section = 'version' ) )
+  x += '.'
+  x += str( sca3s_be.share.sys.conf.get( 'patch', section = 'version' ) )
+
+  return x
+
+def match( x, y = None, pattern = MAJOR | MINOR ) :
+  if ( y == None ) :
+    y = ident()
+
+  x = x.split( '.' )
+  y = y.split( '.' )
+
+  if ( ( pattern & MAJOR ) and ( x[ 0 ] != y[ 0 ] ) ) :
+    return False
+  if ( ( pattern & MINOR ) and ( x[ 1 ] != y[ 1 ] ) ) :
+    return False
+  if ( ( pattern & PATCH ) and ( x[ 2 ] != y[ 2 ] ) ) :
+    return False
+
+  return True

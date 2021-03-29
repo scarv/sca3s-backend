@@ -25,8 +25,8 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     self.user_id     = int( self.conf.get( 'user_id'      ) )
 
-    self.job_version =      self.conf.get(  'job_version' )
     self.job_id      =      self.conf.get(  'job_id'      )
+    self.job_version =      self.conf.get(  'job_version' )
 
     self.board       = None
     self.scope       = None

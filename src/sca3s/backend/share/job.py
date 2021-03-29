@@ -77,7 +77,7 @@ class JobAbs( abc.ABC ) :
     if ( timeout == None ) :
       timeout =  int( sca3s_be.share.sys.conf.get( 'timeout', section = 'exec_docker' ) )
 
-    image = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board_id' ).replace( '/', '-' ) + ':' + sca3s_be.share.version.VERSION
+    image = 'scarv' + '/' + 'sca3s-harness' + '.' + self.conf.get( 'board_id' ).replace( '/', '-' ) + ':' + sca3s_be.share.version.ident()
 
     # board-specific environment
     env.update( self.board.get_docker_env() )

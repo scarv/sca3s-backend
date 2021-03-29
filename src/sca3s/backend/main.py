@@ -16,10 +16,15 @@ def process( manifest ) :
     sca3s_be.share.sys.log.info( 'process job: prologue' )
 
     try :
-      if ( manifest.has(    'job_id' ) ) :
-        id = manifest.get( 'job_id' )
-      else :
+      if ( not manifest.has( 'job_id'      ) ) :
         raise Exception( 'job manifest has no identifier' )
+      if ( not manifest.has( 'job_version' ) ) :
+        raise Exception( 'job manifest has no version'    )
+
+      id = manifest.get( 'job_id' )
+
+      if ( not sca3s_be.share.version.match( manifest.get( 'job_version' ) ) ) :
+        raise Exception( 'mismatched manifest version' )
 
       db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
     

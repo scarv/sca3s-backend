@@ -246,9 +246,9 @@ class DriverImp( driver.DriverAbs ) :
   # 4. check the model supports whatever policy is selected
 
   def prepare( self ) : 
-    if ( self.job.board.driver_version != sca3s_be.share.version.VERSION ) :
+    if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
       raise Exception( 'mismatched driver version'    )
-    if ( self.job.board.driver_id      != 'block'                        ) :
+    if ( self.job.board.driver_id != 'block' ) :
       raise Exception( 'mismatched driver identifier' )
 
     ( kernel_nameof, kernel_typeof ) = self.job.board.kernel_id.split( '/' )
