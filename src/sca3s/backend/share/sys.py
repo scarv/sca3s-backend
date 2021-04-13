@@ -323,8 +323,8 @@ CONF = {
             { '$ref' : '#/definitions/board:scale-lpc1313fbd48'   },
             { '$ref' : '#/definitions/board:cw308-stm32f071rbt6'  },
             { '$ref' : '#/definitions/board:cw308-stm32f405rgt6'  },
-            { '$ref' : '#/definitions/board:sasebo-scale-riscv'   },
-            { '$ref' : '#/definitions/board:sasebo-scale-xcrypto' }
+            { '$ref' : '#/definitions/board:sasebo-scarv-riscv'   },
+            { '$ref' : '#/definitions/board:sasebo-scarv-xcrypto' }
           ] 
         }, {
           'oneOf' : [ 
