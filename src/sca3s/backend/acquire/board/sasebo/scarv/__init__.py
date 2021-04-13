@@ -29,6 +29,10 @@ class BoardType( board.BoardAbs ) :
     self.program_sw_timeout = int( self.board_spec.get( 'program_sw_timeout' ) )
     self.program_sw_mode    =      self.board_spec.get( 'program_sw_mode'    )
 
+    self.program_hw_id      =      self.board_spec.get( 'program_hw_id'      )
+    self.program_hw_timeout = int( self.board_spec.get( 'program_hw_timeout' ) )
+    self.program_hw_mode    =      self.board_spec.get( 'program_hw_mode'    )
+
   def  open( self ) :
     self.board_uart = self.uart_open( self.uart_id, self.uart_timeout, self.uart_mode )
 

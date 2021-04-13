@@ -19,7 +19,7 @@ from sca3s.backend.acquire import depo   as depo
 
 import os
 
-class BoardImp( board.scale.BoardType ) :
+class BoardImp( board.cw308.BoardType ) :
   def __init__( self, job ) :
     super().__init__( job )
 
@@ -30,7 +30,7 @@ class BoardImp( board.scale.BoardType ) :
     return   2.0e-0
 
   def get_channel_acquire_range( self ) :
-    return 500.0e-3
+    return 100.0e-3
 
   def get_channel_acquire_threshold( self ) :
     return None
@@ -45,7 +45,20 @@ class BoardImp( board.scale.BoardType ) :
     return []
 
   def program_hw( self ) :  
-    pass
+    fn_tcl = os.path.join( self.job.path, 'target', 'src', 'sca3s', 'harness', 'board', self.board_id, 'fpga.tcl' )
+    fn_bit = os.path.join( self.job.path, 'target', 'src', 'sca3s', 'harness', 'board', self.board_id, 'fpga.bit' )
+
+    if ( not os.path.isfile( fn_tcl ) ) :
+      raise Exception( 'failed to open file' )
+    if ( not os.path.isfile( fn_bit ) ) :
+      raise Exception( 'failed to open file' )
+
+    if   ( self.config_mode == 'jtag' ) :
+      cmd = [ 'vivado', '-mode', 'tcl', '-nolog', '-nojournal', '-source', fn_tcl, '-tclargs', self.config_id, fn_bit ]
+    else :
+      raise Exception( 'unsupported programming mode' )
+
+    self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.config_timeout )
 
   def program_sw( self ) :  
     fn_hex = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
@@ -53,20 +66,11 @@ class BoardImp( board.scale.BoardType ) :
     if ( not os.path.isfile( fn_hex ) ) :
       raise Exception( 'failed to open file' )
 
-    if   ( self.program_sw_mode == 'jlink' ) :
-      cmd = [ 'openocd', '--file',    'interface/jlink.cfg', 
-                         '--command', 'jlink serial %s' % ( self.program_sw_id ), 
-                         '--command', 'transport select swd', 
-                         '--file',    'target/lpc13xx.cfg', 
-                         '--command', 'init', 
-                         '--command', 'targets', 
-                         '--command', 'halt', 
-                         '--command', 'flash write_image erase %s' % ( fn_hex ), 
-                         '--command', 'reset run', 
-                         '--command', 'shutdown' ]
-    elif ( self.program_sw_mode == 'uart'  ) :
-      cmd = [ 'lpc21isp', '-wipe', fn_hex, self.program_sw_id, '9600', '12000' ]
+    if   ( self.upload_mode == 'uart' ) :
+      if ( str( self.board_uart.readline(), encoding = 'ascii' ) != 'scarv-soc fsbl\n' ) :
+        raise Exception( 'cannot parse FSBL prompt' )
+
+      # write binary to UART
+      #./bin/upload-program.py --baud 128000 /dev/ttyUSB0 ~/share/target.bin 0x20000000
     else :
       raise Exception( 'unsupported programming mode' )
-
-    self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_sw_timeout )

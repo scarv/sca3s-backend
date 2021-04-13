@@ -17,17 +17,18 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc, h5py, os, struct
+import abc, h5py, os, serial, struct
 
 class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
     self.job                       = job
 
-    self.board_object              = None
     self.board_id                  = self.job.conf.get( 'board_id'   )
     self.board_spec                = self.job.conf.get( 'board_spec' )
     self.board_mode                = self.job.conf.get( 'board_mode' )
     self.board_path                = self.job.conf.get( 'board_path' )
+
+    self.board_uart                = None
 
     self.driver_version            = None
     self.driver_id                 = None
@@ -63,13 +64,54 @@ class BoardAbs( abc.ABC ) :
   def get_docker_conf( self ) :
     raise NotImplementedError()
 
-  @abc.abstractmethod
-  def uart_send( self, x ) :
-    raise NotImplementedError()
+  def uart_open( self, port, timeout, mode ) :
+    t = mode.split( '/' ) ; mode = {}
+  
+    if ( len( t      ) != 2 ) :
+      raise Exception( 'cannot parse UART mode' )
+    if ( len( t[ 1 ] ) != 3 ) :
+      raise Exception( 'cannot parse UART mode' )
+  
+    mode[ 'baudrate' ] = int( t[ 0 ] )
+  
+    if   ( t[ 1 ][ 0 ] == '5' ) :
+      mode[ 'bytesize' ] = serial.FIVEBITS
+    elif ( t[ 1 ][ 0 ] == '6' ) :
+      mode[ 'bytesize' ] = serial.SIXBITS
+    elif ( t[ 1 ][ 0 ] == '7' ) :
+      mode[ 'bytesize' ] = serial.SEVENBITS
+    elif ( t[ 1 ][ 0 ] == '8' ) :
+      mode[ 'bytesize' ] = serial.EIGHTBITS
+  
+    if   ( t[ 1 ][ 1 ] == 'N' ) :
+      mode[ 'parity'   ] = serial.PARITY_NONE
+    if   ( t[ 1 ][ 1 ] == 'E' ) :
+      mode[ 'parity'   ] = serial.PARITY_EVEN
+    if   ( t[ 1 ][ 1 ] == 'O' ) :
+      mode[ 'parity'   ] = serial.PARITY_ODD
+  
+    if   ( t[ 1 ][ 2 ] == '1' ) :
+      mode[ 'stopbits' ] = serial.STOPBITS_ONE
+    elif ( t[ 1 ][ 2 ] == '2' ) :
+      mode[ 'stopbits' ] = serial.STOPBITS_TWO
+  
+    return serial.Serial( port = port, timeout = timeout, **mode )
 
-  @abc.abstractmethod
+  def uart_send( self, x ) :
+    self.board_uart.write( ( x + '\x0D' ).encode() )
+
   def uart_recv( self    ) :
-    raise NotImplementedError()
+    r = ''
+
+    while( True ):
+      t = self.board_uart.read( 1 )
+
+      if( t == '\x0D'.encode() ) :
+        break
+      else:
+        r += ''.join( [ chr( x ) for x in t ] )
+
+    return r
 
   def hdf5_add_attr( self, fd, ks           ) :
     T = [ ( 'driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
@@ -105,17 +147,17 @@ class BoardAbs( abc.ABC ) :
     if   ( t[ 0 ] == '+' ) :
       return t[ 1 : ]
     elif ( t[ 0 ] == '-' ) :
-      raise Exception( 'board interaction failed => ack=-' )
+      raise Exception( 'failed board interaction' )
     elif ( t[ 0 ] == '~' ) :
-      raise Exception( 'board interaction failed => ack=~' )
+      raise Exception( 'failed board interaction' )
     else :
-      raise Exception( 'board interaction failed => ack=?' )
+      raise Exception( 'failed board interaction' )
 
   def io( self ) :
     fn = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.io' )
 
     if ( not os.path.isfile( fn ) ) :
-      raise Exception( 'failed to open %s' % ( fn ) )
+      raise Exception( 'failed to open file' )
 
     fd = open( fn, 'r' )
 
@@ -153,14 +195,17 @@ class BoardAbs( abc.ABC ) :
     fd.close()
 
   @abc.abstractmethod
-  def program( self ) :
+  def program_hw( self ) :
+    raise NotImplementedError()
+  @abc.abstractmethod
+  def program_sw( self ) :
     raise NotImplementedError()
 
   def prepare( self ) :
     t = self.interact( '?kernel_id' ).split( ':' )
   
     if ( len( t ) != 3 ) :
-      raise Exception( 'unparsable kernel identifier' )
+      raise Exception( 'cannot parse kernel identifier' )
   
     self.driver_version = t[ 0 ]
     self.driver_id      = t[ 1 ]

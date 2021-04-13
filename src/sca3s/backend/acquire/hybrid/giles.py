@@ -25,13 +25,13 @@ class HybridImp( hybrid.HybridAbs ) :
       super().__init__( job )
 
     def get_channel_trigger_range( self ) :
-      return 1.0E-0
+      return 1.0e-0
   
     def get_channel_trigger_threshold( self ) :
-      return 1.0E-0
+      return 1.0e-0
   
     def get_channel_acquire_range( self ) :
-      return 1.0E-0
+      return 1.0e-0
   
     def get_channel_acquire_threshold( self ) :
       return None
@@ -51,16 +51,10 @@ class HybridImp( hybrid.HybridAbs ) :
   
       return t
   
-    def uart_send( self, x ) :
-      pass
-  
-    def uart_recv( self    ) :
-      pass
-  
     def interact( self, x ) :
       def get_cached( k    ) :
         if( not k in self.kernel_io ) :
-          raise Exception( 'unable to respond to non-interactive I/O request: %s' % ( k ) )
+          raise Exception( 'cannot respond to non-interactive I/O request' )
   
         v = self.kernel_io[ k ] ; return v
   
@@ -97,7 +91,10 @@ class HybridImp( hybrid.HybridAbs ) :
 
       return ''
 
-    def  program( self ) :
+    def  program_hw( self ) :
+      pass
+
+    def  program_sw( self ) :
       pass
 
     def  open( self ) :
@@ -116,11 +113,11 @@ class HybridImp( hybrid.HybridAbs ) :
       # select configuration
       if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
         interval = 1
-        duration = int( self.scope_spec.get( 'acquire_timeout' ) )
+        duration = int( self.scope_spec.get( 'channel_trigger_timeout' ) )
 
       elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
         interval = 1
-        duration = int( value                                    )
+        duration = int( value                                            )
 
       elif ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
         raise Exception( 'unsupported calibration mode' )
@@ -154,17 +151,17 @@ class HybridImp( hybrid.HybridAbs ) :
         pass
   
       if ( mode & scope.ACQUIRE_MODE_FETCH ) :
-        fn = os.path.join( self.job.path, 'target', 'build', self.job.board.board_id, 'target.trs' )
+        fn_trs = os.path.join( self.job.path, 'target', 'build', self.job.board.board_id, 'target.trs' )
   
-        if ( not os.path.isfile( fn ) ) :
-          raise Exception( 'failed to open %s' % ( fn ) )
+        if ( not os.path.isfile( fn_trs ) ) :
+          raise Exception( 'failed to open file' )
   
-        fd = trsfile.open( fn, 'r' ) ; n = len( fd[ 0 ] )
+        fd_trs = trsfile.open( fn_trs, 'r' ) ; n = len( fd_trs[ 0 ] )
   
-        signal_trigger = numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd[ 0 ] ), dtype = self.signal_dtype )
-        signal_acquire = numpy.array(                                                   ( fd[ 0 ] ), dtype = self.signal_dtype )
+        signal_trigger = numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd_trs[ 0 ] ), dtype = self.signal_dtype )
+        signal_acquire = numpy.array(                                                   ( fd_trs[ 0 ] ), dtype = self.signal_dtype )
   
-        fd.close()
+        fd_trs.close()
   
         return ( signal_trigger, signal_acquire )
 

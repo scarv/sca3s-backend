@@ -17,41 +17,24 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import os, serial
-
 class BoardType( board.BoardAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
     
-    self.connect_id      =      self.board_spec.get( 'connect_id'      )
-    self.connect_timeout = int( self.board_spec.get( 'connect_timeout' ) )
+    self.uart_id            =      self.board_spec.get(       'uart_id'      )
+    self.uart_timeout       = int( self.board_spec.get(       'uart_timeout' ) )
+    self.uart_mode          =      self.board_spec.get(       'uart_mode'    )
 
-    self.program_id      =      self.board_spec.get( 'program_id'      )
-    self.program_timeout = int( self.board_spec.get( 'program_timeout' ) )
-    self.program_mode    =      self.board_spec.get( 'program_mode'    )
-
-  def uart_send( self, x ) :
-    self.board_object.write( ( x + '\x0D' ).encode() )
-
-  def uart_recv( self    ) :
-    r = ''
-
-    while( True ):
-      t = self.board_object.read( 1 )
-
-      if( t == '\x0D'.encode() ) :
-        break
-      else:
-        r += ''.join( [ chr( x ) for x in t ] )
-
-    return r
+    self.program_sw_id      =      self.board_spec.get( 'program_sw_id'      )
+    self.program_sw_timeout = int( self.board_spec.get( 'program_sw_timeout' ) )
+    self.program_sw_mode    =      self.board_spec.get( 'program_sw_mode'    )
 
   def  open( self ) :
-    self.board_object = serial.Serial( port = self.connect_id, timeout = self.connect_timeout, baudrate = 38400, bytesize = serial.EIGHTBITS, parity = serial.PARITY_NONE, stopbits = serial.STOPBITS_ONE )
+    self.board_uart = self.uart_open( self.uart_id, self.uart_timeout, self.uart_mode )
 
-    if ( self.board_object == None ) :
+    if ( self.board_uart == None ) :
       raise Exception( 'failed to open board' )
 
   def close( self ) :
-    if ( self.board_object != None ) :
-      self.board_object.close()
+    if ( self.board_uart != None ) :
+      self.board_uart.close()

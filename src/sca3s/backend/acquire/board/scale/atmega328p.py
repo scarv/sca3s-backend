@@ -24,13 +24,13 @@ class BoardImp( board.scale.BoardType ) :
     super().__init__( job )
 
   def get_channel_trigger_range( self ) :
-    return   5.0E-0
+    return   5.0e-0
 
   def get_channel_trigger_threshold( self ) :
-    return   2.0E-0
+    return   2.0e-0
 
   def get_channel_acquire_range( self ) :
-    return 500.0E-3
+    return 500.0e-3
 
   def get_channel_acquire_threshold( self ) :
     return None
@@ -44,5 +44,8 @@ class BoardImp( board.scale.BoardType ) :
   def get_docker_conf( self ) :
     return []
 
-  def program( self ) :  
+  def program_hw( self ) :  
+    pass
+
+  def program_sw( self ) :  
     pass

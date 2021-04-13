@@ -55,7 +55,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   #    - dump  target image structure via, e.g., readelf
   #    - dump  non-interactive I/O responses
   #    - parse non-interactive I/O responses
-  # 4. program
+  # 4. program (including FPGA programming, where applicable)
   # 5. prepare
 
   def _prepare_board( self ) :
@@ -127,7 +127,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
       repo = git.Repo.init( path = path )
 
       repo.git.add( all = True )
-      repo.git.commit( message = ' constructed repo. from non-repo. source', all = True )
+      repo.git.commit( message = 'constructed repo. from non-repo. source', all = True )
 
     self.log.indent_dec()
 
@@ -147,7 +147,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     self.log.indent_dec()
 
     if ( fail ) :
-      raise Exception( 'failed to complete repo. preparation' )
+      raise Exception( 'failed repo. preparation' )
 
   # Execute job process prologue (i.e., *before* process):
   #

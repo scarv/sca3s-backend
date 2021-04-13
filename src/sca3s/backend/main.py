@@ -17,14 +17,14 @@ def process( manifest ) :
 
     try :
       if ( not manifest.has( 'job_id'      ) ) :
-        raise Exception( 'job manifest has no identifier' )
+        raise Exception( 'manifest missing identifier' )
       if ( not manifest.has( 'job_version' ) ) :
-        raise Exception( 'job manifest has no version'    )
+        raise Exception( 'manifest missing version'    )
 
       id = manifest.get( 'job_id' )
 
       if ( not sca3s_be.share.version.match( manifest.get( 'job_version' ) ) ) :
-        raise Exception( 'mismatched manifest version' )
+        raise Exception( 'inconsistent manifest version' )
 
       db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
     
@@ -36,7 +36,7 @@ def process( manifest ) :
             manifest.put( key, value )
 
         else :
-          raise Exception( 'device database has no such device identifier' )
+          raise Exception( 'unsupported device' )
     
       sca3s_mw.share.schema.validate( manifest, task_mw.schema.MANIFEST_REQ )
 
@@ -81,7 +81,7 @@ def run_mode_cli() :
   elif ( sca3s_be.share.sys.conf.has( 'manifest_data', section = 'job' ) ) :
     manifest = sca3s_be.share.conf.Conf( conf = sca3s_be.share.sys.conf.get( 'manifest_data', section = 'job' ) )
   else :
-    raise Exception( 'undefined manifest' )
+    raise Exception( 'unsupported manifest type' )
 
   process( manifest )
 
@@ -163,14 +163,14 @@ if ( __name__ == '__main__' ) :
       task_be = importlib.import_module( 'sca3s.backend.analyse' )
       task_mw = importlib.import_module( 'sca3s.middleware.analyse' )
     else :
-      raise Exception( 'unknown task' )
+      raise Exception( 'unsupported task' )
 
     if   ( sca3s_be.share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'     ) :
       run_mode_cli()
     elif ( sca3s_be.share.sys.conf.get( 'mode', section = 'sys' ) == 'api'     ) :
       run_mode_api()
     else :
-      raise Exception( 'unknown mode' )
+      raise Exception( 'unsupported mode' )
 
   except Exception as e :
     raise e

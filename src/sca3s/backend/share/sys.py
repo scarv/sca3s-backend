@@ -11,7 +11,7 @@ import argparse, logging, os, sys, tempfile
 
 CONF = {
   'definitions' : {
-    'board:giles'               : { # board: giles
+    'board:giles'                 : { # board: giles
       'properties' : { 
         'board_id'   : { 'type' : 'string', 'enum' : [ 'giles' ]                          },
         'board_desc' : { 'type' : 'string'                                                },
@@ -24,83 +24,189 @@ CONF = {
         } }
       }
     }, 
-    'board:scale-lpc1313fbd48'  : { # board: scale/lpc1313fbd48
+    'board:scale-atmega328p'      : { # board: scale/atmega328p
       'properties' : { 
-        'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc1313fbd48' ]             },
+        'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/atmega328p' ]               },
         'board_desc' : { 'type' : 'string'                                                },
         'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
         'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'connect_id'      : { 'type' : 'string'                                                },
-                  'connect_timeout' : { 'type' : 'number'                                                },
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
         
-                  'program_id'      : { 'type' : 'string'                                                },
-                  'program_timeout' : { 'type' : 'number'                                                },
-                  'program_mode'    : { 'type' : 'string', 'enum' : [ 'jlink', 'usb' ]                   }
-        }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [ 'jlink', 'uart' ] }
+        }, 'required' : [] },
         'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
           'type' : 'string' 
         } }
       }
     }, 
-    'board:cw308-stm32f071rbt6' : { # board: cw308/stm32f071rbt6
+    'board:scale-lpc1114fn28'     : { # board: scale/lpc1114fn28
+      'properties' : { 
+        'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc1114fn28' ]              },
+        'board_desc' : { 'type' : 'string'                                                },
+        'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
+        'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
+        
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [ 'jlink', 'uart' ] }
+        }, 'required' : [] },
+        'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+          'type' : 'string' 
+        } }
+      }
+    }, 
+    'board:scale-lpc1313fbd48'    : { # board: scale/lpc1313fbd48
+      'properties' : { 
+        'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc1313fbd48' ]             },
+        'board_desc' : { 'type' : 'string'                                                },
+        'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
+        'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
+        
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [ 'jlink', 'uart' ] }
+        }, 'required' : [] },
+        'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+          'type' : 'string' 
+        } }
+      }
+    }, 
+    'board:scale-lpc812m101jdh16' : { # board: scale/lpc812m101jdh16
+      'properties' : { 
+        'board_id'   : { 'type' : 'string', 'enum' : [ 'scale/lpc812m101jdh16' ]          },
+        'board_desc' : { 'type' : 'string'                                                },
+        'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
+        'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
+        
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [ 'jlink', 'uart' ] }
+        }, 'required' : [] },
+        'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+          'type' : 'string' 
+        } }
+      }
+    }, 
+    'board:cw308-stm32f071rbt6'   : { # board: cw308/stm32f071rbt6
       'properties' : { 
         'board_id'   : { 'type' : 'string', 'enum' : [ 'cw308/stm32f071rbt6' ]            },
         'board_desc' : { 'type' : 'string'                                                },
         'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
         'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'connect_id'      : { 'type' : 'string'                                                },
-                  'connect_timeout' : { 'type' : 'number'                                                },
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
         
-                  'program_id'      : { 'type' : 'string'                                                },
-                  'program_timeout' : { 'type' : 'number'                                                },
-                  'program_mode'    : { 'type' : 'string', 'enum' : [ 'jlink' ]                          }
-        }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [ 'jlink'         ] }
+        }, 'required' : [] },
         'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
           'type' : 'string' 
         } }
       }
     },
-    'board:cw308-stm32f405rgt6' : { # board: cw308/stm32f405rgt6
+    'board:cw308-stm32f405rgt6'   : { # board: cw308/stm32f405rgt6
       'properties' : { 
         'board_id'   : { 'type' : 'string', 'enum' : [ 'cw308/stm32f405rgt6' ]            },
         'board_desc' : { 'type' : 'string'                                                },
         'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
         'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'connect_id'      : { 'type' : 'string'                                                },
-                  'connect_timeout' : { 'type' : 'number'                                                },
-        
-                  'program_id'      : { 'type' : 'string'                                                },
-                  'program_timeout' : { 'type' : 'number'                                                },
-                  'program_mode'    : { 'type' : 'string', 'enum' : [ 'jlink' ]                          }
-        }, 'required' : [ 'connect_id', 'connect_timeout', 'program_id', 'program_timeout', 'program_mode' ] },
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
+
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [ 'jlink'         ] }
+        }, 'required' : [] },
         'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
           'type' : 'string' 
         } }
       }
     },
-    'scope:giles'               : { # scope: giles
+    'board:sasebo-scarv-riscv'    : { # board: sasebo/scarv/riscv
+      'properties' : { 
+        'board_id'   : { 'type' : 'string', 'enum' : [ 'sasebo/scarv/riscv' ]             },
+        'board_desc' : { 'type' : 'string'                                                },
+        'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
+        'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
+        
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [          'uart' ] },
+
+              'program_hw_id'      : { 'type' : 'string'                               },
+              'program_hw_timeout' : { 'type' : 'string'                               },
+              'program_hw_mode'    : { 'type' : 'string', 'enum' : [ 'jtag' ]          }
+        }, 'required' : [] },
+        'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+          'type' : 'string' 
+        } }
+      }
+    },
+    'board:sasebo-scarv-xcrypto'  : { # board: sasebo/scarv/xcrypto
+      'properties' : { 
+        'board_id'   : { 'type' : 'string', 'enum' : [ 'sasebo/scarv/xcrypto' ]           },
+        'board_desc' : { 'type' : 'string'                                                },
+        'board_mode' : { 'type' : 'string', 'enum' : [ 'interactive', 'non-interactive' ] },
+        'board_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
+                    'uart_id'      : { 'type' : 'string'                               },
+                    'uart_timeout' : { 'type' : 'number'                               },
+                    'uart_mode'    : { 'type' : 'string'                               },
+
+              'program_sw_id'      : { 'type' : 'string'                               },
+              'program_sw_timeout' : { 'type' : 'number'                               },
+              'program_sw_mode'    : { 'type' : 'string', 'enum' : [          'uart' ] },
+
+              'program_hw_id'      : { 'type' : 'string'                               },
+              'program_hw_timeout' : { 'type' : 'string'                               },
+              'program_hw_mode'    : { 'type' : 'string', 'enum' : [ 'jtag' ]          }
+        }, 'required' : [] },
+        'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
+          'type' : 'string' 
+        } }
+      }
+    },
+    'scope:giles'                 : { # scope: giles
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'giles' ]                                             },
         'scope_desc' : { 'type' : 'string'                                                },
         'scope_mode' : { 'type' : 'string', 'enum' : [                'non-interactive' ] },
         'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'acquire_timeout' : { 'type' : 'number' }
+          'channel_trigger_timeout' : { 'type' : 'number' }
         }, 'required' : [] },
         'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
           'type' : 'string' 
         } }
       }
     },
-    'scope:picoscope-ps2206b'   : { # scope: picoscope/ps2206b
+    'scope:picoscope-ps2206b'     : { # scope: picoscope/ps2206b
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'picoscope/ps2206b' ]                                 },
         'scope_desc' : { 'type' : 'string'                                                },
         'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
         'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'connect_id'      : { 'type' : 'string' },
-                  'connect_timeout' : { 'type' : 'number' },
+                     'unit_id'      : { 'type' : 'string' },
+                     'unit_timeout' : { 'type' : 'number' },
       
-                  'acquire_timeout' : { 'type' : 'number' },
+          'channel_trigger_timeout' : { 'type' : 'number' },
 
           'channel_trigger_id'      : { 
             'type' : 'string', 'enum' : [ 'A', 'B' ] 
@@ -111,23 +217,23 @@ CONF = {
           'channel_disable_id'      : { 'type' :  'array', 'default' : [], 'items' : {
             'type' : 'string', 'enum' : [ 'A', 'B' ]
           } },
-        }, 'required' : [ 'connect_id', 'connect_timeout', 'channel_trigger_id', 'channel_acquire_id' ] },
+        }, 'required' : [] },
         'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
           'type' : 'string' 
         } }
       }
     }, 
-    'scope:picoscope-ps3406b'   : { # scope: picoscope/ps3406b
+    'scope:picoscope-ps3406b'     : { # scope: picoscope/ps3406b
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'picoscope/ps3406b' ]                                 },
         'scope_desc' : { 'type' : 'string'                                                },
         'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
         'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'connect_id'      : { 'type' : 'string' },
-                  'connect_timeout' : { 'type' : 'number' },
-
-                  'acquire_timeout' : { 'type' : 'number' },
+                     'unit_id'      : { 'type' : 'string' },
+                     'unit_timeout' : { 'type' : 'number' },
         
+          'channel_trigger_timeout' : { 'type' : 'number' },
+
           'channel_trigger_id'      : { 
             'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ] 
            },
@@ -137,23 +243,23 @@ CONF = {
           'channel_disable_id'      : { 'type' :  'array', 'default' : [], 'items' : {
             'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ]
           } }
-        }, 'required' : [ 'connect_id', 'connect_timeout', 'channel_trigger_id', 'channel_acquire_id' ] },
+        }, 'required' : [] },
         'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
           'type' : 'string' 
         } }
       }
     },
-    'scope:picoscope-ps5444b'   : { # scope: picoscope/ps5444b
+    'scope:picoscope-ps5444b'     : { # scope: picoscope/ps5444b
       'properties' : { 
         'scope_id'   : { 'enum' : [ 'picoscope/ps5444b' ]                                 },
         'scope_desc' : { 'type' : 'string'                                                },
         'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
         'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'connect_id'      : { 'type' : 'string' },
-                  'connect_timeout' : { 'type' : 'number' },
-
-                  'acquire_timeout' : { 'type' : 'number' },
+                     'unit_id'      : { 'type' : 'string' },
+                     'unit_timeout' : { 'type' : 'number' },
         
+          'channel_trigger_timeout' : { 'type' : 'number' },
+
           'channel_trigger_id'      : { 
             'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ] 
            },
@@ -163,22 +269,6 @@ CONF = {
           'channel_disable_id'      : { 'type' :  'array', 'default' : [], 'items' : {
             'type' : 'string', 'enum' : [ 'A', 'B', 'C', 'D' ]
           } }
-        }, 'required' : [ 'connect_id', 'connect_timeout', 'channel_trigger_id', 'channel_acquire_id' ] },
-        'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
-          'type' : 'string' 
-        } }
-      }
-    },
-    'scope:joulescope-js110'    : { # scope: joulescope/js110
-      'properties' : { 
-        'scope_id'   : { 'enum' : [ 'joulescope/js110' ]                                  },
-        'scope_desc' : { 'type' : 'string'                                                },
-        'scope_mode' : { 'type' : 'string', 'enum' : [ 'interactive'                    ] },
-        'scope_spec' : { 'type' : 'object', 'default' : {}, 'properties' : {
-                  'connect_id'      : { 'type' : 'string' },
-                  'connect_timeout' : { 'type' : 'number' },
-
-                  'acquire_timeout' : { 'type' : 'number' }
         }, 'required' : [] },
         'scope_path' : { 'type' :  'array', 'default' : [], 'items' : { 
           'type' : 'string' 
@@ -229,18 +319,19 @@ CONF = {
       '^.*$' : { 'type' : 'object', 'default' : {},
         'allOf' : [ {
           'oneOf' : [ 
-            { '$ref' : '#/definitions/board:giles'               },
-            { '$ref' : '#/definitions/board:scale-lpc1313fbd48'  },
-            { '$ref' : '#/definitions/board:cw308-stm32f071rbt6' },
-            { '$ref' : '#/definitions/board:cw308-stm32f405rgt6' }
+            { '$ref' : '#/definitions/board:giles'                },
+            { '$ref' : '#/definitions/board:scale-lpc1313fbd48'   },
+            { '$ref' : '#/definitions/board:cw308-stm32f071rbt6'  },
+            { '$ref' : '#/definitions/board:cw308-stm32f405rgt6'  },
+            { '$ref' : '#/definitions/board:sasebo-scale-riscv'   },
+            { '$ref' : '#/definitions/board:sasebo-scale-xcrypto' }
           ] 
         }, {
           'oneOf' : [ 
-            { '$ref' : '#/definitions/scope:giles'               },
-            { '$ref' : '#/definitions/scope:picoscope-ps2206b'   },
-            { '$ref' : '#/definitions/scope:picoscope-ps3406b'   },
-            { '$ref' : '#/definitions/scope:picoscope-ps5444b'   },
-            { '$ref' : '#/definitions/scope:joulescope-js110'    }
+            { '$ref' : '#/definitions/scope:giles'                },
+            { '$ref' : '#/definitions/scope:picoscope-ps2206b'    },
+            { '$ref' : '#/definitions/scope:picoscope-ps3406b'    },
+            { '$ref' : '#/definitions/scope:picoscope-ps5444b'    }
           ] 
         } ],
         'required' : [ 'board_id', 'board_desc', 'board_spec', 'scope_id', 'scope_desc', 'scope_spec' ]

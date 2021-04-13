@@ -247,9 +247,9 @@ class DriverImp( driver.DriverAbs ) :
 
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
-      raise Exception( 'mismatched driver version'    )
+      raise Exception( 'inconsistent driver version'    )
     if ( self.job.board.driver_id != 'block' ) :
-      raise Exception( 'mismatched driver identifier' )
+      raise Exception( 'inconsistent driver identifier' )
 
     ( kernel_nameof, kernel_typeof ) = self.job.board.kernel_id.split( '/' )
     

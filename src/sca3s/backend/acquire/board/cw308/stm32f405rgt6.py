@@ -24,13 +24,13 @@ class BoardImp( board.cw308.BoardType ) :
     super().__init__( job )
 
   def get_channel_trigger_range( self ) :
-    return   5.0E-0
+    return   5.0e-0
 
   def get_channel_trigger_threshold( self ) :
-    return   2.0E-0
+    return   2.0e-0
 
   def get_channel_acquire_range( self ) :
-    return 500.0E-3
+    return 500.0e-3
 
   def get_channel_acquire_threshold( self ) :
     return None
@@ -39,20 +39,32 @@ class BoardImp( board.cw308.BoardType ) :
     return {}
 
   def get_docker_env ( self ) :
-    return { 'JLINK' : self.program_id }
+    return {}
 
   def get_docker_conf( self ) :
     return []
 
-  def program( self ) :  
-    target = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
+  def program_hw( self ) :  
+    pass
 
-    if ( not os.path.isfile( target ) ) :
-      raise Exception( 'failed to open target program' )
+  def program_sw( self ) :  
+    fn_hex = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
 
-    if   ( self.program_mode == 'jlink' ) :
-      cmd = [ 'openocd', '--file', 'interface/jlink.cfg', '--command', 'jlink serial %s' % ( self.program_id ), '--command', 'transport select swd', '--file', 'target/stm32f4x.cfg', '--command', 'init', '--command', 'targets', '--command', 'halt', '--command', 'flash write_image erase %s' % ( target ), '--command', 'reset run', '--command', 'shutdown' ]
+    if ( not os.path.isfile( fn_hex ) ) :
+      raise Exception( 'failed to open file' )
+
+    if   ( self.program_sw_mode == 'jlink' ) :
+      cmd = [ 'openocd', '--file',    'interface/jlink.cfg', 
+                         '--command', 'jlink serial %s' % ( self.program_sw_id ), 
+                         '--command', 'transport select swd', 
+                         '--file',    'target/stm32f4x.cfg', 
+                         '--command', 'init', 
+                         '--command', 'targets', 
+                         '--command', 'halt', 
+                         '--command', 'flash write_image erase %s' % ( fn_hex ), 
+                         '--command', 'reset run', 
+                         '--command', 'shutdown' ]
     else :
-      raise Exception( 'unknown programming mode' )
+      raise Exception( 'unsupported programming mode' )
 
-    self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_timeout )
+    self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_sw_timeout )

@@ -65,7 +65,7 @@ class JobAbs( abc.ABC ) :
       self.log.indent_dec()
 
     if ( result != 0 ) :
-      raise Exception( 'execute (native) failed' )
+      raise Exception( 'failed (native) command execution' )
 
     return result
 
@@ -133,7 +133,7 @@ class JobAbs( abc.ABC ) :
       self.log.indent_dec()
 
     if ( result != 0 ) :
-      raise Exception( 'execute (docker) failed' )
+      raise Exception( 'failed (docker) command execution' )
 
     return result
 
