@@ -55,7 +55,9 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   #    - dump  target image structure via, e.g., readelf
   #    - dump  non-interactive I/O responses
   #    - parse non-interactive I/O responses
-  # 4. program (including FPGA programming, where applicable)
+  # 4. program
+  #    - hardware step
+  #    - software step
   # 5. prepare
 
   def _prepare_board( self ) :
@@ -67,7 +69,9 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     self.board.io()
 
-    self.board.program()
+    self.board.program_hw()
+    self.board.program_sw()
+
     self.board.prepare()
 
   # Prepare the scope:
