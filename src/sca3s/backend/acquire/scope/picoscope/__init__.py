@@ -104,7 +104,7 @@ class ScopeType( scope.ScopeAbs ) :
   def acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
     if ( mode & scope.ACQUIRE_MODE_PRIME ) :
       # configure trigger
-      self.scope_unit.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = self.channel_trigger_timeout * 1.0e3 )
+      self.scope_unit.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = int( self.channel_trigger_timeout * 1.0e3 ) )
     
       # start acquisition
       self.scope_unit.runBlock()
