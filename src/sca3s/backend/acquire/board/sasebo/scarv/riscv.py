@@ -70,6 +70,7 @@ class BoardImp( board.cw308.BoardType ) :
       if ( str( self.board_uart.readline(), encoding = 'ascii' ) != 'scarv-soc fsbl\n' ) :
         raise Exception( 'cannot parse FSBL prompt' )
 
+      raise Exception( 'ready to run programmer!' )
       # write binary to UART
       #./bin/upload-program.py --baud 128000 /dev/ttyUSB0 ~/share/target.bin 0x20000000
     else :
