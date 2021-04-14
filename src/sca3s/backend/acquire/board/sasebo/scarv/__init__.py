@@ -22,16 +22,16 @@ class BoardType( board.BoardAbs ) :
     super().__init__( job )
 
     self.uart_id            =      self.board_spec.get(       'uart_id'      )
-    self.uart_timeout       = int( self.board_spec.get(       'uart_timeout' ), 0 )
+    self.uart_timeout       = int( self.board_spec.get(       'uart_timeout' )     )
     self.uart_mode          =      self.board_spec.get(       'uart_mode'    )
 
     self.program_sw_id      =      self.board_spec.get( 'program_sw_id'      )
-    self.program_sw_timeout = int( self.board_spec.get( 'program_sw_timeout' ), 0 )
+    self.program_sw_timeout = int( self.board_spec.get( 'program_sw_timeout' )     )
     self.program_sw_mode    =      self.board_spec.get( 'program_sw_mode'    )
-    self.program_sw_addr    = int( self.board_spec.get( 'program_sw_addr'    ), 0 )
+    self.program_sw_addr    = int( self.board_spec.get( 'program_sw_addr'    ), 16 )
 
     self.program_hw_id      =      self.board_spec.get( 'program_hw_id'      )
-    self.program_hw_timeout = int( self.board_spec.get( 'program_hw_timeout' ), 0 )
+    self.program_hw_timeout = int( self.board_spec.get( 'program_hw_timeout' )     )
     self.program_hw_mode    =      self.board_spec.get( 'program_hw_mode'    )
 
   def  open( self ) :
