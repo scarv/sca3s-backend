@@ -72,7 +72,7 @@ class BoardImp( board.sasebo.scarv.BoardType ) :
       if ( str( self.board_uart.readline(), encoding = 'ascii' ) != 'scarv-soc fsbl\n' ) :
         raise Exception( 'cannot parse FSBL prompt' )
 
-      start = 0x20000000
+      start = self.program_sw_addr
 
       with open( fn_bin, 'rb' ) as fd_bin:
         btosend = fd_bin.read()

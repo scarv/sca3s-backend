@@ -151,6 +151,7 @@ CONF = {
               'program_sw_id'      : { 'type' : 'string'                               },
               'program_sw_timeout' : { 'type' : 'number'                               },
               'program_sw_mode'    : { 'type' : 'string', 'enum' : [          'uart' ] },
+              'program_sw_addr'    : { 'type' : 'string'                               },
 
               'program_hw_id'      : { 'type' : 'string'                               },
               'program_hw_timeout' : { 'type' : 'number'                               },
@@ -174,6 +175,7 @@ CONF = {
               'program_sw_id'      : { 'type' : 'string'                               },
               'program_sw_timeout' : { 'type' : 'number'                               },
               'program_sw_mode'    : { 'type' : 'string', 'enum' : [          'uart' ] },
+              'program_sw_addr'    : { 'type' : 'string'                               },
 
               'program_hw_id'      : { 'type' : 'string'                               },
               'program_hw_timeout' : { 'type' : 'number'                               },
