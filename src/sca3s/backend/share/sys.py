@@ -153,7 +153,7 @@ CONF = {
               'program_sw_mode'    : { 'type' : 'string', 'enum' : [          'uart' ] },
 
               'program_hw_id'      : { 'type' : 'string'                               },
-              'program_hw_timeout' : { 'type' : 'string'                               },
+              'program_hw_timeout' : { 'type' : 'number'                               },
               'program_hw_mode'    : { 'type' : 'string', 'enum' : [ 'jtag' ]          }
         }, 'required' : [] },
         'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
@@ -176,7 +176,7 @@ CONF = {
               'program_sw_mode'    : { 'type' : 'string', 'enum' : [          'uart' ] },
 
               'program_hw_id'      : { 'type' : 'string'                               },
-              'program_hw_timeout' : { 'type' : 'string'                               },
+              'program_hw_timeout' : { 'type' : 'number'                               },
               'program_hw_mode'    : { 'type' : 'string', 'enum' : [ 'jtag' ]          }
         }, 'required' : [] },
         'board_path' : { 'type' :  'array', 'default' : [], 'items' : { 
