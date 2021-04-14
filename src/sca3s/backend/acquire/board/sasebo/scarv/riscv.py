@@ -61,17 +61,38 @@ class BoardImp( board.sasebo.scarv.BoardType ) :
     self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_hw_timeout )
 
   def program_sw( self ) :  
-    fn_hex = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
+    fn_bin = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.bin' )
 
-    if ( not os.path.isfile( fn_hex ) ) :
+    if ( not os.path.isfile( fn_bin ) ) :
       raise Exception( 'failed to open file' )
 
     if   ( self.program_sw_mode == 'uart' ) :
+      self.log.indent_inc( message = 'programming' )
+
+      self.log.info( message = 'reading FSBL prompt' )
+
       if ( str( self.board_uart.readline(), encoding = 'ascii' ) != 'scarv-soc fsbl\n' ) :
         raise Exception( 'cannot parse FSBL prompt' )
 
-      raise Exception( 'ready to run programmer!' )
-      # write binary to UART
-      #./bin/upload-program.py --baud 128000 /dev/ttyUSB0 ~/share/target.bin 0x20000000
+      start = 0x20000000
+
+      with open( fn_bin, 'rb' ) as fd_bin:
+        btosend = fd_bin.read()
+
+        fsize   = len(btosend)
+        fsize_b = fsize.to_bytes(4, byteorder="little")
+        start_b = int(start,0).to_bytes(4, byteorder="little")
+  
+        self.log.info( message = 'writing size    (%d bytes)' % ( len( fsize_b ) ) )
+        self.board_uart.write(fsize_b[::-1])
+        self.log.info( message = 'writing address (%d bytes)' % ( len( start_b ) ) )
+        self.board_uart.write(start_b[::-1])
+        self.log.info( message = 'writing data    (%d bytes)' % ( len( btosend ) ) )
+        self.board_uart.write(btosend)
+  
+        self.board_uart.flush()
+
+      self.log.indent_dec()
+
     else :
       raise Exception( 'unsupported programming mode' )
