@@ -53,12 +53,12 @@ class BoardImp( board.sasebo.scarv.BoardType ) :
     if ( not os.path.isfile( fn_bit ) ) :
       raise Exception( 'failed to open file' )
 
-    if   ( self.config_mode == 'jtag' ) :
-      cmd = [ 'vivado', '-mode', 'tcl', '-nolog', '-nojournal', '-source', fn_tcl, '-tclargs', self.config_id, fn_bit ]
+    if   ( self.program_hw_mode == 'jtag' ) :
+      cmd = [ 'vivado', '-mode', 'tcl', '-nolog', '-nojournal', '-source', fn_tcl, '-tclargs', self.program_hw_id, fn_bit ]
     else :
       raise Exception( 'unsupported programming mode' )
 
-    self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.config_timeout )
+    self.job.exec_native( cmd, env = { 'PATH' : os.pathsep.join( self.board_path ) + os.pathsep + os.environ[ 'PATH' ] }, timeout = self.program_hw_timeout )
 
   def program_sw( self ) :  
     fn_hex = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.hex' )
@@ -66,7 +66,7 @@ class BoardImp( board.sasebo.scarv.BoardType ) :
     if ( not os.path.isfile( fn_hex ) ) :
       raise Exception( 'failed to open file' )
 
-    if   ( self.upload_mode == 'uart' ) :
+    if   ( self.program_sw_mode == 'uart' ) :
       if ( str( self.board_uart.readline(), encoding = 'ascii' ) != 'scarv-soc fsbl\n' ) :
         raise Exception( 'cannot parse FSBL prompt' )
 
