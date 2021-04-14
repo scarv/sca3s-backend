@@ -67,9 +67,9 @@ class BoardImp( board.sasebo.scarv.BoardType ) :
       raise Exception( 'failed to open file' )
 
     if   ( self.program_sw_mode == 'uart' ) :
-      self.log.indent_inc( message = 'programming' )
+      self.job.log.indent_inc( message = 'programming' )
 
-      self.log.info( message = 'reading FSBL prompt' )
+      self.job.log.info( message = 'reading FSBL prompt' )
 
       if ( str( self.board_uart.readline(), encoding = 'ascii' ) != 'scarv-soc fsbl\n' ) :
         raise Exception( 'cannot parse FSBL prompt' )
@@ -83,16 +83,16 @@ class BoardImp( board.sasebo.scarv.BoardType ) :
         fsize_b = fsize.to_bytes(4, byteorder="little")
         start_b = int(start,0).to_bytes(4, byteorder="little")
   
-        self.log.info( message = 'writing size    (%d bytes)' % ( len( fsize_b ) ) )
+        self.job.log.info( message = 'writing size    (%d bytes)' % ( len( fsize_b ) ) )
         self.board_uart.write(fsize_b[::-1])
-        self.log.info( message = 'writing address (%d bytes)' % ( len( start_b ) ) )
+        self.job.log.info( message = 'writing address (%d bytes)' % ( len( start_b ) ) )
         self.board_uart.write(start_b[::-1])
-        self.log.info( message = 'writing data    (%d bytes)' % ( len( btosend ) ) )
+        self.job.log.info( message = 'writing data    (%d bytes)' % ( len( btosend ) ) )
         self.board_uart.write(btosend)
   
         self.board_uart.flush()
 
-      self.log.indent_dec()
+      self.job.log.indent_dec()
 
     else :
       raise Exception( 'unsupported programming mode' )
