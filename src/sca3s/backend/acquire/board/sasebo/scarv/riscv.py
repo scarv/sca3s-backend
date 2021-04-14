@@ -78,8 +78,8 @@ class BoardImp( board.sasebo.scarv.BoardType ) :
         btosend = fd_bin.read()
 
         fsize   = len(btosend)
-        fsize_b = fsize.to_bytes(4, byteorder="little")
-        start_b = int(start,0).to_bytes(4, byteorder="little")
+        fsize_b = fsize.to_bytes(4, byteorder='little')
+        start_b = start.to_bytes(4, byteorder='little')
   
         self.job.log.info( 'writing size    (%d bytes)', len( fsize_b ) )
         self.board_uart.write(fsize_b[::-1])
