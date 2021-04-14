@@ -61,7 +61,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   # 5. prepare
 
   def _prepare_board( self ) :
-    self.log.indent_inc( message = 'building    harness' )
+    self.log.indent_inc( message = 'build   harness' )
 
     self.exec_docker(  'clean-harness' )
     self.exec_docker(  'build-harness' )
@@ -73,15 +73,15 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     self.log.indent_dec()
 
-    self.log.indent_inc( message = 'programming board (hardware step)' )
+    self.log.indent_inc( message = 'program board (hardware step)' )
     self.board.program_hw()
     self.log.indent_dec()
 
-    self.log.indent_inc( message = 'programming board (software step)' )
+    self.log.indent_inc( message = 'program board (software step)' )
     self.board.program_sw()
     self.log.indent_dec()
 
-    self.log.indent_inc( message = 'preparing   harness' )
+    self.log.indent_inc( message = 'prepare harness' )
     self.board.prepare()
     self.log.indent_dec()
 
