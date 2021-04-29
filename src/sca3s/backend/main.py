@@ -10,18 +10,20 @@ from sca3s import middleware as sca3s_mw
 import importlib, multiprocessing, os, shutil, signal, tempfile, time
 
 def process( manifest ) :
-  id = None ; status = sca3s_mw.share.status.Status.SUCCESS
+  job_id = None ; job_status = sca3s_mw.share.status.Status.SUCCESS
 
   try :
-    sca3s_be.share.sys.log.info( 'process job: prologue' )
+    sca3s_be.share.sys.log.info( 'process job prologue' )
 
     try :
+      if ( not manifest.has( 'job_type'    ) ) :
+        raise Exception( 'manifest missing job type'       )
       if ( not manifest.has( 'job_id'      ) ) :
-        raise Exception( 'manifest missing identifier' )
+        raise Exception( 'manifest missing job identifier' )
       if ( not manifest.has( 'job_version' ) ) :
-        raise Exception( 'manifest missing version'    )
+        raise Exception( 'manifest missing job version'    )
 
-      id = manifest.get( 'job_id' )
+      job_id = manifest.get( 'job_id' )
 
       if ( not sca3s_be.share.version.match( manifest.get( 'job_version' ) ) ) :
         raise Exception( 'inconsistent manifest version' )
@@ -29,7 +31,7 @@ def process( manifest ) :
       db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
     
       if ( manifest.has( 'device_id' ) ) :
-        t =  manifest.get( 'device_id' )
+        t = manifest.get( 'device_id' )
     
         if ( db.has( t ) ) :
           for ( key, value ) in db.get( t ).items() :
@@ -40,40 +42,45 @@ def process( manifest ) :
     
       sca3s_mw.share.schema.validate( manifest, task_mw.schema.MANIFEST_REQ )
 
-      path = tempfile.mkdtemp( prefix = id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
-      log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
+      path = tempfile.mkdtemp( prefix = job_id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
+      log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = job_id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
       job  = task_be.job.JobImp( manifest, path, log )
 
     except Exception as e :
-      status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROLOGUE ; raise e
+      job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROLOGUE ; raise e
 
-    sca3s_be.share.sys.log.info( 'process job: process'  )
+    sca3s_be.share.sys.log.info( 'process job'          )
 
     try :    
       job.log.banner()
 
-      job.process_prologue()
-      job.process()
+      job.execute_prologue()
+      job.execute()
   
     except Exception as e :
-      status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROCESS  ; raise e
+      job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROCESS  ; raise e
 
     finally :
-      job.process_epilogue()
+      job.execute_epilogue()
 
-    sca3s_be.share.sys.log.info( 'process job: epilogue' )
+    sca3s_be.share.sys.log.info( 'process job epilogue' )
 
     try :    
       if ( sca3s_be.share.sys.conf.get( 'clean', section = 'job' ) ) :
         shutil.rmtree( path, ignore_errors = True )
 
     except Exception as e :
-      status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_EPILOGUE ; raise e
+      job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_EPILOGUE ; raise e
 
   except Exception as e :
     sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
 
-  return ( id, status )
+  return ( job_id, job_status, job.result_response )
+
+# Execute server in API mode: process a manifest which is
+#
+# 1. read from a specified file, or
+# 2. specified directly as immediate data.
 
 def run_mode_cli() :
   if   ( sca3s_be.share.sys.conf.has( 'manifest_file', section = 'job' ) ) :
@@ -85,6 +92,19 @@ def run_mode_cli() :
 
   process( manifest )
 
+# Execute server in API mode: execute
+#
+# 1. a "announce handler" thread: 
+#    - make API call; announce the server to   the API
+#    - terminate if the signal handler says so
+#    - write an activity ping after parameterised number of iterations
+#    - back-off, i.e., wait, for parameterised period
+# 2. a "retrieve handler" thread:
+#    - make API call; retrieve job        from the API, process it, and confirm completion
+#    - terminate if the signal handler says so
+#    - write an activity ping after parameterised number of iterations
+#    - back-off, i.e., wait, for parameterised period
+
 def run_mode_api() :
   api               = task_be.api.APIImp()
       
@@ -95,7 +115,7 @@ def run_mode_api() :
 
   api_term          = False 
 
-  def signalHandler( signum, frame ) :
+  def   signalHandler( signum, frame ) :
     nonlocal api_term
 
     if   ( signum == signal.SIGABRT ) :
@@ -105,9 +125,6 @@ def run_mode_api() :
 
     return
 
-  signal.signal( signal.SIGABRT, signalHandler )
-  signal.signal( signal.SIGTERM, signalHandler )
-
   def announceHandler() :
     ping = 0
 
@@ -115,9 +132,8 @@ def run_mode_api() :
       try :
         api.announce()
 
-        if ( api_term ) :
+        if (          api_term                 ) :
           sca3s_be.share.sys.log.info( 'announce thread: handled SIG{ABRT,TERM} => terminating' ) ; return
-
         if ( ( ping % api_announce_ping ) == 0 ) :
           sca3s_be.share.sys.log.info( 'announce thread: activity ping' )
 
@@ -127,21 +143,17 @@ def run_mode_api() :
         sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
     
   def retrieveHandler() :
-    ping = 0 ; 
+    ping = 0
   
     while( True ) :
       try :
         manifest = api.retrieve()
 
         if ( manifest != None ) :
-          ( id, status ) = process( sca3s_be.share.conf.Conf( conf = manifest ) )
-  
-          if ( id != None ) :
-            api.complete( id, status = status )
+          api.complete( *process( sca3s_be.share.conf.Conf( conf = manifest ) ) )
     
-        if ( api_term ) :
+        if (          api_term                 ) :
           sca3s_be.share.sys.log.info( 'retrieve thread: handled SIG{ABRT,TERM} => terminating' ) ; return
-
         if ( ( ping % api_retrieve_ping ) == 0 ) :
           sca3s_be.share.sys.log.info( 'retrieve thread: activity ping' )
     
@@ -149,6 +161,9 @@ def run_mode_api() :
   
       except Exception as e :
         sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
+
+  signal.signal( signal.SIGABRT, signalHandler )
+  signal.signal( signal.SIGTERM, signalHandler )
 
   multiprocessing.Process( target = announceHandler ).start() ; retrieveHandler()
 
@@ -163,14 +178,14 @@ if ( __name__ == '__main__' ) :
       task_be = importlib.import_module( 'sca3s.backend.analyse' )
       task_mw = importlib.import_module( 'sca3s.middleware.analyse' )
     else :
-      raise Exception( 'unsupported task' )
+      raise Exception( 'unsupported server task' )
 
     if   ( sca3s_be.share.sys.conf.get( 'mode', section = 'sys' ) == 'cli'     ) :
       run_mode_cli()
     elif ( sca3s_be.share.sys.conf.get( 'mode', section = 'sys' ) == 'api'     ) :
       run_mode_api()
     else :
-      raise Exception( 'unsupported mode' )
+      raise Exception( 'unsupported server mode' )
 
   except Exception as e :
     raise e

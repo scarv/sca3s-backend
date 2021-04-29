@@ -11,8 +11,8 @@ from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
-from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
+from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -29,9 +29,12 @@ class APIImp( sca3s_be.share.api.APIAbs ):
 
     return self._request( requests.get,   url, json = json )
 
-  def complete( self, job_id, status = None ):
+  def complete( self, job_id, job_status, job_response ):
+    if ( job_id == None ) :
+      return
+
     url  = urllib.parse.urljoin( 'api/acquire/job/', job_id )
-    json = { 'status' : status.hex() }
+    json = { 'status' : job_status.hex(), 'response' : job_response }
 
     return self._request( requests.patch, url, json = json )
 

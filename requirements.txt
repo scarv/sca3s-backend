@@ -10,6 +10,7 @@ more-itertools
 picoscope
 pycrypto
 PyJWT
+pylatex
 pyserial
 requests
 scipy

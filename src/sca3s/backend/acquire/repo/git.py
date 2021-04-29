@@ -11,8 +11,8 @@ from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
-from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
+from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -25,6 +25,7 @@ class RepoImp( repo.RepoAbs ) :
 
     self.url  = self.repo_spec.get( 'url'  )
     self.tag  = self.repo_spec.get( 'tag'  )
+
     self.conf = self.repo_spec.get( 'conf' )
 
   def transfer( self ) :

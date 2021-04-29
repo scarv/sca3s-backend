@@ -11,8 +11,8 @@ from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
-from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
+from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -26,6 +26,20 @@ class DriverAbs( abc.ABC ) :
     self.driver_id   = self.job.conf.get( 'driver_id'   )
     self.driver_spec = self.job.conf.get( 'driver_spec' )
 
+  def _measure( self, trigger ) :
+    edge_pos = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
+    edge_neg = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
+      
+    return ( edge_pos, edge_neg, float( edge_neg - edge_pos ) * self.job.scope.signal_interval )
+
+  def _acquire_log_inc( self, i, n, message = None ) :
+    width = len( str( n - 1 ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
+    self.job.log.indent_inc( message = 'started  acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
+
+  def _acquire_log_dec( self, i, n, message = None ) :
+    width = len( str( n - 1 ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
+    self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
+
   @abc.abstractmethod
   def acquire( self ) :
     raise NotImplementedError()
@@ -35,5 +49,13 @@ class DriverAbs( abc.ABC ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def process( self ) :
+  def execute_prologue( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def execute( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def execute_epilogue( self ) :
     raise NotImplementedError()

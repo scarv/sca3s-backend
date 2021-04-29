@@ -11,8 +11,8 @@ from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
-from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
+from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -32,20 +32,6 @@ class DriverImp( driver.DriverAbs ) :
 
     self.policy_id     = self.driver_spec.get( 'policy_id'   )
     self.policy_spec   = self.driver_spec.get( 'policy_spec' )
-
-  def _measure( self, trigger ) :
-    edge_pos = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
-    edge_neg = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
-      
-    return ( edge_pos, edge_neg, float( edge_neg - edge_pos ) * self.job.scope.signal_interval )
-
-  def _acquire_log_inc( self, i, n, message = None ) :
-    width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
-    self.job.log.indent_inc( message = 'started  acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
-
-  def _acquire_log_dec( self, i, n, message = None ) :
-    width = len( str( n ) ) ; message = '' if ( message == None ) else ( ' : ' + message )
-    self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
 
   def _acquire_enc( self, r = None, k = None, m = None ) :
     if ( r == None ) :
@@ -277,22 +263,24 @@ class DriverImp( driver.DriverAbs ) :
     self.job.log.info( '?data m -> kernel sizeof( m ) = %s', kernel_sizeof_m )
     self.job.log.info( '?data c -> kernel sizeof( c ) = %s', kernel_sizeof_c )
 
+    kernel_module   = 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + kernel_nameof
+
     try :
-      self.kernel = importlib.import_module( 'sca3s.backend.acquire.kernel'  + '.' + self.job.board.driver_id + '.' + kernel_nameof ).KernelImp( kernel_typeof, kernel_sizeof_r, kernel_sizeof_k, kernel_sizeof_m, kernel_sizeof_c )
+      self.kernel = importlib.import_module( kernel_module ).KernelImp( kernel_typeof, kernel_sizeof_r, kernel_sizeof_k, kernel_sizeof_m, kernel_sizeof_c )
     except :
-      raise ImportError( 'failed to construct %s instance with id = %s ' % ( 'kernel', self.job.board.kernel_id ) )
+      raise ImportError( 'failed to construct %s instance' % ( kernel_module ) )
 
     if ( not self.kernel.supports( self.policy_id ) ) :
       raise Exception( 'unsupported kernel policy' )
 
-  # Process the driver:
-  #
-  # 1. open     HDF5 file
-  # 2. execute selected policy
-  # 3. close    HDF5 file
-  # 4. compress HDF5 file
+  # Execute the driver prologue.
 
-  def process( self ) :
+  def execute_prologue( self ) :
+    pass
+
+  # Execute the driver.
+
+  def execute( self ) :
     fd = h5py.File( os.path.join( self.job.path, 'acquire.hdf5' ), 'a' )
 
     if   ( self.policy_id == 'user' ) : 
@@ -301,5 +289,15 @@ class DriverImp( driver.DriverAbs ) :
       self._policy_tvla( fd )
 
     fd.close()
+
+  # Execute the driver epilogue.
+
+  def execute_epilogue( self ) :
+    if   ( self.job.job_type == 'user'    ) :
+      pass
+    elif ( self.job.job_type == 'ci'      ) :
+      pass
+    elif ( self.job.job_type == 'contest' ) :
+      pass
 
     self.job.exec_native( [ 'gzip', '--quiet', os.path.join( self.job.path, 'acquire.hdf5' ) ] )

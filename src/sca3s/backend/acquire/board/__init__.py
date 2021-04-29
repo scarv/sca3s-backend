@@ -11,8 +11,8 @@ from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
-from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
+from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -197,6 +197,7 @@ class BoardAbs( abc.ABC ) :
   @abc.abstractmethod
   def program_hw( self ) :
     raise NotImplementedError()
+
   @abc.abstractmethod
   def program_sw( self ) :
     raise NotImplementedError()
@@ -214,6 +215,7 @@ class BoardAbs( abc.ABC ) :
   
     self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
     self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )
+
     self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
   
     self.kernel_data_i = set( self.job.board.interact( '?kernel_data <' ).split( ',' ) )

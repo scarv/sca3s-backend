@@ -13,10 +13,17 @@ class JobAbs( abc.ABC ) :
   def __init__( self, conf, path, log ) :
     super().__init__()  
 
-    self.conf    = conf
+    self.conf            = conf
 
-    self.path    = path
-    self.log     = log
+    self.path            = path
+    self.log             =  log
+
+    self.job_type        = self.conf.get( 'job_type'    )
+    self.job_id          = self.conf.get( 'job_id'      )
+    self.job_version     = self.conf.get( 'job_version' )
+
+    self.result_transfer = list()
+    self.result_response = dict()
 
   def _drain( self, id, lines ) :
     lines = lines.decode().split( '\n' )
@@ -82,12 +89,12 @@ class JobAbs( abc.ABC ) :
     # board-specific environment
     env.update( self.board.get_docker_env() )
     # board-agnostic environment
-    env.update( { 'DOCKER_GID' : os.getgid() } )
-    env.update( { 'DOCKER_UID' : os.getuid() } )
+    env.update( { 'DOCKER_GID' : os.getgid()                  } )
+    env.update( { 'DOCKER_UID' : os.getuid()                  } )
 
-    env.update( {    'CONTEXT' : 'native'                                                                                            } )
-    env.update( {      'BOARD' : self.conf.get(  'board_id' )                                                                        } ) 
-    env.update( {     'KERNEL' : self.conf.get( 'driver_id' )                                                                        } )
+    env.update( {    'CONTEXT' : 'native'                     } )
+    env.update( {      'BOARD' : self.conf.get(  'board_id' ) } ) 
+    env.update( {     'KERNEL' : self.conf.get( 'driver_id' ) } )
 
     # board-specific volume
     vol.update( self.board.get_docker_vol() )
@@ -98,6 +105,7 @@ class JobAbs( abc.ABC ) :
     env[ 'CONF' ] = ( ' '.join( self.repo.conf + self.board.get_docker_conf() ) ).strip()
 
     # execute prologue
+
     if ( not quiet ) :
       self.log.indent_inc( message = 'execute (docker) => %s' % ( cmd ) )
 
@@ -109,6 +117,7 @@ class JobAbs( abc.ABC ) :
     sca3s_be.share.sys.log.debug( '! image   = %s', str( image   ) )
 
     # execute
+
     try :
       cd = docker.from_env().containers.run( image, command = cmd, environment = env, volumes = vol, privileged = False, network_disabled = True, detach = True, stdout = True, stderr = True )
     
@@ -126,6 +135,7 @@ class JobAbs( abc.ABC ) :
       result = -1                     ; result_str = 'timeout'
 
     # execute epilogue
+
     if ( not quiet ) :    
       self.log.info( '| result : %s (exit status = %d)', result_str, result )
 
@@ -138,13 +148,13 @@ class JobAbs( abc.ABC ) :
     return result
 
   @abc.abstractmethod
-  def process_prologue( self ) :
+  def execute_prologue( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def process( self ) :
+  def execute( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def process_epilogue( self ) :
+  def execute_epilogue( self ) :
     raise NotImplementedError()

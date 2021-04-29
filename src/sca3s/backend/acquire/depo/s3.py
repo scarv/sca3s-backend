@@ -11,8 +11,8 @@ from sca3s.backend.acquire import board  as board
 from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
-from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import driver as driver
+from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -23,6 +23,8 @@ class DepoImp( depo.DepoAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
+    self.user_id       = int( self.job.conf.get( 'user_id' ) )
+
     self.access_key_id = sca3s_be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key_id', section = 's3' )
     self.access_key    = sca3s_be.share.sys.conf.get( 'creds', section = 'security' ).get( 'access_key',    section = 's3' ) 
 
@@ -32,11 +34,10 @@ class DepoImp( depo.DepoAbs ) :
   def transfer( self ) :
     session  = boto3.Session( aws_access_key_id = self.access_key_id, aws_secret_access_key = self.access_key, region_name = self.region_id )
     bucket   = session.resource( 's3' ).Bucket( self.bucket_id )
-    
-    self.job.log.shutdown()
 
-    def upload( name, ext ) :
-      bucket.upload_file( os.path.join( self.job.path, name ), os.path.join( str( self.job.user_id ), self.job.job_id[ : 10 ] + ext ) )
+    for ( name, ext ) in [ t.split( '.', 1 ) for t in self.job.result_transfer ] :
+      src = name                    + '.' + ext
+      dst = self.job.job_id[ : 10 ] + '.' + ext
 
-    upload( 'acquire.log',     '.log'     )
-    upload( 'acquire.hdf5.gz', '.hdf5.gz' )
+      bucket.upload_file( os.path.join( self.job.path, src ), os.path.join( str( self.user_id ), dst ) )
+
