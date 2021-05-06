@@ -286,6 +286,8 @@ CONF = {
     'path:job'            : { 'type' :  'string',                             'default' : tempfile.tempdir          },
     'path:log'            : { 'type' :  'string',                             'default' : tempfile.tempdir          },
 
+    'path:logo'           : { 'type' :  'string',                             'default' : None                      },
+
     'security:template'   : { 'type' :  'object',                             'default' : {},        'properties' : {
           'url' : { 'type' :  'string', 'default' : 'https://github.com/scarv/sca3s-harness.git'                             },
           'tag' : { 'type' :  'string', 'default' : 'master'                                                                 },

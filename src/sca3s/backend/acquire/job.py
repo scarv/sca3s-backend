@@ -261,8 +261,8 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     self._prepare_scope()
     self.log.indent_dec()
 
-    self.result_transfer.append( 'acquire.log'     )
-    self.result_transfer.append( 'acquire.hdf5.gz' )
+    self.result_transfer[ 'acquire.log'     ] = { 'ContentType':        'text/plain',        'CacheControl': 'no-cache, max-age=0' }
+    self.result_transfer[ 'acquire.hdf5.gz' ] = { 'ContentType': 'application/octet-stream', 'CacheControl': 'no-cache, max-age=0' }
 
     self.log.indent_inc( message = 'execute driver prologue' )
     self.driver.execute_prologue()

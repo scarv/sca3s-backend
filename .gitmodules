@@ -4,3 +4,6 @@
 [submodule "extern/wiki"]
 	path = extern/wiki
 	url = https://github.com/scarv/sca3s-backend.wiki.git
+[submodule "extern/texmf"]
+	path = extern/texmf
+	url = https://github.com/scarv/texmf.git

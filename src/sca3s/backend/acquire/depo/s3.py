@@ -35,9 +35,10 @@ class DepoImp( depo.DepoAbs ) :
     session  = boto3.Session( aws_access_key_id = self.access_key_id, aws_secret_access_key = self.access_key, region_name = self.region_id )
     bucket   = session.resource( 's3' ).Bucket( self.bucket_id )
 
-    for ( name, ext ) in [ t.split( '.', 1 ) for t in self.job.result_transfer ] :
-      src = name                    + '.' + ext
-      dst = self.job.job_id[ : 10 ] + '.' + ext
+    for ( name, args ) in self.job.result_transfer.items() :
+      ( name, extension ) = name.split( '.', 1 )
 
-      bucket.upload_file( os.path.join( self.job.path, src ), os.path.join( str( self.user_id ), dst ) )
+      src = name                    + '.' + extension
+      dst = self.job.job_id[ : 10 ] + '.' + extension
 
+      bucket.upload_file( os.path.join( self.job.path, src ), os.path.join( str( self.user_id ), dst ), ExtraArgs = args )

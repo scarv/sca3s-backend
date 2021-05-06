@@ -36,6 +36,9 @@ class BoardAbs( abc.ABC ) :
     self.kernel_id                 = None
     self.kernel_io                 = dict()
 
+  def __str__( self ) :
+    return self.board_id
+
   @abc.abstractmethod
   def get_channel_trigger_range( self ) :
     raise NotImplementedError()

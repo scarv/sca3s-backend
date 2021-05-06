@@ -17,13 +17,18 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc, h5py, numpy
+import abc, h5py, numpy, os
 
 CALIBRATE_MODE_DEFAULT   =    0
 CALIBRATE_MODE_DURATION  =    1
 CALIBRATE_MODE_INTERVAL  =    2
 CALIBRATE_MODE_FREQUENCY =    3
 CALIBRATE_MODE_AUTO      =    4
+
+CALIBRATE_STEP_0         =    0
+CALIBRATE_STEP_1         =    1
+CALIBRATE_STEP_2         =    2
+CALIBRATE_STEP_3         =    3
 
 RESOLUTION_MIN           =    0
 RESOLUTION_MAX           = 1024
@@ -54,52 +59,75 @@ class ScopeAbs( abc.ABC ) :
     self.signal_duration           = None
     self.signal_samples            = None
 
-  def _calibrate_auto( self, resolution = 8, dtype = '<f8' ) :
+  def __str__( self ) :
+    return self.scope_id
+
+  def _autocalibrate( self, resolution = 8, dtype = '<f8' ) :
     trace_spec             = self.job.conf.get( 'trace_spec' )
 
     trace_calibrate_trials = int( trace_spec.get( 'calibrate_trials' ) )
     trace_calibrate_margin = int( trace_spec.get( 'calibrate_margin' ) )
 
-    def trials( n ) :
+    if ( not os.path.isdir( os.path.join( self.job.path, 'calibrate' ) ) ) :
+      os.mkdir( os.path.join( self.job.path, 'calibrate' ) )
+
+    def step( fd, n ) :
+      fd.create_dataset( 'trace/trigger', ( n, self.signal_samples ), self.signal_dtype )
+      fd.create_dataset( 'trace/signal',  ( n, self.signal_samples ), self.signal_dtype )
+
       ls = list()
  
       for i in range( n ) :
         trace = self.job.driver.acquire()
+
+        fd[ 'trace/trigger' ][ i ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )
+        fd[ 'trace/signal'  ][ i ] = sca3s_be.share.util.resize( trace[ 'trace/signal'  ], self.signal_samples, dtype = self.signal_dtype )
+
         ls.append( sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_DURATION, trace[ 'trace/trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval )
 
       return ls
 
-    # step #1: default
+    # step #0: default
 
-    self.job.log.indent_inc( message = 'auto-calibration step #1: default'         )
+    self.job.log.indent_inc( message = 'auto-calibration step #0: default'        )
 
     t  = self.calibrate( mode = scope.CALIBRATE_MODE_DEFAULT,             resolution = resolution, dtype = dtype )
-
-    self.job.log.info( 't_conf = %s',                  str( t ) )
-
-    self.job.log.indent_dec()
-
-    # step #2: 1 *   wide trial
-
-    self.job.log.indent_inc( message = 'auto-calibration step #2: wide   trial(s)' )
-
-    ls = trials( 1                      ) ; l  = max( ls ) ; l = ( 2 * l )
-    t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
-
-    self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
-    self.job.log.info( 't_conf = %s',                  str( t ) )
+    self.job.log.info( 't_conf = %s', str( t ) )
 
     self.job.log.indent_dec()
 
-    # step #3: n * narrow trials + margin
+    # step #1: 1 * large trial(s)
 
-    self.job.log.indent_inc( message = 'auto-calibration step #3: narrow trial(s)' )
+    self.job.log.indent_inc( message = 'auto-calibration step #1: large trial(s)' )
 
-    ls = trials( trace_calibrate_trials ) ; l  = max( ls ) ; l = ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l )
-    t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
+    with h5py.File( os.path.join( self.job.path, 'calibrate', 'calibrate-step_1.hdf5' ), 'a' ) as fd :
+      ls = step( fd, 1                      ) ; l  = max( ls ) ; l = ( 2 * l ) 
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
-    self.job.log.info( 't_conf = %s',                  str( t ) )
+    t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
+    self.job.log.info( 't_conf = %s', str( t ) )
+
+    self.job.log.indent_dec()
+
+    # step #2: n * small trial(s) + margin
+
+    self.job.log.indent_inc( message = 'auto-calibration step #2: small trial(s)' )
+
+    with h5py.File( os.path.join( self.job.path, 'calibrate', 'calibrate-step_2.hdf5' ), 'a' ) as fd :
+      ls = step( fd, trace_calibrate_trials ) ; l  = max( ls ) ; l = ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l )
+
+    self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
+    t = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
+    self.job.log.info( 't_conf = %s', str( t ) )
+
+    self.job.log.indent_dec()
+
+    # step #3: 1 * final trial(s)
+
+    self.job.log.indent_inc( message = 'auto-calibration step #3: final trial(s)' )
+
+    with h5py.File( os.path.join( self.job.path, 'calibrate', 'calibrate-step_3.hdf5' ), 'a' ) as fd :
+      ls = step( fd, 1                      ) ; l  = max( ls ) ; l = ( 1 * l )
 
     self.job.log.indent_dec()
 
@@ -134,22 +162,14 @@ class ScopeAbs( abc.ABC ) :
           (  'crop/trigger',  lambda trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ),
           (  'crop/signal',   lambda trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) ]
 
-    def resize( xs, n ) :
-      if   ( len( xs ) <  n ) :
-        return numpy.concatenate( ( xs[ 0 :   ], numpy.array( [ 0 ] * ( n - len( xs ) ), dtype = self.signal_dtype ) ) )
-      elif ( len( xs ) >  n ) :
-        return                      xs[ 0 : n ]
-      elif ( len( xs ) == n ) :
-        return                      xs
-
     if ( 'trace/trigger' in trace ) :
-      trace[ 'trace/trigger' ] = resize( trace[ 'trace/trigger' ], self.signal_samples     )
+      trace[ 'trace/trigger' ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )
     if ( 'trace/signal'  in trace ) :
-      trace[ 'trace/signal'  ] = resize( trace[ 'trace/signal'  ], self.signal_samples     )
+      trace[ 'trace/signal'  ] = sca3s_be.share.util.resize( trace[ 'trace/signal'  ], self.signal_samples, dtype = self.signal_dtype )
     if ( 'edge/pos'      in trace ) :
-      trace[ 'edge/pos'      ] =    min( trace[ 'edge/pos'      ], self.signal_samples - 1 )
+      trace[ 'edge/pos'      ] = min( trace[ 'edge/pos' ], self.signal_samples - 1 )
     if ( 'edge/neg'      in trace ) :
-      trace[ 'edge/neg'      ] =    min( trace[ 'edge/neg'      ], self.signal_samples - 1 )
+      trace[ 'edge/neg'      ] = min( trace[ 'edge/neg' ], self.signal_samples - 1 )
 
     for ( k, f ) in T :
       if ( k in ks ) :

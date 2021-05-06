@@ -26,6 +26,9 @@ class DepoAbs( abc.ABC ) :
     self.depo_id   = self.job.conf.get( 'depo_id'   )
     self.depo_spec = self.job.conf.get( 'depo_spec' )
 
+  def __str__( self ) :
+    return self.depo_id
+
   @abc.abstractmethod
   def transfer( self ) :
     raise NotImplementedError()    

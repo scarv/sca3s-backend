@@ -33,6 +33,11 @@ class DriverImp( driver.DriverAbs ) :
     self.policy_id     = self.driver_spec.get( 'policy_id'   )
     self.policy_spec   = self.driver_spec.get( 'policy_spec' )
 
+  def __str__( self ) :
+    return self.driver_id + ' ' + '(' + self.job.board.kernel_id + ')'
+
+  # Perform acquisition step: encryption operation
+
   def _acquire_enc( self, r = None, k = None, m = None ) :
     if ( r == None ) :
       r = self.kernel.value( '{$*|r|}' )
@@ -73,6 +78,8 @@ class DriverImp( driver.DriverAbs ) :
     ( edge_pos, edge_neg, duration ) = self._measure( trigger )
 
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'r' : r, 'k' : k, 'm' : m, 'c' : c }
+
+  # Perform acquisition step: decryption operation
 
   def _acquire_dec( self, r = None, k = None, c = None ) :
     if ( r == None ) :
@@ -216,6 +223,42 @@ class DriverImp( driver.DriverAbs ) :
 
       ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, k, x, i )
 
+  # Post-processing, aka. fixed-function analysis: CI 
+
+  def _analyse_ci( self ) :    
+    doc = sca3s_be.share.report.Report( self.job )
+
+    self.job.log.indent_inc( message = 'generate report preamble' )
+    doc.emit_preamble()
+    self.job.log.indent_dec()
+    self.job.log.indent_inc( message = 'generate report prologue' )
+    doc.emit_prologue()
+    self.job.log.indent_dec()
+
+    self.job.log.indent_inc( message = 'generate report content: calibration report' )
+    doc.emit_section_calibrate()
+    self.job.log.indent_dec()
+    self.job.log.indent_inc( message = 'generate report content: latency     report' )
+    doc.emit_section_latency()
+    self.job.log.indent_dec()
+    self.job.log.indent_inc( message = 'generate report content: leakage     report' )
+    doc.emit_section_leakage()
+    self.job.log.indent_dec()
+
+    self.job.log.indent_inc( message = 'generate report epilogue' )
+    doc.emit_epilogue()
+  
+    self.job.log.indent_inc( message = 'compile  report'          )
+    doc.compile( os.path.join( self.job.path, 'acquire.pdf' ) )
+    self.job.log.indent_dec()
+    
+    self.job.result_transfer[ 'acquire.pdf' ] = { 'ContentType': 'application/pdf', 'CacheControl': 'no-cache, max-age=0', 'ACL': 'public-read' }
+
+  # Post-processing, aka. fixed-function analysis: contest
+
+  def _analyse_contest( self ) :
+    self.job.result_response[ 'score' ] = 0
+
   # Acquire data wrt. this driver, using the kernel model.
 
   def acquire( self, k = None, x = None ) :
@@ -296,8 +339,8 @@ class DriverImp( driver.DriverAbs ) :
     if   ( self.job.job_type == 'user'    ) :
       pass
     elif ( self.job.job_type == 'ci'      ) :
-      pass
+      self._analyse_ci()
     elif ( self.job.job_type == 'contest' ) :
-      pass
+      self._analyse_contest()
 
     self.job.exec_native( [ 'gzip', '--quiet', os.path.join( self.job.path, 'acquire.hdf5' ) ] )

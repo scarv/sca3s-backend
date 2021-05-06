@@ -28,5 +28,8 @@ class RepoImp( repo.RepoAbs ) :
 
     self.conf = self.repo_spec.get( 'conf' )
 
+  def __str__( self ) :
+    return self.repo_id + ' ' + '(' + self.url + '#' + self.tag + ')'
+
   def transfer( self ) :
     git.Repo.clone_from( self.url, os.path.join( self.job.path, 'target' ), branch = self.tag, depth = 1 )

@@ -44,6 +44,7 @@ def process( manifest ) :
 
       path = tempfile.mkdtemp( prefix = job_id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = job_id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
+
       job  = task_be.job.JobImp( manifest, path, log )
 
     except Exception as e :

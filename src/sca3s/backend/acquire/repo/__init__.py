@@ -26,6 +26,9 @@ class RepoAbs( abc.ABC ) :
     self.repo_id   = self.job.conf.get( 'repo_id'   )
     self.repo_spec = self.job.conf.get( 'repo_spec' )
 
+  def __str__( self ) :
+    return self.repo_id
+
   @abc.abstractmethod
   def transfer( self ) :
     raise NotImplementedError()    

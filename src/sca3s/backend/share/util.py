@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import binascii, hashlib
+import binascii, hashlib, numpy
 
 def str2seq( x ) :
   return          [ ord( t ) for t in x ]
@@ -57,6 +57,14 @@ def seq2int( x, b, endian = LE ) :
 
 def closest( xs, x ) :
   return min( xs, key = lambda t : abs( t - x ) )
+
+def resize( xs, n, dtype = numpy.dtype( int ) ) :
+  if   ( len( xs ) <  n ) :
+    return numpy.concatenate( ( xs[ 0 :   ], numpy.array( [ 0 ] * ( n - len( xs ) ), dtype = dtype ) ) )
+  elif ( len( xs ) >  n ) :
+    return                      xs[ 0 : n ]
+  elif ( len( xs ) == n ) :
+    return                      xs
 
 MEASURE_MODE_DURATION    = 0
 MEASURE_MODE_TRIGGER_POS = 1

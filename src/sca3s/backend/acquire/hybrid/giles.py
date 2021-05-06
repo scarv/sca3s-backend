@@ -126,7 +126,7 @@ class HybridImp( hybrid.HybridAbs ) :
         raise Exception( 'unsupported calibration mode' )
 
       elif ( mode == scope.CALIBRATE_MODE_AUTO      ) :
-        return self._calibrate_auto( resolution = resolution, dtype = dtype )
+        return self._autocalibrate( resolution = resolution, dtype = dtype )
   
       # configure channels
       self.channel_trigger_range     = self.job.board.get_channel_trigger_range()

@@ -68,7 +68,7 @@ class ScopeType( scope.ScopeAbs ) :
       duration =             interval * self._maxSamples( resolution )
 
     elif ( mode == scope.CALIBRATE_MODE_AUTO      ) :
-      return self._calibrate_auto( resolution = resolution, dtype = dtype )
+      return self._autocalibrate( resolution = resolution, dtype = dtype )
 
     # configure segmentation (if supported)
     if ( hasattr( self.scope_unit, '_lowLevelMemorySegments'      ) ) :

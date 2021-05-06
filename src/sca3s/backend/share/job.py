@@ -22,7 +22,7 @@ class JobAbs( abc.ABC ) :
     self.job_id          = self.conf.get( 'job_id'      )
     self.job_version     = self.conf.get( 'job_version' )
 
-    self.result_transfer = list()
+    self.result_transfer = dict()
     self.result_response = dict()
 
   def _drain( self, id, lines ) :
