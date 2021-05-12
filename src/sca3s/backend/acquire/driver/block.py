@@ -28,10 +28,10 @@ class DriverImp( driver.DriverAbs ) :
     self.trace_content =       self.trace_spec.get( 'content' )
     self.trace_count   =  int( self.trace_spec.get( 'count'   ) )
 
-    self.kernel        = None
-
     self.policy_id     = self.driver_spec.get( 'policy_id'   )
     self.policy_spec   = self.driver_spec.get( 'policy_spec' )
+
+    self.kernel        = None
 
   def __str__( self ) :
     return self.driver_id + ' ' + '(' + self.job.board.kernel_id + ')'
@@ -259,7 +259,7 @@ class DriverImp( driver.DriverAbs ) :
   def _analyse_contest( self ) :
     self.job.result_response[ 'score' ] = 0
 
-  # Acquire data wrt. this driver, using the kernel model.
+  # Acquire data wrt. this driver
 
   def acquire( self, k = None, x = None ) :
     if   ( self.kernel.func == 'enc' ) :
@@ -277,7 +277,7 @@ class DriverImp( driver.DriverAbs ) :
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
       raise Exception( 'inconsistent driver version'    )
-    if ( self.job.board.driver_id != 'block' ) :
+    if ( self.job.board.driver_id != self.driver_id ) :
       raise Exception( 'inconsistent driver identifier' )
 
     ( kernel_nameof, kernel_typeof ) = self.job.board.kernel_id.split( '/' )
@@ -289,9 +289,9 @@ class DriverImp( driver.DriverAbs ) :
     
     if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'm' ] ) ) ) :
       raise Exception( 'inconsistent kernel I/O spec.' )
-    if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'c' ] ) ) ) :
-      raise Exception( 'inconsistent kernel I/O spec.' )
     if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_o != set( [ 'c'           ] ) ) ) :
+      raise Exception( 'inconsistent kernel I/O spec.' )
+    if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'c' ] ) ) ) :
       raise Exception( 'inconsistent kernel I/O spec.' )
     if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_o != set( [ 'm'           ] ) ) ) :
       raise Exception( 'inconsistent kernel I/O spec.' )
@@ -316,12 +316,12 @@ class DriverImp( driver.DriverAbs ) :
     if ( not self.kernel.supports( self.policy_id ) ) :
       raise Exception( 'unsupported kernel policy' )
 
-  # Execute the driver prologue.
+  # Execute the driver prologue
 
   def execute_prologue( self ) :
     pass
 
-  # Execute the driver.
+  # Execute the driver
 
   def execute( self ) :
     fd = h5py.File( os.path.join( self.job.path, 'acquire.hdf5' ), 'a' )
@@ -333,7 +333,7 @@ class DriverImp( driver.DriverAbs ) :
 
     fd.close()
 
-  # Execute the driver epilogue.
+  # Execute the driver epilogue
 
   def execute_epilogue( self ) :
     if   ( self.job.job_type == 'user'    ) :

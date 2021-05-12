@@ -46,7 +46,7 @@ class HybridImp( hybrid.HybridAbs ) :
       t = [ '-DDRIVER_NONINTERACTIVE' ]
   
       if ( '?kernel_data >' in self.kernel_io ) :
-        for id in self.kernel_io[ '?kernel_data <' ].split( ',' ) :
+        for id in self.kernel_io[ '?kernel_data >' ].split( ',' ) :
           t.append( '-DKERNEL_INITOF_%s="%s"' % ( id.upper(), ','.join( [ '0x%02X' % ( x ) for x in sca3s_be.share.util.octetstr2str( self.interact( '<data %s' % ( id ) ) ) ] ) ) )
   
       return t
