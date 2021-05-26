@@ -57,12 +57,10 @@ def process( manifest ) :
 
       job.execute_prologue()
       job.execute()
+      job.execute_epilogue()
   
     except Exception as e :
       job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROCESS  ; raise e
-
-    finally :
-      job.execute_epilogue()
 
     sca3s_be.share.sys.log.info( 'process job epilogue' )
 
@@ -100,6 +98,7 @@ def run_mode_cli() :
 #    - terminate if the signal handler says so
 #    - write an activity ping after parameterised number of iterations
 #    - back-off, i.e., wait, for parameterised period
+#
 # 2. a "retrieve handler" thread:
 #    - make API call; retrieve job        from the API, process it, and confirm completion
 #    - terminate if the signal handler says so

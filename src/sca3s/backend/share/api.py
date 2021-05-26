@@ -30,8 +30,8 @@ class APIAbs( abc.ABC ) :
         response = response.json() ; status_code = sca3s_mw.share.status.Status.build( response[ 'status' ] )
 
         sca3s_be.share.sys.log.indent_inc( message = 'API request success (%d of %d)' % ( i + 1, self.retry_count ) )
-        sca3s_be.share.sys.log.debug( '> request  = %s( %s, params = %s, headers = %s, json = %s' % ( str( request  ), url, params, headers, json ) )
-        sca3s_be.share.sys.log.debug( '< response = %s'                                           % ( str( response )                             ) )
+        sca3s_be.share.sys.log.info( '> request  = %s( %s, params = %s, headers = %s, json = %s' % ( str( request  ), url, params, headers, json ) )
+        sca3s_be.share.sys.log.info( '< response = %s'                                           % ( str( response )                             ) )
         sca3s_be.share.sys.log.indent_dec()
      
         if ( status_code == sca3s_mw.share.status.Status.SUCCESS ) :
@@ -41,8 +41,8 @@ class APIAbs( abc.ABC ) :
 
       else :
         sca3s_be.share.sys.log.indent_inc( message = 'API request failure (%d of %d)' % ( i + 1, self.retry_count ) )
-        sca3s_be.share.sys.log.debug( '> request  = %s( %s, params = %s, headers = %s, json = %s' % ( str( request  ), url, params, headers, json ) )
-        sca3s_be.share.sys.log.debug( '< response = %s'                                           % ( str( response )                             ) )
+        sca3s_be.share.sys.log.info( '> request  = %s( %s, params = %s, headers = %s, json = %s' % ( str( request  ), url, params, headers, json ) )
+        sca3s_be.share.sys.log.info( '< response = %s'                                           % ( str( response )                             ) )
         sca3s_be.share.sys.log.indent_dec()
 
         time.sleep( self.retry_wait )

@@ -68,7 +68,7 @@ class LogAdapter( logging.LoggerAdapter ):
       message = ( '|  ' * self.indent ) + message
   
       for ( src, dst ) in self.replace.items() :
-        message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )
+        message = message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )
   
       self.logger._log( level, message, args )
 

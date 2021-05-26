@@ -170,137 +170,143 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   #    - driver object
   #    - repo.  object
   #    - depo.  object
-  # 3. open board object
-  # 4. open scope object
 
   def execute_prologue( self ) :
-    self.log.indent_rst()
-
-    self.log.indent_inc( message = 'dump manifest' )
-    self.conf.dump( self.log, level = logging.INFO )
-    self.log.indent_dec()
-
-    if ( self.conf.get( 'board_id' ) == self.conf.get( 'scope_id' ) ) :
-      self.log.indent_inc( message = 'construct hybrid object' )
-      self.hybrid = self._object( self.conf.get(  'board_id' ), 'hybrid', 'HybridImp' ) 
-      self.log.indent_dec()
-
-      self.log.indent_inc( message = 'construct board  object' )
-      self.board  = self.hybrid.get_board() 
+    try :
+      self.log.indent_rst()
+  
+      self.result_transfer[ 'acquire.log'     ] = { 'ContentType':        'text/plain',        'CacheControl': 'no-cache, max-age=0' }
+      self.result_transfer[ 'acquire.hdf5.gz' ] = { 'ContentType': 'application/octet-stream', 'CacheControl': 'no-cache, max-age=0' }
+  
+      self.log.indent_inc( message = 'dump manifest' )
+      self.conf.dump( self.log, level = logging.INFO )
       self.log.indent_dec()
   
-      self.log.indent_inc( message = 'construct scope  object' )
-      self.scope  = self.hybrid.get_scope()
-      self.log.indent_dec()
+      if ( self.conf.get( 'board_id' ) == self.conf.get( 'scope_id' ) ) :
+        self.log.indent_inc( message = 'construct hybrid object' )
+        self.hybrid = self._object( self.conf.get(  'board_id' ), 'hybrid', 'HybridImp' ) 
+        self.log.indent_dec()
   
-    else :
-      self.log.indent_inc( message = 'construct board  object' )
-      self.board  = self._object( self.conf.get(  'board_id' ),  'board',  'BoardImp' )
-      self.log.indent_dec()
+        self.log.indent_inc( message = 'construct board  object' )
+        self.board  = self.hybrid.get_board() 
+        self.log.indent_dec()
+    
+        self.log.indent_inc( message = 'construct scope  object' )
+        self.scope  = self.hybrid.get_scope()
+        self.log.indent_dec()
+    
+      else :
+        self.log.indent_inc( message = 'construct board  object' )
+        self.board  = self._object( self.conf.get(  'board_id' ),  'board',  'BoardImp' )
+        self.log.indent_dec()
+    
+        self.log.indent_inc( message = 'construct scope  object' )
+        self.scope  = self._object( self.conf.get(  'scope_id' ),  'scope',  'ScopeImp' )
+        self.log.indent_dec()
   
-      self.log.indent_inc( message = 'construct scope  object' )
-      self.scope  = self._object( self.conf.get(  'scope_id' ),  'scope',  'ScopeImp' )
-      self.log.indent_dec()
+      if ( True ) :
+        self.log.indent_inc( message = 'construct driver object' )
+        self.driver = self._object( self.conf.get( 'driver_id' ), 'driver', 'DriverImp' )
+        self.log.indent_dec()
+  
+        self.log.indent_inc( message = 'construct repo   object' )
+        self.repo   = self._object( self.conf.get(   'repo_id' ),   'repo',   'RepoImp' )
+        self.log.indent_dec()
+  
+        self.log.indent_inc( message = 'construct depo   object' )
+        self.depo   = self._object( self.conf.get(   'depo_id' ),   'depo',   'DepoImp' )
+        self.log.indent_dec()
 
-    if ( True ) :
-      self.log.indent_inc( message = 'construct driver object' )
-      self.driver = self._object( self.conf.get( 'driver_id' ), 'driver', 'DriverImp' )
-      self.log.indent_dec()
-
-      self.log.indent_inc( message = 'construct repo   object' )
-      self.repo   = self._object( self.conf.get(   'repo_id' ),   'repo',   'RepoImp' )
-      self.log.indent_dec()
-
-      self.log.indent_inc( message = 'construct depo   object' )
-      self.depo   = self._object( self.conf.get(   'depo_id' ),   'depo',   'DepoImp' )
-      self.log.indent_dec()
-
-    self.log.indent_inc( message = 'open board' )
-    self.board.open()
-    self.log.indent_dec()
-
-    self.log.indent_inc( message = 'open scope' )
-    self.scope.open()
-    self.log.indent_dec()
+    except Exception as e :
+      raise e
 
   # Execute job:
   #
-  # 1. transfer target implementation from repo. to local copy 
-  # 2. prepare repo.,  e.g., check vs. diff
-  # 3. prepare board,  e.g., build and program target implementation
-  # 4. prepare driver, e.g., query target implemention parameters
-  # 5. prepare scope,  e.g., calibrate wrt. target implementation
-  # 6. execute
+  # 1. open  devices
+  #    - board
+  #    - scope
+  # 2. transfer target implementation from repo. to local copy 
+  # 3. prepare repo.,  e.g., check vs. diff
+  # 4. prepare board,  e.g., build and program target implementation
+  # 5. prepare driver, e.g., query target implemention parameters
+  # 6. prepare scope,  e.g., calibrate wrt. target implementation
+  # 7. execute
   #    - driver prologue, e.g., job-specific  pre-processing/computation
   #    - driver,          i.e., acquisition process wrt. target implementation
   #    - driver epilogue, e.g., job-specific post-processing/computation
-  # 7. dump manifest
-  # 8. shutdown log
-  # 9. transfer target implementation from local copy to depo.
+  # 8. transfer target implementation from local copy to depo.
+  # 9. close devices
+  #    - board
+  #    - scope
 
   def execute( self ) :
-    self.log.indent_rst()
+    try :
+      self.log.indent_rst()
 
-    self.log.indent_inc( message = 'transfer local <- repo.' )
-    self.repo.transfer()
-    self.log.indent_dec()
+      self.log.indent_inc( message = 'open board'                )
+      self.board.open()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'open scope'                )
+      self.scope.open()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'transfer local <- repo.'   )
+      self.repo.transfer()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'prepare repo.'             )
+      self._prepare_repo()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'prepare board'             )
+      self._prepare_board()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'prepare driver'            )
+      self.driver.prepare()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'prepare scope'             )
+      self._prepare_scope()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'execute driver prologue'   )
+      self.driver.execute_prologue()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'execute driver'            )
+      self.driver.execute()
+      self.log.indent_dec()
+  
+      self.log.indent_inc( message = 'execute driver epilogue'   )
+      self.driver.execute_epilogue()
+      self.log.indent_dec()
 
-    self.log.indent_inc( message = 'prepare repo.'           )
-    self._prepare_repo()
-    self.log.indent_dec()
+    except Exception as e :
+      raise e
 
-    self.log.indent_inc( message = 'prepare board'           )
-    self._prepare_board()
-    self.log.indent_dec()
+    finally :
+      self.log.indent_rst()
 
-    self.log.indent_inc( message = 'prepare driver'          )
-    self.driver.prepare()
-    self.log.indent_dec()
+      self.log.indent_inc( message = 'dump result'               )
+      self.log.info( 'transfer = %s' % ( str( self.result_transfer ) ) )
+      self.log.info( 'response = %s' % ( str( self.result_response ) ) )
+      self.log.indent_dec()
 
-    self.log.indent_inc( message = 'prepare scope'           )
-    self._prepare_scope()
-    self.log.indent_dec()
+      self.log.indent_inc( message = 'transfer local -> depo.'   )
+      self.depo.transfer()
+      self.log.indent_dec()
 
-    self.result_transfer[ 'acquire.log'     ] = { 'ContentType':        'text/plain',        'CacheControl': 'no-cache, max-age=0' }
-    self.result_transfer[ 'acquire.hdf5.gz' ] = { 'ContentType': 'application/octet-stream', 'CacheControl': 'no-cache, max-age=0' }
-
-    self.log.indent_inc( message = 'execute driver prologue' )
-    self.driver.execute_prologue()
-    self.log.indent_dec()
-
-    self.log.indent_inc( message = 'execute driver'          )
-    self.driver.execute()
-    self.log.indent_dec()
-
-    self.log.indent_inc( message = 'execute driver epilogue' )
-    self.driver.execute_epilogue()
-    self.log.indent_dec()
-
-    self.log.indent_inc( message = 'dump result'             )
-    self.log.info( 'transfer = %s' % ( str( self.result_transfer ) ) )
-    self.log.info( 'response = %s' % ( str( self.result_response ) ) )
-    self.log.indent_dec()
-
-    self.log.shutdown()
-
-    self.log.indent_inc( message = 'transfer local -> depo.' )
-    self.depo.transfer()
-    self.log.indent_dec()
-
-  # Execute job epilogue:
-  #
-  # 1. close scope object
-  # 2. close board object
-
-  def execute_epilogue( self ) :
-    self.log.indent_rst()
-
-    if( self.scope != None ) :
-      self.log.indent_inc( message = 'close scope' )
+      self.log.indent_inc( message = 'close scope'               )
       self.scope.close()
       self.log.indent_dec()
 
-    if( self.board != None ) :
-      self.log.indent_inc( message = 'close board' )
+      self.log.indent_inc( message = 'close board'               )
       self.board.close()
       self.log.indent_dec()
+
+  # Execute job epilogue.
+  
+  def execute_epilogue( self ) :
+    pass

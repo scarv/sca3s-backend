@@ -41,4 +41,9 @@ class DepoImp( depo.DepoAbs ) :
       src = name                    + '.' + extension
       dst = self.job.job_id[ : 10 ] + '.' + extension
 
-      bucket.upload_file( os.path.join( self.job.path, src ), os.path.join( str( self.user_id ), dst ), ExtraArgs = args )
+      if ( not os.path.isfile( os.path.join( self.job.path, src ) ) ) :
+        self.job.log.info( 'skipping  %s', src )
+      else :
+        self.job.log.info( 'uploading %s', src )
+
+        bucket.upload_file( os.path.join( self.job.path, src ), os.path.join( str( self.user_id ), dst ), ExtraArgs = args )
