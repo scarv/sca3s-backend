@@ -94,7 +94,7 @@ def build_log( type, path, id = None, replace = dict() ) :
   logger = logging.getLogger( id )
   formatter = logging.Formatter( '[%(asctime)s] {%(name)s} : %(message)s', datefmt = '%d/%m/%y @ %H:%M:%S' )
 
-  handler = logging.handlers.RotatingFileHandler( os.path.join( path, name ), maxBytes = 1 << 20, backupCount = 100 )
+  handler = logging.handlers.RotatingFileHandler( os.path.join( path, name ), maxBytes = 1 << 24, backupCount = 100 )
   handler.setFormatter( formatter )
   logger.addHandler( handler )
 

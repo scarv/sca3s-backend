@@ -150,6 +150,19 @@ the back-end infrastructure, which is, for example, tasked with orchestrating th
 
 <!--- -------------------------------------------------------------------- --->
 
+## Questions?
+
+- read the
+  [wiki](https://github.com/scarv/sca3s/wiki),
+- raise an
+  [issue](https://github.com/scarv/sca3s/issues),
+- raise a
+  [pull request](https://github.com/scarv/sca3s/pulls),
+- drop us an 
+  [email](mailto:sca3s@scarv.org).
+
+<!--- -------------------------------------------------------------------- --->
+
 ## Acknowledgements
 
 This work has been supported in part 
