@@ -180,14 +180,12 @@ class BoardAbs( abc.ABC ) :
     for ( k, v ) in self.kernel_io.items() :
       self.job.log.info( 'parsed non-interactive I/O response: %s => %s' % ( k, v ) )
 
-    # produce dummy data for each potential output (including TSC as a special case)
+    # produce dummy data for each potential output from kernel
 
-    if ( '?kernel_data <' in self.kernel_io ) :
-      for id in self.kernel_io[ '?kernel_data <' ].split( ',' ) :
+    if ( '<kernel_data' in self.kernel_io ) :
+      for id in self.kernel_io[ '<kernel_data' ].split( ',' ) :
         if ( ( '?data %s' % ( id ) ) in self.kernel_io ) :
           self.kernel_io[ id ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * int( self.kernel_io[ '?data %s' % ( id ) ] ) ) )
-
-    self.kernel_io[ 'tsc' ] = '01:00'
 
     # convert integer sizes into octet strings
 
@@ -221,11 +219,11 @@ class BoardAbs( abc.ABC ) :
 
     self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
   
-    self.kernel_data_i = set( self.job.board.interact( '?kernel_data >' ).split( ',' ) )
-    self.kernel_data_o = set( self.job.board.interact( '?kernel_data <' ).split( ',' ) )
+    self.kernel_data_i = set( self.job.board.interact( '>kernel_data' ).split( ',' ) )
+    self.kernel_data_o = set( self.job.board.interact( '<kernel_data' ).split( ',' ) )
   
-    self.job.log.info( '?kernel_data -> kernel data  input = %s', self.kernel_data_i  )
-    self.job.log.info( '?kernel_data -> kernel data output = %s', self.kernel_data_o  )
+    self.job.log.info( '>kernel_data -> kernel data  input = %s', self.kernel_data_i  )
+    self.job.log.info( '<kernel_data -> kernel data output = %s', self.kernel_data_o  )
 
   @abc.abstractmethod
   def  open( self ) :

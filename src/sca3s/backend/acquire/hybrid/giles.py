@@ -45,8 +45,8 @@ class HybridImp( hybrid.HybridAbs ) :
     def get_docker_conf( self ) :
       t = [ '-DDRIVER_NONINTERACTIVE' ]
   
-      if ( '?kernel_data >' in self.kernel_io ) :
-        for id in self.kernel_io[ '?kernel_data >' ].split( ',' ) :
+      if ( '>kernel_data' in self.kernel_io ) :
+        for id in self.kernel_io[ '>kernel_data' ].split( ',' ) :
           t.append( '-DKERNEL_INITOF_%s="%s"' % ( id.upper(), ','.join( [ '0x%02X' % ( x ) for x in sca3s_be.share.util.octetstr2str( self.interact( '<data %s' % ( id ) ) ) ] ) ) )
   
       return t
@@ -63,17 +63,21 @@ class HybridImp( hybrid.HybridAbs ) :
   
       if   ( x.startswith( '?data'            ) ) :
         return get_cached( x              )
-  
+      elif ( x.startswith( '#data'            ) ) :
+        return get_cached( x              )
+
+      elif ( x.startswith( '>data'            ) ) :
+        x = x.split( ' ' ) ; 
+        return set_cached( x[ 1 ], x[ 2 ] )  
       elif ( x.startswith( '<data'            ) ) :
         x = x.split( ' ' )
         return get_cached( x[ 1 ]         )
-      elif ( x.startswith( '>data'            ) ) :
-        x = x.split( ' ' ) ; 
-        return set_cached( x[ 1 ], x[ 2 ] )
 
       elif ( x.startswith( '?kernel_id'       ) ) :
         return get_cached( x              )
-      elif ( x.startswith( '?kernel_data'     ) ) :
+      elif ( x.startswith( '>kernel_data'     ) ) :
+        return get_cached( x              )
+      elif ( x.startswith( '<kernel_data'     ) ) :
         return get_cached( x              )
 
       elif ( x.startswith( '!kernel_prologue' ) ) :
