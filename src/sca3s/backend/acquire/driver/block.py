@@ -287,13 +287,13 @@ class DriverImp( driver.DriverAbs ) :
     if ( kernel_typeof not in [     'enc', 'dec' ] ) :
       raise Exception( 'unsupported kernel type'   )
     
-    if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'm' ] ) ) ) :
+    if ( ( kernel_typeof == 'enc' ) and not ( self.job.board.kernel_data_i >= set( [        'r', 'k', 'm' ] ) ) ) :
       raise Exception( 'inconsistent kernel I/O spec.' )
-    if ( ( kernel_typeof == 'enc' ) and ( self.job.board.kernel_data_o != set( [ 'c'           ] ) ) ) :
+    if ( ( kernel_typeof == 'enc' ) and not ( self.job.board.kernel_data_o >= set( [ 'tsc', 'c'           ] ) ) ) :
       raise Exception( 'inconsistent kernel I/O spec.' )
-    if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_i != set( [ 'r', 'k', 'c' ] ) ) ) :
+    if ( ( kernel_typeof == 'dec' ) and not ( self.job.board.kernel_data_i >= set( [        'r', 'k', 'c' ] ) ) ) :
       raise Exception( 'inconsistent kernel I/O spec.' )
-    if ( ( kernel_typeof == 'dec' ) and ( self.job.board.kernel_data_o != set( [ 'm'           ] ) ) ) :
+    if ( ( kernel_typeof == 'dec' ) and not ( self.job.board.kernel_data_o >= set( [ 'tsc', 'm'           ] ) ) ) :
       raise Exception( 'inconsistent kernel I/O spec.' )
 
     kernel_sizeof_r = sca3s_be.share.util.seq2int( sca3s_be.share.util.octetstr2str( self.job.board.interact( '?data r' ) ), 2 ** 8 )
