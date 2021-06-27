@@ -92,29 +92,30 @@ def measure( mode, samples, threshold ) :
   elif ( mode == MEASURE_MODE_TRIGGER_NEG ) :
     return edge_neg
 
-def value( x, ns = dict() ) :
-  if   ( type( x ) == bytes ) :
-    return x
-  elif ( type( x ) == str   ) :
-    r = ''
-    
-    for t in re.split( '({[^}]*})', x ) :
-      if ( ( not t.startswith( '{' ) ) or  ( not t.endswith( '}' ) ) ) :
-        r += t ; continue
-      
-      ( x, n ) = tuple( t.strip( '{}' ).split( '*' ) )
-      
-      x = x.strip()
-      n = n.strip()
-    
-      if ( (     n.startswith( '|' ) ) and (     n.endswith( '|' ) ) ) :
-        if ( n.strip( '|' ) in ns ) :
-          r += x * ( 2 * ns[ n.strip( '|' ) ] )
-        else :
-          r += x * int( n )
-      else :
-          r += x * int( n )
-  
-    return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
+def value( x, ids = dict() ) :
+  r = ''
 
-  return None
+  for t in re.split( '({[^}]*})', x ) :
+    if ( ( not t.startswith( '{' ) ) or  ( not t.endswith( '}' ) ) ) :
+      r += t ; continue
+
+    t = t.strip( '{}' )
+
+    # {<char>*<int>}
+    m = re.match( '([0-9a-fA-F$])\*(\d+)',     t )
+    if ( m != None ) :
+      r += m.group( 1 ) * ( 2 *                    int( m.group( 2 ) )       )
+    # {<char>%<int>}
+    m = re.match( '([0-9a-fA-F$])\%(\d+)',     t )
+    if ( m != None ) :
+      r += m.group( 1 ) * ( 2 * random.randint( 0, int( m.group( 2 ) ) - 1 ) )
+    # {<char>*|<id>|}
+    m = re.match( '([0-9a-fA-F$])\*(\|\w+\|)', t )
+    if ( m != None ) :
+      r += m.group( 1 ) * ( 2 *                    int( ids[ m.group( 2 ).strip( '|' ) ] )       )
+    # {<char>%|<id>|}
+    m = re.match( '([0-9a-fA-F$])\%(\|\w+\|)', t )
+    if ( m != None ) :
+      r += m.group( 1 ) * ( 2 * random.randint( 0, int( ids[ m.group( 2 ).strip( '|' ) ] ) - 1 ) )
+
+  return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )

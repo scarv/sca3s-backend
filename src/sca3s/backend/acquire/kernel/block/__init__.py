@@ -39,9 +39,6 @@ class KernelType( kernel.KernelAbs ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
-    print( user_select )
-    print( user_value  )
-
     if   ( self.typeof == 'enc' ) :
       k = user_value.get( 'k' )
       x = user_value.get( 'm' )
@@ -54,9 +51,6 @@ class KernelType( kernel.KernelAbs ) :
   def policy_user_iter( self, spec, k, x, i ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
-
-    print( user_select )
-    print( user_value  )
 
     if   ( self.typeof == 'enc' ) :
       k = user_value.get( 'k' ) if ( user_select.get( 'k' ) == 'each' ) else ( k )

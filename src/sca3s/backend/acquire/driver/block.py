@@ -36,24 +36,25 @@ class DriverImp( driver.DriverAbs ) :
   def __str__( self ) :
     return self.driver_id + ' ' + '(' + self.job.board.kernel_id + ')'
 
-  # Generate a concrete'ised value.
+  # Expand a byte sequence specifier into a byte sequence.
 
-  def _value( self, x ) :
-    return sca3s_be.share.util.value( x, ns = { **self.job.board.kernel_data_wr_size, **self.job.board.kernel_data_rd_size } )
+  def _expand( self, x ) :
+    if   ( type( x ) == bytes ) :
+      return x
+    elif ( type( x ) == str   ) :
+      return sca3s_be.share.util.value( x, ids = { **self.job.board.kernel_data_wr_size, **self.job.board.kernel_data_rd_size } )
+
+    return None
 
   # Perform acquisition step: encryption operation
 
   def _acquire_enc( self, esr = None, k = None, m = None ) :
-    sca3s_be.share.sys.log.info( 'acquire : esr = %s', esr )
-    sca3s_be.share.sys.log.info( 'acquire : k   = %s', k   )
-    sca3s_be.share.sys.log.info( 'acquire : m   = %s', m   )
-
     if ( esr == None ) :
-      esr = self._value( '{$*|esr|}' )
+      esr = self._expand( '{$*|esr|}' )
     if ( k   == None ) :
-      k   = self._value( '{$*|k|}'   )
+      k   = self._expand( '{$*|k|}'   )
     if ( m   == None ) :
-      m   = self._value( '{$*|m|}'   )
+      m   = self._expand( '{$*|m|}'   )
 
     self.job.board.interact( '>data esr %s' % sca3s_be.share.util.str2octetstr( esr ).upper() )
     self.job.board.interact( '>data k %s'   % sca3s_be.share.util.str2octetstr( k   ).upper() )
@@ -62,10 +63,16 @@ class DriverImp( driver.DriverAbs ) :
     _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
 
     self.job.board.interact( '!kernel_prologue' )
+
     self.job.board.interact( '!kernel'          )
+    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+    self.job.board.interact( '!kernel_nop' )
+    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+
     self.job.board.interact( '!kernel_epilogue' )
   
     ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
+    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
   
     c = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data c' ) )
 
@@ -80,23 +87,17 @@ class DriverImp( driver.DriverAbs ) :
       if ( ( t != None ) and ( t != c ) ) :
         raise Exception( 'failed I/O verification => enc( k, m ) != c' )  
 
-    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-    self.job.board.interact( '!kernel_nop' )
-    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-
-    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
-
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'k' : k, 'm' : m, 'c' : c }
 
   # Perform acquisition step: decryption operation
 
   def _acquire_dec( self, esr = None, k = None, c = None ) :
     if ( esr == None ) :
-      esr = self._value( '{$*|esr|}' )
+      esr = self._expand( '{$*|esr|}' )
     if ( k   == None ) :
-      k   = self._value( '{$*|k|}'   )
+      k   = self._expand( '{$*|k|}'   )
     if ( c   == None ) :
-      c   = self._value( '{$*|c|}'   )
+      c   = self._expand( '{$*|c|}'   )
 
     self.job.board.interact( '>data esr %s' % sca3s_be.share.util.str2octetstr( esr ).upper() )
     self.job.board.interact( '>data k %s'   % sca3s_be.share.util.str2octetstr( k   ).upper() )
@@ -105,10 +106,16 @@ class DriverImp( driver.DriverAbs ) :
     _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
   
     self.job.board.interact( '!kernel_prologue' )
+
     self.job.board.interact( '!kernel'          )
+    cycle_dec = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+    self.job.board.interact( '!kernel_nop'      )
+    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+
     self.job.board.interact( '!kernel_epilogue' )
   
     ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
+    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
   
     m = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data m' ) )
 
@@ -125,12 +132,6 @@ class DriverImp( driver.DriverAbs ) :
 
       elif ( self.job.board.board_mode == 'non-interactive' ) :
         self.job.log.info( 'skipping non-interactive I/O verification' )
-
-    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-    self.job.board.interact( '!kernel_nop' )
-    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-
-    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
 
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'c' : c, 'm' : m } 
 
@@ -184,8 +185,8 @@ class DriverImp( driver.DriverAbs ) :
 
     ( k, x ) = self.kernel.policy_user_init( self.policy_spec )
 
-    k = self._value( k )
-    x = self._value( x )
+    k = self._expand( k )
+    x = self._expand( x )
 
     for i in range( n ) :
       self._acquire_log_inc( i, n )
@@ -194,8 +195,8 @@ class DriverImp( driver.DriverAbs ) :
 
       ( k, x ) = self.kernel.policy_user_iter( self.policy_spec, k, x, i )
 
-      k = self._value( k )
-      x = self._value( x )
+      k = self._expand( k )
+      x = self._expand( x )
 
   # Driver policy: TVLA-driven
   #
@@ -219,8 +220,8 @@ class DriverImp( driver.DriverAbs ) :
 
     ( k, x ) = self.kernel.policy_tvla_init_lhs( self.policy_spec )
 
-    k = self._value( k )
-    x = self._value( x )
+    k = self._expand( k )
+    x = self._expand( x )
 
     for i in lhs :
       self._acquire_log_inc( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
@@ -229,13 +230,13 @@ class DriverImp( driver.DriverAbs ) :
 
       ( k, x ) = self.kernel.policy_tvla_iter_lhs( self.policy_spec, k, x, i )
 
-      k = self._value( k )
-      x = self._value( x )
+      k = self._expand( k )
+      x = self._expand( x )
 
     ( k, x ) = self.kernel.policy_tvla_init_rhs( self.policy_spec )
 
-    k = self._value( k )
-    x = self._value( x )
+    k = self._expand( k )
+    x = self._expand( x )
 
     for i in rhs :
       self._acquire_log_inc( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
@@ -244,8 +245,8 @@ class DriverImp( driver.DriverAbs ) :
 
       ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, k, x, i )
 
-      k = self._value( k )
-      x = self._value( x )
+      k = self._expand( k )
+      x = self._expand( x )
 
   # Post-processing, aka. fixed-function analysis: CI 
 
