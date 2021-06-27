@@ -376,7 +376,8 @@ def init() :
 
   conf.populate( args )
 
-  sca3s_mw.share.schema.validate( conf, CONF )
+  sca3s_mw.share.schema.validate( CONF, conf )
+  sca3s_mw.share.schema.populate( CONF, conf )
 
   # initialise system logger
 

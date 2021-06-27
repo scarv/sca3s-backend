@@ -39,8 +39,9 @@ def process( manifest ) :
 
         else :
           raise Exception( 'unsupported device' )
-    
-      sca3s_mw.share.schema.validate( manifest, task_mw.schema.MANIFEST_REQ )
+
+      sca3s_mw.share.schema.validate( task_mw.schema.MANIFEST_REQ, manifest )
+      sca3s_mw.share.schema.populate( task_mw.schema.MANIFEST_REQ, manifest )
 
       path = tempfile.mkdtemp( prefix = job_id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
       log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = job_id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )

@@ -181,7 +181,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
       self.log.indent_inc( message = 'dump manifest' )
       self.conf.dump( self.log, level = logging.INFO )
       self.log.indent_dec()
-  
+
       if ( self.conf.get( 'board_id' ) == self.conf.get( 'scope_id' ) ) :
         self.log.indent_inc( message = 'construct hybrid object' )
         self.hybrid = self._object( self.conf.get(  'board_id' ), 'hybrid', 'HybridImp' ) 

@@ -20,8 +20,8 @@ from sca3s.backend.acquire import depo   as depo
 import binascii
 
 class KernelImp( kernel.block.KernelType ) :
-  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
-    super().__init__( func, sizeof_k, sizeof_r, sizeof_m, sizeof_c )
+  def __init__( self, typeof, sizeof_k, sizeof_m, sizeof_c ) :
+    super().__init__( typeof, sizeof_k, sizeof_m, sizeof_c )
 
   def supports( self, policy ) :
     if   ( policy == 'user' ) :

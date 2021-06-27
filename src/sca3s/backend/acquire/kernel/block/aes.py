@@ -20,8 +20,8 @@ from sca3s.backend.acquire import depo   as depo
 import binascii, struct
 
 class KernelImp( kernel.block.KernelType ) :
-  def __init__( self, func, sizeof_k, sizeof_r, sizeof_m, sizeof_c ) :
-    super().__init__( func, sizeof_k, sizeof_r, sizeof_m, sizeof_c )
+  def __init__( self, typeof, sizeof_k, sizeof_m, sizeof_c ) :
+    super().__init__( typeof, sizeof_k, sizeof_m, sizeof_c )
 
     self.tvla_s_0 = None
     self.tvla_s_1 = None
@@ -40,7 +40,7 @@ class KernelImp( kernel.block.KernelType ) :
   def dec( self, k, c ) :
     return sca3s_be.share.crypto.AES( k ).dec( c )
 
-  def policy_tvla_init_lhs( self, spec ) :
+  def policy_tvla_init_lhs( self, spec          ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
@@ -125,9 +125,9 @@ class KernelImp( kernel.block.KernelType ) :
       x = bytes( binascii.a2b_hex( '8B8A490BDF7C00BDD7E6066C61002412' ) ) ; i = struct.pack( '<I', i )
       x = bytes( [ a ^ b for ( a, b ) in zip( x[ 0 : 4 ], i[ 0 : 4 ] ) ] ) + x[ 4 : ]
 
-      if   ( self.func == 'enc' ) :
+      if   ( self.typeof == 'enc' ) :
         x = sca3s_be.share.crypto.AES( k ).enc_rev( x, tvla_round )
-      elif ( self.func == 'dec' ) :
+      elif ( self.typeof == 'dec' ) :
         x = sca3s_be.share.crypto.AES( k ).dec_rev( x, tvla_round )
 
     elif( tvla_mode == 'rvr_d' ) :
@@ -145,7 +145,7 @@ class KernelImp( kernel.block.KernelType ) :
 
     return ( k, x )
 
-  def policy_tvla_init_rhs( self, spec ) :
+  def policy_tvla_init_rhs( self, spec          ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 

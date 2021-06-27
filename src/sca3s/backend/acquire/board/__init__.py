@@ -36,6 +36,11 @@ class BoardAbs( abc.ABC ) :
     self.kernel_id                 = None
     self.kernel_io                 = dict()
 
+    self.kernel_data_wr_id         = None
+    self.kernel_data_wr_size       = dict()
+    self.kernel_data_rd_id         = None
+    self.kernel_data_rd_size       = dict()
+
   def __str__( self ) :
     return self.board_id
 
@@ -191,7 +196,7 @@ class BoardAbs( abc.ABC ) :
 
     for ( k, v ) in self.kernel_io.items() :
       if ( k.startswith( '?data' ) ) :
-        self.kernel_io[ k ] = sca3s_be.share.util.str2octetstr( struct.pack( '<I', int( v ) ) )
+        self.kernel_io[ k ] = sca3s_be.share.util.int2octetstr( int( v ) )
 
     fd.close()
 
@@ -214,16 +219,26 @@ class BoardAbs( abc.ABC ) :
   
     self.kernel_id      = t[ 2 ]
   
-    self.job.log.info( '?kernel_id   -> driver version     = %s', self.driver_version )
-    self.job.log.info( '?kernel_id   -> driver id          = %s', self.driver_id      )
+    self.job.log.info( '?kernel_id   -> driver version = %s', self.driver_version )
+    self.job.log.info( '?kernel_id   -> driver id      = %s', self.driver_id      )
 
-    self.job.log.info( '?kernel_id   -> kernel id          = %s', self.kernel_id      )
+    self.job.log.info( '?kernel_id   -> kernel id      = %s', self.kernel_id      )
   
-    self.kernel_data_i = set( self.job.board.interact( '>kernel_data' ).split( ',' ) )
-    self.kernel_data_o = set( self.job.board.interact( '<kernel_data' ).split( ',' ) )
-  
-    self.job.log.info( '>kernel_data -> kernel data  input = %s', self.kernel_data_i  )
-    self.job.log.info( '<kernel_data -> kernel data output = %s', self.kernel_data_o  )
+    self.kernel_data_wr_id = set( self.job.board.interact( '>kernel_data' ).split( ',' ) )
+
+    for id in self.kernel_data_wr_id :
+      self.kernel_data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '?data %s' % ( id ) ) )
+
+    self.job.log.info( '>kernel_data -> kernel data wr = %s', self.kernel_data_wr_id   )
+    self.job.log.info( '             -> kernel data wr = %s', self.kernel_data_wr_size )
+
+    self.kernel_data_rd_id = set( self.job.board.interact( '<kernel_data' ).split( ',' ) )
+
+    for id in self.kernel_data_rd_id :
+      self.kernel_data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '?data %s' % ( id ) ) )
+
+    self.job.log.info( '<kernel_data -> kernel data rd = %s', self.kernel_data_rd_id   )
+    self.job.log.info( '             -> kernel data rd = %s', self.kernel_data_rd_size )
 
   @abc.abstractmethod
   def  open( self ) :
