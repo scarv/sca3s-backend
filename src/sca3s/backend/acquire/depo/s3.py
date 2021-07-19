@@ -38,8 +38,8 @@ class DepoImp( depo.DepoAbs ) :
     for ( name, args ) in self.job.result_transfer.items() :
       ( name, extension ) = name.split( '.', 1 )
 
-      src = name                    + '.' + extension
-      dst = self.job.job_id[ : 10 ] + '.' + extension
+      src = name                + '.' + extension
+      dst = self.job.id[ : 10 ] + '.' + extension
 
       if ( not os.path.isfile( os.path.join( self.job.path, src ) ) ) :
         self.job.log.info( 'skipping  %s', src )

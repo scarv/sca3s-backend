@@ -13,13 +13,13 @@ class APIImp( sca3s_be.share.api.APIAbs ):
   def __init__( self ) :
     super().__init__()  
 
-  def retrieve( self ):
+  def retrieve( self ) :
     url  =                       'api/acquire/job'
     json = {}
 
     return self._request( requests.get,   url, json = json )
 
-  def complete( self, job_id, job_status, job_response ):
+  def complete( self, job_id, job_status, job_response ) :
     if ( job_id == None ) :
       return
 
@@ -28,7 +28,7 @@ class APIImp( sca3s_be.share.api.APIAbs ):
 
     return self._request( requests.patch, url, json = json )
 
-  def announce( self ):
+  def announce( self ) :
     url  =                       'api/acquire/advertise'
     json = {}
 

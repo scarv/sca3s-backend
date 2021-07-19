@@ -13,8 +13,8 @@ TYPE_SYS = 0
 TYPE_JOB = 1
 
 class LogAdapter( logging.LoggerAdapter ):
-  def __init__( self, logger, args, indent = 0, replace = dict() ) :
-    super().__init__( logger, args ) ; self.indent = indent ; self.replace = replace
+  def __init__( self, logger, args, indent = 0, redact = dict() ) :
+    super().__init__( logger, args ) ; self.indent = indent ; self.redact = redact
 
   def shutdown( self ) :
     self.logger.disabled = True
@@ -64,31 +64,29 @@ class LogAdapter( logging.LoggerAdapter ):
         self.log( level, line ) ; n = max( n, len( line ) )
 
   def log( self, level, message, *args, **kwargs ):
-    if ( self.logger.isEnabledFor( level ) ) :
-      message = ( '|  ' * self.indent ) + message
-  
-      for ( src, dst ) in self.replace.items() :
-        message = message.replace( src, dst ) ; args = tuple( [ ( arg.replace( src, dst ) ) if ( type( arg ) is str ) else ( arg ) for arg in args ] )
-  
-      self.logger._log( level, message, args )
+    if ( self.logger.isEnabledFor( level ) ) :  
+      if ( self.redact != None ) :
+        self.logger._log( level, self.redact( ( '|  ' * self.indent ) + message ), args )
+      else :
+        self.logger._log( level,            ( ( '|  ' * self.indent ) + message ), args )
 
 # Enforcing, e.g., a uniform format, either build
 #
 # 1. a system logger object:
 #
 #    - output directs to file *and* console (i.e., stdout)
-#    - output produced by adaptor that supports indentation and replacement
+#    - output produced by adaptor that supports indentation and redactment
 #    - threshold depends on debug option (e.g., can include information- and debug-level output)
 #
 # 2. a job    logger object:
 #
 #    - output directs to file
-#    - output produced by adaptor that supports indentation and replacement
+#    - output produced by adaptor that supports indentation and redactment
 #    - threshold fixed to avoid any debug-level output
 #
 # in a given path, with a file name matching the task.
 
-def build_log( type, path, id = None, replace = dict() ) :
+def build_log( type, path, id = None, redact = None ) :
   name = sca3s_be.share.sys.conf.get( 'task', section = 'sys' ) + '.log'
 
   logger = logging.getLogger( id )
@@ -113,4 +111,4 @@ def build_log( type, path, id = None, replace = dict() ) :
   elif ( type == TYPE_JOB ) :
     logger.setLevel( logging.INFO )
 
-  return LogAdapter( logger, {}, indent = 0, replace = replace )
+  return LogAdapter( logger, {}, indent = 0, redact = redact )

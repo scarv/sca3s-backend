@@ -81,7 +81,7 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
     sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
 
-    if ( self.driver_spec.get( 'verify' ) and self.job.board.board_mode == 'interactive' ) :
+    if ( self.job.board.board_mode == 'interactive' ) :
       t = self.kernel.enc( k, m )
 
       if ( ( t != None ) and ( t != c ) ) :
@@ -124,14 +124,11 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
     sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
 
-    if ( self.driver_spec.get( 'verify' ) and self.job.board.board_mode == 'interactive' ) :
+    if ( self.job.board.board_mode == 'interactive' ) :
       t = self.kernel.dec( k, c )
 
       if ( ( t != None ) and ( t != m ) ) :
         raise Exception( 'failed I/O verification => dec( k, c ) != m' )  
-
-      elif ( self.job.board.board_mode == 'non-interactive' ) :
-        self.job.log.info( 'skipping non-interactive I/O verification' )
 
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'c' : c, 'm' : m } 
 
@@ -362,11 +359,11 @@ class DriverImp( driver.DriverAbs ) :
   # Execute the driver epilogue
 
   def execute_epilogue( self ) :
-    if   ( self.job.job_type == 'user'    ) :
+    if   ( self.job.type == 'user'    ) :
       pass
-    elif ( self.job.job_type == 'ci'      ) :
+    elif ( self.job.type == 'ci'      ) :
       self._analyse_ci()
-    elif ( self.job.job_type == 'contest' ) :
+    elif ( self.job.type == 'contest' ) :
       self._analyse_contest()
 
     self.job.exec_native( [ 'gzip', '--quiet', os.path.join( self.job.path, 'acquire.hdf5' ) ] )

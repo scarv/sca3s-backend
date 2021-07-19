@@ -54,7 +54,7 @@ class APIAbs( abc.ABC ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def complete( self, job_id, status = None ) :
+  def complete( self, job_id, job_status, job_response ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
