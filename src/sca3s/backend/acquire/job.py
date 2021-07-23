@@ -20,8 +20,8 @@ from sca3s.backend.acquire import depo   as depo
 import git, importlib, json, logging, os, re, sys
 
 class JobImp( sca3s_be.share.job.JobAbs ) :
-  def __init__( self, conf, path, log ) :
-    super().__init__( conf, path, log )  
+  def __init__( self, conf, path ) :
+    super().__init__( conf, path )  
 
     self.board       = None
     self.scope       = None
@@ -179,6 +179,8 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   
       self.result_transfer[ 'acquire.log'     ] = { 'ContentType':        'text/plain',        'CacheControl': 'no-cache, max-age=0' }
       self.result_transfer[ 'acquire.hdf5.gz' ] = { 'ContentType': 'application/octet-stream', 'CacheControl': 'no-cache, max-age=0' }
+
+      self.log.banner()
   
       self.log.indent_inc( message = 'dump manifest' )
       self.conf.dump( self.log, level = logging.INFO )

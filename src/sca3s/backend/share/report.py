@@ -103,15 +103,15 @@ class Report( pylatex.Document ) :
       fig.append( pylatex.NoEscape( r'\\ [1.0cm]' ) )
 
       with fig.create( pylatex.Tabular( pylatex.NoEscape( r'rcl' ) ) ) as table :
-        table.add_row( ( self.tt( r'  version' ), ':', self.tt( sca3s_be.share.version.ident()                 ) ) )
-        table.add_row( ( self.tt( r'timestamp' ), ':', self.tt( datetime.datetime.now( datetime.timezone.utc ) ) ) )
+        table.add_row( ( self.tt( r'  version' ), ':', self.tt( self.job.redact( str( sca3s_be.share.version.ident()                 ) ) ) ) )
+        table.add_row( ( self.tt( r'timestamp' ), ':', self.tt( self.job.redact( str( datetime.datetime.now( datetime.timezone.utc ) ) ) ) ) )
         table.add_empty_row()
-        table.add_row( ( self.tt( r'     repo' ), ':', self.tt( str( self.job.repo   )                         ) ) )
+        table.add_row( ( self.tt( r'     repo' ), ':', self.tt( self.job.redact( str( self.job.repo                                  ) ) ) ) )
         table.add_empty_row()
-        table.add_row( ( self.tt( r'    board' ), ':', self.tt( str( self.job.board  )                         ) ) )
-        table.add_row( ( self.tt( r'    scope' ), ':', self.tt( str( self.job.scope  )                         ) ) )
+        table.add_row( ( self.tt( r'    board' ), ':', self.tt( self.job.redact( str( self.job.board                                 ) ) ) ) )
+        table.add_row( ( self.tt( r'    scope' ), ':', self.tt( self.job.redact( str( self.job.scope                                 ) ) ) ) )
         table.add_empty_row()
-        table.add_row( ( self.tt( r'   driver' ), ':', self.tt( str( self.job.driver )                         ) ) )
+        table.add_row( ( self.tt( r'   driver' ), ':', self.tt( self.job.redact( str( self.job.driver                                ) ) ) ) )
 
   # Emit document epilogue.
 

@@ -7,20 +7,20 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import abc, docker, os, requests, subprocess
+import abc, docker, os, re, requests, subprocess
 
 class JobAbs( abc.ABC ) :
-  def __init__( self, conf, path, log ) :
+  def __init__( self, conf, path ) :
     super().__init__()  
 
     self.conf            = conf
-
     self.path            = path
-    self.log             =  log
 
-    self.job_type        = self.conf.get( 'job_type'    )
-    self.job_id          = self.conf.get( 'job_id'      )
-    self.job_version     = self.conf.get( 'job_version' )
+    self.type            = self.conf.get( 'job_type'    )
+    self.id              = self.conf.get( 'job_id'      )
+    self.version         = self.conf.get( 'job_version' )
+
+    self.log             = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = self.path, id = self.id, redact = self.redact )
 
     self.result_transfer = dict()
     self.result_response = dict()
@@ -33,6 +33,17 @@ class JobAbs( abc.ABC ) :
       
     for line in lines :
       self.log.info( '< %s : %s', id, line )
+
+  def redact( self, x ) :
+    # start with the original string, then ...
+    r = x
+    # 1. redact the job path
+    r = re.sub(                 ( self.path ), '${JOB}', r )
+    r = re.sub( os.path.basename( self.path ), '${JOB}', r )
+    # 2. redact the access token
+    r = re.sub( 'x-access-token:[^@]*@github.com', 'x-access-token:${ACCESS_TOKEN}@github.com', r )
+    
+    return r
 
   def exec_native( self, cmd, env = None,             timeout = None, quiet = False ) :
     if ( env     == None ) :

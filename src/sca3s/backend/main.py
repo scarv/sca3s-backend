@@ -10,7 +10,7 @@ from sca3s import middleware as sca3s_mw
 import importlib, multiprocessing, os, shutil, signal, tempfile, time
 
 def process( manifest ) :
-  job_id = None ; job_status = sca3s_mw.share.status.Status.SUCCESS
+  job_id = None ; job_status = sca3s_mw.share.status.Status.SUCCESS ; job_response = list()
 
   try :
     sca3s_be.share.sys.log.info( 'process job prologue' )
@@ -23,9 +23,11 @@ def process( manifest ) :
       if ( not manifest.has( 'job_version' ) ) :
         raise Exception( 'manifest missing job version'    )
 
-      job_id = manifest.get( 'job_id' )
+      job_type    = manifest.get( 'job_type'    )
+      job_id      = manifest.get( 'job_id'      )
+      job_version = manifest.get( 'job_version' )
 
-      if ( not sca3s_be.share.version.match( manifest.get( 'job_version' ) ) ) :
+      if ( not sca3s_be.share.version.match( job_version ) ) :
         raise Exception( 'inconsistent manifest version' )
 
       db = sca3s_be.share.sys.conf.get( 'device_db', section = 'job' )
@@ -43,10 +45,8 @@ def process( manifest ) :
       sca3s_mw.share.schema.validate( task_mw.schema.MANIFEST_REQ, manifest )
       sca3s_mw.share.schema.populate( task_mw.schema.MANIFEST_REQ, manifest )
 
-      path = tempfile.mkdtemp( prefix = job_id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )
-      log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_JOB, path = path, id = job_id, replace = { path : '${JOB}', os.path.basename( path ) : '${JOB}' } )
-
-      job  = task_be.job.JobImp( manifest, path, log )
+      path = tempfile.mkdtemp( prefix = job_id + '.', dir = sca3s_be.share.sys.conf.get( 'job', section = 'path' ) )  
+      job  = task_be.job.JobImp( manifest, path )
 
     except Exception as e :
       job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROLOGUE ; raise e
@@ -54,11 +54,11 @@ def process( manifest ) :
     sca3s_be.share.sys.log.info( 'process job'          )
 
     try :    
-      job.log.banner()
-
       job.execute_prologue()
       job.execute()
       job.execute_epilogue()
+
+      job_response = job.result_response
   
     except Exception as e :
       job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROCESS  ; raise e
@@ -75,7 +75,7 @@ def process( manifest ) :
   except Exception as e :
     sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
 
-  return ( job_id, job_status, job.result_response )
+  return ( job_id, job_status, job_response )
 
 # Execute server in API mode: process a manifest which is
 #
