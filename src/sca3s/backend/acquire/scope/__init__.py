@@ -133,34 +133,31 @@ class ScopeAbs( abc.ABC ) :
 
     return t
 
-  def hdf5_add_attr( self, fd, ks           ) :
-    T = [ ( 'signal_resolution',    ( self.signal_resolution ), '<u8'                            ),
-          ( 'signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) ),
+  def hdf5_add_attr( self, trace_content, fd              ) :
+    spec = [ ( 'signal_resolution',    ( self.signal_resolution ), '<u8'                            ),
+             ( 'signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) ),
 
-          ( 'signal_interval',      ( self.signal_interval   ), '<f8'                            ),
-          ( 'signal_duration',      ( self.signal_duration   ), '<f8'                            ),  
-          ( 'signal_samples',       ( self.signal_samples    ), '<u8'                            ) ]
+             ( 'signal_interval',      ( self.signal_interval   ), '<f8'                            ),
+             ( 'signal_duration',      ( self.signal_duration   ), '<f8'                            ),  
+             ( 'signal_samples',       ( self.signal_samples    ), '<u8'                            ) ]
 
-    for ( k, v, t ) in T :
-      fd.attrs.create( k, v, dtype = t )
+    sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
 
-  def hdf5_add_data( self, fd, ks, n        ) :
-    T = [ ( 'trace/trigger',  ( n, self.signal_samples ), self.signal_dtype ),
-          ( 'trace/signal',   ( n, self.signal_samples ), self.signal_dtype ),
+  def hdf5_add_data( self, trace_content, fd, n           ) :
+    spec = [ ( 'trace/trigger',  ( n, self.signal_samples ),   self.signal_dtype ),
+             ( 'trace/signal',   ( n, self.signal_samples ),   self.signal_dtype ),
    
-          (  'crop/trigger',  ( n,                     ), h5py.regionref_dtype ),
-          (  'crop/signal',   ( n,                     ), h5py.regionref_dtype ) ]
+             (  'crop/trigger',  ( n,                     ), h5py.regionref_dtype ),
+             (  'crop/signal',   ( n,                     ), h5py.regionref_dtype ) ]
 
-    for ( k, v, t ) in T :
-      if ( k in ks ) :
-        fd.create_dataset( k, v, t )
+    sca3s_be.share.util.hdf5_add_data( spec, trace_content, fd, n           )
 
-  def hdf5_set_data( self, fd, ks, i, trace ) :
-    T = [ ( 'trace/trigger',  lambda trace : trace[ 'trace/trigger' ]                                                           ),
-          ( 'trace/signal',   lambda trace : trace[ 'trace/signal'  ]                                                           ),
+  def hdf5_set_data( self, trace_content, fd, n, i, trace ) :
+    spec = [ ( 'trace/trigger',  lambda trace : trace[ 'trace/trigger' ]                                                           ),
+             ( 'trace/signal',   lambda trace : trace[ 'trace/signal'  ]                                                           ),
 
-          (  'crop/trigger',  lambda trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ),
-          (  'crop/signal',   lambda trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) ]
+             (  'crop/trigger',  lambda trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ),
+             (  'crop/signal',   lambda trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) ]
 
     if ( 'trace/trigger' in trace ) :
       trace[ 'trace/trigger' ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )
@@ -171,9 +168,7 @@ class ScopeAbs( abc.ABC ) :
     if ( 'edge/neg'      in trace ) :
       trace[ 'edge/neg'      ] = min( trace[ 'edge/neg' ], self.signal_samples - 1 )
 
-    for ( k, f ) in T :
-      if ( k in ks ) :
-        fd[ k ][ i ] = f( trace )
+    sca3s_be.share.util.hdf5_set_data( spec, trace_content, fd, n, i, trace )
 
   @abc.abstractmethod
   def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :

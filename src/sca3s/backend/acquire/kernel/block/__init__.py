@@ -35,7 +35,7 @@ class KernelType( kernel.KernelAbs ) :
   def dec( self, k, c ) :
     raise NotImplementedError()
 
-  def policy_user_init( self, spec          ) :
+  def policy_user_init( self, spec             ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
@@ -48,7 +48,7 @@ class KernelType( kernel.KernelAbs ) :
 
     return ( k, x )
 
-  def policy_user_iter( self, spec, k, x, i ) :
+  def policy_user_iter( self, spec, n, i, k, x ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
@@ -62,17 +62,17 @@ class KernelType( kernel.KernelAbs ) :
     return ( k, x )
 
   @abc.abstractmethod
-  def policy_tvla_init_lhs( self, spec          ) :
+  def policy_tvla_init_lhs( self, spec             ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_iter_lhs( self, spec, k, x, i ) :
+  def policy_tvla_iter_lhs( self, spec, n, i, k, x ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_init_rhs( self, spec          ) :
+  def policy_tvla_init_rhs( self, spec             ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_iter_rhs( self, spec, k, x, i ) :
+  def policy_tvla_iter_rhs( self, spec, n, i, k, x ) :
     raise NotImplementedError()

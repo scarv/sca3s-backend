@@ -33,19 +33,6 @@ class DriverImp( driver.DriverAbs ) :
 
     self.kernel        = None
 
-  def __str__( self ) :
-    return self.driver_id + ' ' + '(' + self.job.board.kernel_id + ')'
-
-  # Expand a byte sequence specifier into a byte sequence.
-
-  def _expand( self, x ) :
-    if   ( type( x ) == bytes ) :
-      return x
-    elif ( type( x ) == str   ) :
-      return sca3s_be.share.util.value( x, ids = { **self.job.board.kernel_data_wr_size, **self.job.board.kernel_data_rd_size } )
-
-    return None
-
   # Perform acquisition step: encryption operation
 
   def _acquire_enc( self, esr = None, k = None, m = None ) :
@@ -137,51 +124,37 @@ class DriverImp( driver.DriverAbs ) :
 
   # HDF5 file manipulation: add attributes
    
-  def _hdf5_add_attr( self, fd, ks           ) :
-    T = [ ( 'kernel_sizeof_k', self.kernel.sizeof_k, '<u8' ),
-          ( 'kernel_sizeof_m', self.kernel.sizeof_m, '<u8' ),
-          ( 'kernel_sizeof_c', self.kernel.sizeof_c, '<u8' ) ]
+  def _hdf5_add_attr( self, fd              ) :
+    spec = [ ( 'kernel_sizeof_k', self.kernel.sizeof_k, '<u8' ),
+             ( 'kernel_sizeof_m', self.kernel.sizeof_m, '<u8' ),
+             ( 'kernel_sizeof_c', self.kernel.sizeof_c, '<u8' ) ]
     
-    self.job.board.hdf5_add_attr( fd, ks )
-    self.job.scope.hdf5_add_attr( fd, ks )
-
-    for ( k, v, t ) in T :
-      fd.attrs.create( k, v, dtype = t )
+    super()._hdf5_add_attr( spec, self.trace_content, fd              )
 
   # HDF5 file manipulation: add data
+ 
+  def _hdf5_add_data( self, fd, n           ) :
+    spec = [ ( 'k', ( n, self.kernel.sizeof_k ), 'B' ),
+             ( 'm', ( n, self.kernel.sizeof_m ), 'B' ),
+             ( 'c', ( n, self.kernel.sizeof_c ), 'B' ) ]
 
-  def _hdf5_add_data( self, fd, ks, n        ) :
-    T = [ ( 'k', ( n, self.kernel.sizeof_k ), 'B' ),
-          ( 'm', ( n, self.kernel.sizeof_m ), 'B' ),
-          ( 'c', ( n, self.kernel.sizeof_c ), 'B' ) ]
-
-    self.job.board.hdf5_add_data( fd, ks, n )
-    self.job.scope.hdf5_add_data( fd, ks, n )
-
-    for ( k, v, t ) in T :
-      if ( k in ks ) :
-        fd.create_dataset( k, v, t )
+    super()._hdf5_add_data( spec, self.trace_content, fd, n           )
  
   # HDF5 file manipulation: set data
 
-  def _hdf5_set_data( self, fd, ks, i, trace ) :
-    T = [ ( 'k', lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 ) ),
-          ( 'm', lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 ) ),
-          ( 'c', lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 ) ) ]
+  def _hdf5_set_data( self, fd, n, i, trace ) :
+    spec = [ ( 'k', lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 ) ),
+             ( 'm', lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 ) ),
+             ( 'c', lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 ) ) ]
 
-    self.job.board.hdf5_set_data( fd, ks, i, trace )
-    self.job.scope.hdf5_set_data( fd, ks, i, trace )
-
-    for ( k, f ) in T :
-      if ( ( k in ks ) and ( k in trace ) ) :
-        fd[ k ][ i ] = f( trace )
+    super()._hdf5_add_data( spec, self.trace_content, fd, n, i, trace )
 
   # Driver policy: user-driven
 
   def _policy_user( self, fd ) :
     n   = 1 * self.trace_count
 
-    self._hdf5_add_attr( fd, self.trace_content ) ; self._hdf5_add_data( fd, self.trace_content, n )
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
     ( k, x ) = self.kernel.policy_user_init( self.policy_spec )
 
@@ -189,11 +162,11 @@ class DriverImp( driver.DriverAbs ) :
     x = self._expand( x )
 
     for i in range( n ) :
-      self._acquire_log_inc( i, n )
-      self._hdf5_set_data( fd, self.trace_content, i, self.acquire( k = k, x = x ) )
-      self._acquire_log_dec( i, n )
+      self._acquire_log_inc( n, i )
+      self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
+      self._acquire_log_dec( n, i )
 
-      ( k, x ) = self.kernel.policy_user_iter( self.policy_spec, k, x, i )
+      ( k, x ) = self.kernel.policy_user_iter( self.policy_spec, n, i, k, x )
 
       k = self._expand( k )
       x = self._expand( x )
@@ -216,7 +189,7 @@ class DriverImp( driver.DriverAbs ) :
     if ( 'tvla/rhs' in self.trace_content ) :
       fd[ 'tvla/rhs' ] = rhs
 
-    self._hdf5_add_attr( fd, self.trace_content ) ; self._hdf5_add_data( fd, self.trace_content, n )
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
     ( k, x ) = self.kernel.policy_tvla_init_lhs( self.policy_spec )
 
@@ -224,11 +197,11 @@ class DriverImp( driver.DriverAbs ) :
     x = self._expand( x )
 
     for i in lhs :
-      self._acquire_log_inc( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, self.trace_content, i, self.acquire( k = k, x = x ) )
-      self._acquire_log_dec( i, n, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
+      self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      ( k, x ) = self.kernel.policy_tvla_iter_lhs( self.policy_spec, k, x, i )
+      ( k, x ) = self.kernel.policy_tvla_iter_lhs( self.policy_spec, n, i, k, x )
 
       k = self._expand( k )
       x = self._expand( x )
@@ -239,11 +212,11 @@ class DriverImp( driver.DriverAbs ) :
     x = self._expand( x )
 
     for i in rhs :
-      self._acquire_log_inc( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, self.trace_content, i, self.acquire( k = k, x = x ) )
-      self._acquire_log_dec( i, n, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
+      self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, k, x, i )
+      ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, n, i, k, x )
 
       k = self._expand( k )
       x = self._expand( x )

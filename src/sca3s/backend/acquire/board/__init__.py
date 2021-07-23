@@ -121,31 +121,26 @@ class BoardAbs( abc.ABC ) :
 
     return r
 
-  def hdf5_add_attr( self, fd, ks           ) :
-    T = [ ( 'driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
-          ( 'driver_id',      str( self.driver_id      ), h5py.special_dtype( vlen = str ) ),
+  def hdf5_add_attr( self, trace_content, fd              ) :
+    spec = [ ( 'driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
+             ( 'driver_id',      str( self.driver_id      ), h5py.special_dtype( vlen = str ) ),
+ 
+             ( 'kernel_id',      str( self.kernel_id      ), h5py.special_dtype( vlen = str ) ),
+             ( 'kernel_io',      str( self.kernel_io      ), h5py.special_dtype( vlen = str ) ) ]
 
-          ( 'kernel_id',      str( self.kernel_id      ), h5py.special_dtype( vlen = str ) ),
-          ( 'kernel_io',      str( self.kernel_io      ), h5py.special_dtype( vlen = str ) ) ]
+    sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
 
-    for ( k, v, t ) in T :
-      fd.attrs.create( k, v, dtype = t )
+  def hdf5_add_data( self, trace_content, fd, n           ) :
+    spec = [ ( 'perf/cycle',    ( n, ), '<u8' ),
+             ( 'perf/duration', ( n, ), '<f8' ) ]
 
-  def hdf5_add_data( self, fd, ks, n        ) :
-    T = [ ( 'perf/cycle',    ( n, ), '<u8' ),
-          ( 'perf/duration', ( n, ), '<f8' ) ]
+    sca3s_be.share.util.hdf5_add_data( spec, trace_content, fd, n           )
 
-    for ( k, v, t ) in T :
-      if ( k in ks ) :
-        fd.create_dataset( k, v, t )
+  def hdf5_set_data( self, trace_content, fd, n, i, trace ) :
+    spec = [ ( 'perf/cycle',    lambda trace : trace[ 'perf/cycle'    ] ),
+             ( 'perf/duration', lambda trace : trace[ 'perf/duration' ] ) ]
 
-  def hdf5_set_data( self, fd, ks, i, trace ) :
-    T = [ ( 'perf/cycle',    lambda trace : trace[ 'perf/cycle'    ] ),
-          ( 'perf/duration', lambda trace : trace[ 'perf/duration' ] ) ]
-
-    for ( k, f ) in T :
-      if ( k in ks ) :
-        fd[ k ][ i ] = f( trace )
+    sca3s_be.share.util.hdf5_set_data( spec, trace_content, fd, n, i, trace )
 
   def interact( self, x ) :
     sca3s_be.share.sys.log.debug( '> uart : %s', x )

@@ -37,14 +37,14 @@ class KernelImp( kernel.block.KernelType ) :
   def dec( self, k, c ) :
     return None
 
-  def policy_tvla_init_lhs( self, spec          ) :
+  def policy_tvla_init_lhs( self, spec             ) :
     return ( None, None )
 
-  def policy_tvla_iter_lhs( self, spec, k, x, i ) :
+  def policy_tvla_iter_lhs( self, spec, n, i, k, x ) :
     return ( None, None )
 
-  def policy_tvla_init_rhs( self, spec          ) :
+  def policy_tvla_init_rhs( self, spec             ) :
     return ( None, None )
 
-  def policy_tvla_iter_rhs( self, spec, k, x, i ) :
+  def policy_tvla_iter_rhs( self, spec, n, i, k, x ) :
     return ( None, None )
