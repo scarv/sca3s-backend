@@ -126,12 +126,10 @@ def hdf5_add_attr( spec, trace_content, fd              ) :
 
 def hdf5_add_data( spec, trace_content, fd, n           ) :
   for ( k, v, t ) in spec :
-    if ( k in ks ) :
-      if ( ( k in trace_content )                    ) :
-        fd.create_dataset( k, v, t )
+    if ( k in trace_content ) :
+      fd.create_dataset( k, v, t )
 
 def hdf5_set_data( spec, trace_content, fd, n, i, trace ) :
-  for ( k, f ) in spec :
-    if ( k in ks ) :
-      if ( ( k in trace_content ) and ( k in trace ) ) :
-        fd[ k ][ i ] = f( trace )
+  for ( k, f )    in spec :
+    if ( k in trace_content ) :
+      fd[ k ][ i ] = f( trace )

@@ -144,7 +144,7 @@ class DriverImp( driver.DriverAbs ) :
              ( 'm', lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 ) ),
              ( 'c', lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 ) ) ]
 
-    super()._hdf5_add_data( spec, self.trace_content, fd, n, i, trace )
+    super()._hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
 
   # Driver policy: user-driven
 

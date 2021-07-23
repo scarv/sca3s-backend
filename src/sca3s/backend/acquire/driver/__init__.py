@@ -65,7 +65,7 @@ class DriverAbs( abc.ABC ) :
     self.job.board.hdf5_add_attr( trace_content, fd              )
     self.job.scope.hdf5_add_attr( trace_content, fd              )
 
-    sca3s_be.share.util.hdf5_set_data( spec, trace_content, fd              )
+    sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
 
   # HDF5 file manipulation: add data
 
@@ -73,7 +73,7 @@ class DriverAbs( abc.ABC ) :
     self.job.board.hdf5_add_data( trace_content, fd, n           )
     self.job.scope.hdf5_add_data( trace_content, fd, n           )
 
-    sca3s_be.share.util.hdf5_set_data( spec, trace_content, fd, n           )
+    sca3s_be.share.util.hdf5_add_data( spec, trace_content, fd, n           )
  
   # HDF5 file manipulation: set data
 
