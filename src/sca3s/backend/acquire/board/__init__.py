@@ -17,7 +17,7 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc, h5py, os, serial, struct
+import abc, h5py, importlib, os, serial, struct
 
 class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
@@ -40,6 +40,11 @@ class BoardAbs( abc.ABC ) :
     self.kernel_data_wr_size       = dict()
     self.kernel_data_rd_id         = None
     self.kernel_data_rd_size       = dict()
+
+    self.kernel_nameof             = None
+    self.kernel_typeof             = None
+
+    self.kernel                    = None
 
   def __str__( self ) :
     return self.board_id
@@ -234,6 +239,21 @@ class BoardAbs( abc.ABC ) :
 
     self.job.log.info( '<kernel_data -> kernel data rd = %s', self.kernel_data_rd_id   )
     self.job.log.info( '             -> kernel data rd = %s', self.kernel_data_rd_size )
+
+    t = self.kernel_id.split( '/' )
+
+    if ( len( t ) != 2 ) :
+      raise Exception( 'cannot parse kernel identifier' )
+
+    self.kernel_nameof = t[ 0 ]
+    self.kernel_typeof = t[ 1 ]
+
+    x = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + self.kernel_nameof
+
+    try :
+      self.kernel = importlib.import_module( x ).KernelImp( self.kernel_nameof, self.kernel_typeof, self.kernel_data_wr_id, self.kernel_data_wr_size, self.kernel_data_rd_id, self.kernel_data_rd_size )
+    except :
+      raise ImportError( 'failed to construct %s instance' % ( x ) )
 
   @abc.abstractmethod
   def  open( self ) :

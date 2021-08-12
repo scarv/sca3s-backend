@@ -20,21 +20,24 @@ from sca3s.backend.acquire import depo   as depo
 import binascii
 
 class KernelImp( kernel.block.KernelType ) :
-  def __init__( self, typeof, sizeof_k, sizeof_m, sizeof_c ) :
-    super().__init__( typeof, sizeof_k, sizeof_m, sizeof_c )
+  def __init__( self, nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
+    super().__init__( nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
 
-  def supports( self, policy ) :
-    if   ( policy == 'user' ) :
+  def supports_kernel( self    ) :
+    return False
+
+  def supports_policy( self, x ) :
+    if   ( x == 'user' ) :
       return True
-    elif ( policy == 'tvla' ) :
+    elif ( x == 'tvla' ) :
       return False
 
     return False
 
-  def enc( self, k, m ) :
+  def kernel_enc( self, k, m ) :
     return None
 
-  def dec( self, k, c ) :
+  def kernel_dec( self, k, c ) :
     return None
 
   def policy_tvla_init_lhs( self, spec             ) :

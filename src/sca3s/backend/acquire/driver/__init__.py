@@ -32,7 +32,9 @@ class DriverAbs( abc.ABC ) :
   # Expand a byte sequence specifier into a byte sequence.
 
   def _expand( self, x ) :
-    if   ( type( x ) == bytes ) :
+    if   ( type( x ) == tuple ) :
+      return tuple( [ self._expand( t ) for t in x ] )
+    elif ( type( x ) == bytes ) :
       return x
     elif ( type( x ) == str   ) :
       return sca3s_be.share.util.value( x, ids = { **self.job.board.kernel_data_wr_size, **self.job.board.kernel_data_rd_size } )

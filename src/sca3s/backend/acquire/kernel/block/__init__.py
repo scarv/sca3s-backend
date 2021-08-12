@@ -20,19 +20,24 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelType( kernel.KernelAbs ) :
-  def __init__( self, typeof, sizeof_k, sizeof_m, sizeof_c ) :
-    super().__init__( typeof )
+  def __init__( self, nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
+    super().__init__( nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
 
-    self.sizeof_k = sizeof_k
-    self.sizeof_m = sizeof_m
-    self.sizeof_c = sizeof_c
+    if   ( self.typeof == 'enc' ) :
+      self.sizeof_k = self.data_wr_size[ 'k' ]
+      self.sizeof_c = self.data_wr_size[ 'm' ]
+      self.sizeof_m = self.data_rd_size[ 'c' ]
+    elif ( self.typeof == 'dec' ) :
+      self.sizeof_k = self.data_wr_size[ 'k' ]
+      self.sizeof_c = self.data_wr_size[ 'c' ]
+      self.sizeof_m = self.data_rd_size[ 'm' ]
 
   @abc.abstractmethod
-  def enc( self, k, m ) :
+  def kernel_enc( self, k, m ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def dec( self, k, c ) :
+  def kernel_dec( self, k, c ) :
     raise NotImplementedError()
 
   def policy_user_init( self, spec             ) :

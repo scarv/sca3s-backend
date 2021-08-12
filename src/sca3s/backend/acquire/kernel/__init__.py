@@ -20,9 +20,19 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelAbs( abc.ABC ) :
-  def __init__( self, typeof ) :
-    self.typeof = typeof
+  def __init__( self, nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
+    self.nameof       = nameof
+    self.typeof       = typeof
+
+    self.data_wr_id   = data_wr_id
+    self.data_wr_size = data_wr_size
+    self.data_rd_id   = data_rd_id
+    self.data_rd_size = data_rd_size
 
   @abc.abstractmethod
-  def supports( self, policy ) :
+  def supports_kernel( self    ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def supports_policy( self, x ) :
     raise NotImplementedError()

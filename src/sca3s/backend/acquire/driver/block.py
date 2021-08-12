@@ -17,7 +17,7 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii, h5py, importlib, numpy, os
+import binascii, h5py, numpy, os
 
 class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
@@ -30,8 +30,6 @@ class DriverImp( driver.DriverAbs ) :
 
     self.policy_id     = self.driver_spec.get( 'policy_id'   )
     self.policy_spec   = self.driver_spec.get( 'policy_spec' )
-
-    self.kernel        = None
 
   # Perform acquisition step: encryption operation
 
@@ -68,11 +66,9 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
     sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
 
-    if ( self.job.board.board_mode == 'interactive' ) :
-      t = self.kernel.enc( k, m )
-
-      if ( ( t != None ) and ( t != c ) ) :
-        raise Exception( 'failed I/O verification => enc( k, m ) != c' )  
+    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_kernel() ) :
+      if ( self.job.board.kernel.kernel_enc( k, m ) != c ) :
+        raise Exception( 'failed I/O verification => enc( k, m ) != c' )
 
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'k' : k, 'm' : m, 'c' : c }
 
@@ -111,29 +107,27 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
     sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
 
-    if ( self.job.board.board_mode == 'interactive' ) :
-      t = self.kernel.dec( k, c )
-
-      if ( ( t != None ) and ( t != m ) ) :
-        raise Exception( 'failed I/O verification => dec( k, c ) != m' )  
+    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_kernel() ) :
+      if ( self.job.board.kernel.kernel_dec( k, c ) != m ) :
+        raise Exception( 'failed I/O verification => dec( k, c ) != m' )
 
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'c' : c, 'm' : m } 
 
   # HDF5 file manipulation: add attributes
    
   def _hdf5_add_attr( self, fd              ) :
-    spec = [ ( 'kernel_sizeof_k', self.kernel.sizeof_k, '<u8' ),
-             ( 'kernel_sizeof_m', self.kernel.sizeof_m, '<u8' ),
-             ( 'kernel_sizeof_c', self.kernel.sizeof_c, '<u8' ) ]
+    spec = [ ( 'kernel_sizeof_k', self.job.board.kernel.sizeof_k, '<u8' ),
+             ( 'kernel_sizeof_m', self.job.board.kernel.sizeof_m, '<u8' ),
+             ( 'kernel_sizeof_c', self.job.board.kernel.sizeof_c, '<u8' ) ]
     
     super()._hdf5_add_attr( spec, self.trace_content, fd              )
 
   # HDF5 file manipulation: add data
  
   def _hdf5_add_data( self, fd, n           ) :
-    spec = [ ( 'k', ( n, self.kernel.sizeof_k ), 'B' ),
-             ( 'm', ( n, self.kernel.sizeof_m ), 'B' ),
-             ( 'c', ( n, self.kernel.sizeof_c ), 'B' ) ]
+    spec = [ ( 'k', ( n, self.job.board.kernel.sizeof_k ), 'B' ),
+             ( 'm', ( n, self.job.board.kernel.sizeof_m ), 'B' ),
+             ( 'c', ( n, self.job.board.kernel.sizeof_c ), 'B' ) ]
 
     super()._hdf5_add_data( spec, self.trace_content, fd, n           )
  
@@ -153,20 +147,14 @@ class DriverImp( driver.DriverAbs ) :
 
     self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
-    ( k, x ) = self.kernel.policy_user_init( self.policy_spec )
-
-    k = self._expand( k )
-    x = self._expand( x )
+    ( k, x ) = self._expand( self.job.board.kernel.policy_user_init( self.policy_spec ) )
 
     for i in range( n ) :
       self._acquire_log_inc( n, i )
       self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
       self._acquire_log_dec( n, i )
 
-      ( k, x ) = self.kernel.policy_user_iter( self.policy_spec, n, i, k, x )
-
-      k = self._expand( k )
-      x = self._expand( x )
+      ( k, x ) = self._expand( self.job.board.kernel.policy_user_iter( self.policy_spec, n, i, k, x ) )
 
   # Driver policy: TVLA-driven
   #
@@ -188,35 +176,23 @@ class DriverImp( driver.DriverAbs ) :
 
     self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
-    ( k, x ) = self.kernel.policy_tvla_init_lhs( self.policy_spec )
-
-    k = self._expand( k )
-    x = self._expand( x )
+    ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_init_lhs( self.policy_spec ) )
 
     for i in lhs :
       self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
       self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      ( k, x ) = self.kernel.policy_tvla_iter_lhs( self.policy_spec, n, i, k, x )
+      ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_iter_lhs( self.policy_spec, n, i, k, x ) )
 
-      k = self._expand( k )
-      x = self._expand( x )
-
-    ( k, x ) = self.kernel.policy_tvla_init_rhs( self.policy_spec )
-
-    k = self._expand( k )
-    x = self._expand( x )
+    ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_init_rhs( self.policy_spec ) )
 
     for i in rhs :
       self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
       self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      ( k, x ) = self.kernel.policy_tvla_iter_rhs( self.policy_spec, n, i, k, x )
-
-      k = self._expand( k )
-      x = self._expand( x )
+      ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_iter_rhs( self.policy_spec, n, i, k, x ) )
 
   # Post-processing, aka. fixed-function analysis: CI 
 
@@ -257,59 +233,41 @@ class DriverImp( driver.DriverAbs ) :
   # Acquire data wrt. this driver
 
   def acquire( self, k = None, x = None ) :
-    if   ( self.kernel.typeof == 'enc' ) :
+    if   ( self.job.board.kernel.typeof == 'enc' ) :
       return self._acquire_enc( k = k, m = x )
-    elif ( self.kernel.typeof == 'dec' ) :
+    elif ( self.job.board.kernel.typeof == 'dec' ) :
       return self._acquire_dec( k = k, c = x )
 
   # Prepare the driver:
   #
-  # 1. check the on-board driver
-  # 2. query the on-board kernel wrt. the size of 
-  # 3. build a model of the on-board kernel
-  # 4. check the model supports whatever policy is selected
+  # 1. check the on-board driver for consistency
+  # 2. check the on-board kernel for consistency
+  # 3. check the kernel model supports whatever policy is selected
 
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
       raise Exception( 'inconsistent driver version'    )
-    if ( self.job.board.driver_id != self.driver_id ) :
+    if ( self.driver_id !=               ( self.job.board.driver_id      ) ) :
       raise Exception( 'inconsistent driver identifier' )
-
-    ( kernel_nameof, kernel_typeof ) = self.job.board.kernel_id.split( '/' )
     
-    if ( kernel_nameof not in [ 'generic', 'aes' ] ) :
+    if ( self.job.board.kernel.nameof not in [ 'generic', 'aes' ] ) :
       raise Exception( 'unsupported kernel name'   )
-    if ( kernel_typeof not in [     'enc', 'dec' ] ) :
+    if ( self.job.board.kernel.typeof not in [     'enc', 'dec' ] ) :
       raise Exception( 'unsupported kernel type'   )
 
-    kernel_module = 'sca3s.backend.acquire.kernel' + '.' + self.job.board.driver_id + '.' + kernel_nameof
-    
-    if ( kernel_typeof == 'enc' ) :
-      if ( not ( self.job.board.kernel_data_wr_id >= set( [        'esr', 'k', 'm' ] ) ) ) :
+    if ( self.job.board.kernel.typeof == 'enc' ) :
+      if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
-      if ( not ( self.job.board.kernel_data_rd_id >= set( [ 'fec', 'fcc',      'c' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_rd_id >= set( [ 'fec', 'fcc',      'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
-      kernel_sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ]
-      kernel_sizeof_m = self.job.board.kernel_data_wr_size[ 'm' ]
-      kernel_sizeof_c = self.job.board.kernel_data_rd_size[ 'c' ]
-
-    if ( kernel_typeof == 'dec' ) :
-      if ( not ( self.job.board.kernel_data_wr_id >= set( [        'esr', 'k', 'c' ] ) ) ) :
+    if ( self.job.board.kernel.typeof == 'dec' ) :
+      if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
-      if ( not ( self.job.board.kernel_data_rd_id >= set( [ 'fec', 'fcc',      'm' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_rd_id >= set( [ 'fec', 'fcc',      'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
-      kernel_sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ]
-      kernel_sizeof_c = self.job.board.kernel_data_wr_size[ 'c' ]
-      kernel_sizeof_m = self.job.board.kernel_data_rd_size[ 'm' ]
-
-    try :
-      self.kernel = importlib.import_module( kernel_module ).KernelImp( kernel_typeof, kernel_sizeof_k, kernel_sizeof_m, kernel_sizeof_c )
-    except :
-      raise ImportError( 'failed to construct %s instance' % ( kernel_module ) )
-
-    if ( not self.kernel.supports( self.policy_id ) ) :
+    if ( not self.job.board.kernel.supports_policy( self.policy_id ) ) :
       raise Exception( 'unsupported kernel policy' )
 
   # Execute the driver prologue
