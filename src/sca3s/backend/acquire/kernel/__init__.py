@@ -29,6 +29,16 @@ class KernelAbs( abc.ABC ) :
     self.data_rd_id   = data_rd_id
     self.data_rd_size = data_rd_size
 
+  def expand( self, x ) :
+    if   ( type( x ) == tuple ) :
+      return tuple( [     self._expand( v )   for      v   in x         ] )
+    elif ( type( x ) == dict  ) :
+      return dict( [ ( k, self._expand( v ) ) for ( k, v ) in x.items() ] )
+    elif ( type( x ) == str   ) :
+      return sca3s_be.share.util.value( x, ids = { **self.data_wr_size, **self.data_rd_size } )
+
+    return x
+
   @abc.abstractmethod
   def supports_kernel( self    ) :
     raise NotImplementedError()

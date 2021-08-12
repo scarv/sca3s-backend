@@ -17,7 +17,7 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii, h5py, numpy, os
+import binascii, numpy
 
 class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
@@ -33,13 +33,17 @@ class DriverImp( driver.DriverAbs ) :
 
   # Perform acquisition step: encryption operation
 
-  def _acquire_enc( self, esr = None, k = None, m = None ) :
+  def _acquire_enc( self, data ) :
+    esr = data[ 'esr' ] if ( 'esr' in data ) else None
+    k   = data[ 'k'   ] if ( 'k'   in data ) else None
+    m   = data[ 'x'   ] if ( 'x'   in data ) else None
+
     if ( esr == None ) :
-      esr = self._expand( '{$*|esr|}' )
+      esr = self.job.board.kernel.expand( '{$*|esr|}' )
     if ( k   == None ) :
-      k   = self._expand( '{$*|k|}'   )
+      k   = self.job.board.kernel.expand( '{$*|k|}'   )
     if ( m   == None ) :
-      m   = self._expand( '{$*|m|}'   )
+      m   = self.job.board.kernel.expand( '{$*|m|}'   )
 
     self.job.board.interact( '>data esr %s' % sca3s_be.share.util.str2octetstr( esr ).upper() )
     self.job.board.interact( '>data k %s'   % sca3s_be.share.util.str2octetstr( k   ).upper() )
@@ -74,13 +78,17 @@ class DriverImp( driver.DriverAbs ) :
 
   # Perform acquisition step: decryption operation
 
-  def _acquire_dec( self, esr = None, k = None, c = None ) :
+  def _acquire_dec( self, data ) :
+    esr = data[ 'esr' ] if ( 'esr' in data ) else None
+    k   = data[ 'k'   ] if ( 'k'   in data ) else None
+    c   = data[ 'x'   ] if ( 'x'   in data ) else None
+
     if ( esr == None ) :
-      esr = self._expand( '{$*|esr|}' )
+      esr = self.job.board.kernel.expand( '{$*|esr|}' )
     if ( k   == None ) :
-      k   = self._expand( '{$*|k|}'   )
+      k   = self.job.board.kernel.expand( '{$*|k|}'   )
     if ( c   == None ) :
-      c   = self._expand( '{$*|c|}'   )
+      c   = self.job.board.kernel.expand( '{$*|c|}'   )
 
     self.job.board.interact( '>data esr %s' % sca3s_be.share.util.str2octetstr( esr ).upper() )
     self.job.board.interact( '>data k %s'   % sca3s_be.share.util.str2octetstr( k   ).upper() )
@@ -115,128 +123,47 @@ class DriverImp( driver.DriverAbs ) :
 
   # HDF5 file manipulation: add attributes
    
-  def _hdf5_add_attr( self, fd              ) :
-    spec = [ ( 'kernel_sizeof_k', self.job.board.kernel.sizeof_k, '<u8' ),
-             ( 'kernel_sizeof_m', self.job.board.kernel.sizeof_m, '<u8' ),
-             ( 'kernel_sizeof_c', self.job.board.kernel.sizeof_c, '<u8' ) ]
-    
-    super()._hdf5_add_attr( spec, self.trace_content, fd              )
+  def hdf5_add_attr( self, fd              ) :
+    spec = [ ( 'sizeof_k', self.job.board.kernel.sizeof_k, '<u8' ),
+             ( 'sizeof_m', self.job.board.kernel.sizeof_m, '<u8' ),
+             ( 'sizeof_c', self.job.board.kernel.sizeof_c, '<u8' ) ]
+
+    self.job.board.hdf5_add_attr( self.trace_content, fd              )
+    self.job.scope.hdf5_add_attr( self.trace_content, fd              )
+
+    sca3s_be.share.util.hdf5_add_attr( spec, self.trace_content, fd              )
 
   # HDF5 file manipulation: add data
  
-  def _hdf5_add_data( self, fd, n           ) :
+  def hdf5_add_data( self, fd, n           ) :
     spec = [ ( 'k', ( n, self.job.board.kernel.sizeof_k ), 'B' ),
              ( 'm', ( n, self.job.board.kernel.sizeof_m ), 'B' ),
              ( 'c', ( n, self.job.board.kernel.sizeof_c ), 'B' ) ]
 
-    super()._hdf5_add_data( spec, self.trace_content, fd, n           )
+    self.job.board.hdf5_add_data( self.trace_content, fd, n           )
+    self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
+
+    sca3s_be.share.util.hdf5_add_data( spec, self.trace_content, fd, n           )
  
   # HDF5 file manipulation: set data
 
-  def _hdf5_set_data( self, fd, n, i, trace ) :
+  def hdf5_set_data( self, fd, n, i, trace ) :
     spec = [ ( 'k', lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 ) ),
              ( 'm', lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 ) ),
              ( 'c', lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 ) ) ]
 
-    super()._hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
+    self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
+    self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
 
-  # Driver policy: user-driven
-
-  def _policy_user( self, fd ) :
-    n   = 1 * self.trace_count
-
-    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
-
-    ( k, x ) = self._expand( self.job.board.kernel.policy_user_init( self.policy_spec ) )
-
-    for i in range( n ) :
-      self._acquire_log_inc( n, i )
-      self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
-      self._acquire_log_dec( n, i )
-
-      ( k, x ) = self._expand( self.job.board.kernel.policy_user_iter( self.policy_spec, n, i, k, x ) )
-
-  # Driver policy: TVLA-driven
-  #
-  # - mode = fvr_k ~>  fixed-versus random  key
-  # - mode = fvr_d ~>  fixed-versus random data  
-  # - mode = svr_d ~>   semi-versus random data  
-  # - mode = rvr_d ~> random-versus random data  
-
-  def _policy_tvla( self, fd ) :
-    n   = 2 * self.trace_count
-
-    lhs = numpy.fromiter( range( 0, int( n / 2 ) ), numpy.int )
-    rhs = numpy.fromiter( range( int( n / 2 ), n ), numpy.int )
-
-    if ( 'tvla/lhs' in self.trace_content ) :
-      fd[ 'tvla/lhs' ] = lhs
-    if ( 'tvla/rhs' in self.trace_content ) :
-      fd[ 'tvla/rhs' ] = rhs
-
-    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
-
-    ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_init_lhs( self.policy_spec ) )
-
-    for i in lhs :
-      self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
-      self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-
-      ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_iter_lhs( self.policy_spec, n, i, k, x ) )
-
-    ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_init_rhs( self.policy_spec ) )
-
-    for i in rhs :
-      self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, n, i, self.acquire( k = k, x = x ) )
-      self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-
-      ( k, x ) = self._expand( self.job.board.kernel.policy_tvla_iter_rhs( self.policy_spec, n, i, k, x ) )
-
-  # Post-processing, aka. fixed-function analysis: CI 
-
-  def _analyse_ci( self ) :    
-    doc = sca3s_be.share.report.Report( self.job )
-
-    self.job.log.indent_inc( message = 'generate report preamble' )
-    doc.emit_preamble()
-    self.job.log.indent_dec()
-    self.job.log.indent_inc( message = 'generate report prologue' )
-    doc.emit_prologue()
-    self.job.log.indent_dec()
-
-    self.job.log.indent_inc( message = 'generate report content: calibration report' )
-    doc.emit_section_calibrate()
-    self.job.log.indent_dec()
-    self.job.log.indent_inc( message = 'generate report content: latency     report' )
-    doc.emit_section_latency()
-    self.job.log.indent_dec()
-    self.job.log.indent_inc( message = 'generate report content: leakage     report' )
-    doc.emit_section_leakage()
-    self.job.log.indent_dec()
-
-    self.job.log.indent_inc( message = 'generate report epilogue' )
-    doc.emit_epilogue()
-  
-    self.job.log.indent_inc( message = 'compile  report'          )
-    doc.compile( os.path.join( self.job.path, 'acquire.pdf' ) )
-    self.job.log.indent_dec()
-    
-    self.job.result_transfer[ 'acquire.pdf' ] = { 'ContentType': 'application/pdf', 'CacheControl': 'no-cache, max-age=0', 'ACL': 'public-read' }
-
-  # Post-processing, aka. fixed-function analysis: contest
-
-  def _analyse_contest( self ) :
-    self.job.result_response[ 'score' ] = 0
+    sca3s_be.share.util.hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
 
   # Acquire data wrt. this driver
 
-  def acquire( self, k = None, x = None ) :
+  def acquire( self, data = dict() ) :
     if   ( self.job.board.kernel.typeof == 'enc' ) :
-      return self._acquire_enc( k = k, m = x )
+      return self._acquire_enc( data )
     elif ( self.job.board.kernel.typeof == 'dec' ) :
-      return self._acquire_dec( k = k, c = x )
+      return self._acquire_dec( data )
 
   # Prepare the driver:
   #
@@ -269,33 +196,3 @@ class DriverImp( driver.DriverAbs ) :
 
     if ( not self.job.board.kernel.supports_policy( self.policy_id ) ) :
       raise Exception( 'unsupported kernel policy' )
-
-  # Execute the driver prologue
-
-  def execute_prologue( self ) :
-    pass
-
-  # Execute the driver
-
-  def execute( self ) :
-    fd = h5py.File( os.path.join( self.job.path, 'acquire.hdf5' ), 'a' )
-
-    if   ( self.policy_id == 'user' ) : 
-      self._policy_user( fd )
-    elif ( self.policy_id == 'tvla' ) : 
-      self._policy_tvla( fd )
-
-    fd.close()
-
-  # Execute the driver epilogue
-
-  def execute_epilogue( self ) :
-    if   ( self.job.type == 'user'    ) :
-      pass
-    elif ( self.job.type == 'ci'      ) :
-      self._analyse_ci()
-    elif ( self.job.type == 'contest' ) :
-      self._analyse_contest()
-
-    self.job.exec_native( [ 'gzip', '--quiet', os.path.join( self.job.path, 'acquire.hdf5' ) ] )
-

@@ -99,11 +99,14 @@ class KernelImp( kernel.block.KernelType ) :
         k =                  bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                  bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    return ( k, x )
+    return { 'k' : k, 'x' : x }
 
-  def policy_tvla_iter_lhs( self, spec, n, i, k, x ) :
+  def policy_tvla_iter_lhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
+
+    k = data[ 'k' ]
+    x = data[ 'x' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
       if   ( self.sizeof_k == 16 ) :
@@ -146,7 +149,7 @@ class KernelImp( kernel.block.KernelType ) :
         k = k
         x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
 
-    return ( k, x )
+    return { 'k' : k, 'x' : x }
 
   def policy_tvla_init_rhs( self, spec             ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
@@ -212,11 +215,14 @@ class KernelImp( kernel.block.KernelType ) :
         k =                  bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                  bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    return ( k, x )
+    return { 'k' : k, 'x' : x }
 
-  def policy_tvla_iter_rhs( self, spec, n, i, k, x ) :
+  def policy_tvla_iter_rhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
+
+    k = data[ 'k' ]
+    x = data[ 'x' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
       if   ( self.sizeof_k == 16 ) :
@@ -278,4 +284,4 @@ class KernelImp( kernel.block.KernelType ) :
         k = k
         x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
 
-    return ( k, x )
+    return { 'k' : k, 'x' : x }

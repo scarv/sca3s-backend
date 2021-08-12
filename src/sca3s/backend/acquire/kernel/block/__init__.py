@@ -40,38 +40,41 @@ class KernelType( kernel.KernelAbs ) :
   def kernel_dec( self, k, c ) :
     raise NotImplementedError()
 
-  def policy_user_init( self, spec             ) :
+  def policy_user_init    ( self, spec             ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
     if   ( self.typeof == 'enc' ) :
-      k = user_value.get( 'k' )
-      x = user_value.get( 'm' )
+      k = self.expand( user_value.get( 'k' ) )
+      x = self.expand( user_value.get( 'm' ) )
     elif ( self.typeof == 'dec' ) :
-      k = user_value.get( 'k' )
-      c = user_value.get( 'c' )
+      k = self.expand( user_value.get( 'k' ) )
+      c = self.expand( user_value.get( 'c' ) )
 
-    return ( k, x )
+    return { 'k' : k, 'x' : x }
 
-  def policy_user_iter( self, spec, n, i, k, x ) :
+  def policy_user_iter    ( self, spec, n, i, data ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
-    if   ( self.typeof == 'enc' ) :
-      k = user_value.get( 'k' ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
-      x = user_value.get( 'm' ) if ( user_select.get( 'm' ) == 'each' ) else ( x )
-    elif ( self.typeof == 'dec' ) :
-      k = user_value.get( 'k' ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
-      x = user_value.get( 'c' ) if ( user_select.get( 'c' ) == 'each' ) else ( x )
+    k = data[ 'k' ]
+    x = data[ 'x' ]
 
-    return ( k, x )
+    if   ( self.typeof == 'enc' ) :
+      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
+      x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( x )
+    elif ( self.typeof == 'dec' ) :
+      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
+      x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( x )
+
+    return { 'k' : k, 'x' : x }
 
   @abc.abstractmethod
   def policy_tvla_init_lhs( self, spec             ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_iter_lhs( self, spec, n, i, k, x ) :
+  def policy_tvla_iter_lhs( self, spec, n, i, data ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
@@ -79,5 +82,5 @@ class KernelType( kernel.KernelAbs ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def policy_tvla_iter_rhs( self, spec, n, i, k, x ) :
+  def policy_tvla_iter_rhs( self, spec, n, i, data ) :
     raise NotImplementedError()
