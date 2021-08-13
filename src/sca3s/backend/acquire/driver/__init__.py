@@ -63,7 +63,7 @@ class DriverAbs( abc.ABC ) :
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i )
 
-      data = self.job.board.kernel.policy_user_iter( self.policy_spec, n, i, data )
+      data = self.job.board.kernel.policy_user_step( self.policy_spec, n, i, data )
 
   # Driver policy: TVLA-driven
   #
@@ -85,23 +85,23 @@ class DriverAbs( abc.ABC ) :
 
     self.hdf5_add_attr( fd ) ; self.hdf5_add_data( fd, n )
 
-    data = self.job.board.kernel.policy_tvla_init_lhs( self.policy_spec )
+    data = self.job.board.kernel.policy_tvla_init( self.policy_spec, mode = 'lhs' )
 
     for i in lhs :
       self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self.job.board.kernel.policy_tvla_iter_lhs( self.policy_spec, n, i, data )
+      data = self.job.board.kernel.policy_tvla_step( self.policy_spec, n, i, data, mode = 'lhs' )
 
-    data = self.job.board.kernel.policy_tvla_init_rhs( self.policy_spec )
+    data = self.job.board.kernel.policy_tvla_init( self.policy_spec, mode = 'rhs' )
 
     for i in rhs :
       self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self.job.board.kernel.policy_tvla_iter_rhs( self.policy_spec, n, i, data )
+      data = self.job.board.kernel.policy_tvla_step( self.policy_spec, n, i, data, mode = 'rhs' )
 
   # Post-processing, aka. fixed-function analysis: CI 
 

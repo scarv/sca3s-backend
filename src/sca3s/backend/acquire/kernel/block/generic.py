@@ -17,7 +17,7 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii
+import binascii, struct
 
 class KernelImp( kernel.block.KernelType ) :
   def __init__( self, nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
@@ -40,14 +40,8 @@ class KernelImp( kernel.block.KernelType ) :
   def kernel_dec( self, k, c ) :
     return None
 
-  def policy_tvla_init_lhs( self, spec             ) :
+  def policy_tvla_init( self, spec,             mode = 'lhs' ) :
     return dict()
 
-  def policy_tvla_iter_lhs( self, spec, n, i, data ) :
-    return dict()
-
-  def policy_tvla_init_rhs( self, spec             ) :
-    return dict()
-
-  def policy_tvla_iter_rhs( self, spec, n, i, data ) :
+  def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
     return dict()

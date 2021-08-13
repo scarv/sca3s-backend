@@ -40,7 +40,7 @@ class KernelType( kernel.KernelAbs ) :
   def kernel_dec( self, k, c ) :
     raise NotImplementedError()
 
-  def policy_user_init    ( self, spec             ) :
+  def policy_user_init( self, spec             ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
@@ -53,7 +53,7 @@ class KernelType( kernel.KernelAbs ) :
 
     return { 'k' : k, 'x' : x }
 
-  def policy_user_iter    ( self, spec, n, i, data ) :
+  def policy_user_step( self, spec, n, i, data ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
@@ -68,19 +68,3 @@ class KernelType( kernel.KernelAbs ) :
       x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( x )
 
     return { 'k' : k, 'x' : x }
-
-  @abc.abstractmethod
-  def policy_tvla_init_lhs( self, spec             ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def policy_tvla_iter_lhs( self, spec, n, i, data ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def policy_tvla_init_rhs( self, spec             ) :
-    raise NotImplementedError()
-
-  @abc.abstractmethod
-  def policy_tvla_iter_rhs( self, spec, n, i, data ) :
-    raise NotImplementedError()

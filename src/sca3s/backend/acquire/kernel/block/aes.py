@@ -26,24 +26,7 @@ class KernelImp( kernel.block.KernelType ) :
     self.tvla_s_0 = None
     self.tvla_s_1 = None
 
-  def supports_kernel( self    ) :
-    return True
-
-  def supports_policy( self, x ) :
-    if   ( x == 'user' ) :
-      return True
-    elif ( x == 'tvla' ) :
-      return True
-
-    return False
-
-  def kernel_enc( self, k, m ) :
-    return sca3s_be.share.crypto.AES( k ).enc( m )
-
-  def kernel_dec( self, k, c ) :
-    return sca3s_be.share.crypto.AES( k ).dec( c )
-
-  def policy_tvla_init_lhs( self, spec             ) :
+  def _policy_tvla_init_lhs( self, spec             ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
@@ -101,57 +84,7 @@ class KernelImp( kernel.block.KernelType ) :
 
     return { 'k' : k, 'x' : x }
 
-  def policy_tvla_iter_lhs( self, spec, n, i, data ) :
-    tvla_mode  = spec.get( 'tvla_mode'  )
-    tvla_round = spec.get( 'tvla_round' )
-
-    k = data[ 'k' ]
-    x = data[ 'x' ]
-
-    if  ( tvla_mode == 'fvr_k' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
-
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
-
-    elif( tvla_mode == 'fvr_d' ) :
-      k = k
-      x = x
-
-    elif( tvla_mode == 'svr_d' ) :
-      k = k
-
-      x = bytes( binascii.a2b_hex( '8B8A490BDF7C00BDD7E6066C61002412' ) ) ; i = struct.pack( '<I', i )
-      x = bytes( [ a ^ b for ( a, b ) in zip( x[ 0 : 4 ], i[ 0 : 4 ] ) ] ) + x[ 4 : ]
-
-      if   ( self.typeof == 'enc' ) :
-        x = sca3s_be.share.crypto.AES( k ).enc_rev( x, tvla_round )
-      elif ( self.typeof == 'dec' ) :
-        x = sca3s_be.share.crypto.AES( k ).dec_rev( x, tvla_round )
-
-    elif( tvla_mode == 'rvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
-        k = k
-        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
-
-      elif ( self.sizeof_k == 24 ) :
-        k = k
-        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
-
-      elif ( self.sizeof_k == 32 ) :
-        k = k
-        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
-
-    return { 'k' : k, 'x' : x }
-
-  def policy_tvla_init_rhs( self, spec             ) :
+  def _policy_tvla_init_rhs( self, spec             ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
@@ -217,7 +150,57 @@ class KernelImp( kernel.block.KernelType ) :
 
     return { 'k' : k, 'x' : x }
 
-  def policy_tvla_iter_rhs( self, spec, n, i, data ) :
+  def _policy_tvla_step_lhs( self, spec, n, i, data ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    k = data[ 'k' ]
+    x = data[ 'x' ]
+
+    if  ( tvla_mode == 'fvr_k' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
+
+    elif( tvla_mode == 'fvr_d' ) :
+      k = k
+      x = x
+
+    elif( tvla_mode == 'svr_d' ) :
+      k = k
+
+      x = bytes( binascii.a2b_hex( '8B8A490BDF7C00BDD7E6066C61002412' ) ) ; i = struct.pack( '<I', i )
+      x = bytes( [ a ^ b for ( a, b ) in zip( x[ 0 : 4 ], i[ 0 : 4 ] ) ] ) + x[ 4 : ]
+
+      if   ( self.typeof == 'enc' ) :
+        x = sca3s_be.share.crypto.AES( k ).enc_rev( x, tvla_round )
+      elif ( self.typeof == 'dec' ) :
+        x = sca3s_be.share.crypto.AES( k ).dec_rev( x, tvla_round )
+
+    elif( tvla_mode == 'rvr_d' ) :
+      if   ( self.sizeof_k == 16 ) :
+        k = k
+        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ), x )
+
+      elif ( self.sizeof_k == 24 ) :
+        k = k
+        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ), x )
+
+      elif ( self.sizeof_k == 32 ) :
+        k = k
+        x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
+
+    return { 'k' : k, 'x' : x }
+
+  def _policy_tvla_step_rhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
@@ -285,3 +268,36 @@ class KernelImp( kernel.block.KernelType ) :
         x = self.kernel_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ), x )
 
     return { 'k' : k, 'x' : x }
+
+  def supports_kernel( self    ) :
+    return True
+
+  def supports_policy( self, x ) :
+    if   ( x == 'user' ) :
+      return True
+    elif ( x == 'tvla' ) :
+      return True
+
+    return False
+
+  def kernel_enc( self, k, m ) :
+    return sca3s_be.share.crypto.AES( k ).enc( m )
+
+  def kernel_dec( self, k, c ) :
+    return sca3s_be.share.crypto.AES( k ).dec( c )
+
+  def policy_tvla_init( self, spec,             mode = 'lhs' ) :
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_init_lhs( spec             )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_init_rhs( spec             )
+
+    return None
+
+  def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_step_lhs( spec, n, i, data )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_step_rhs( spec, n, i, data )
+
+    return None

@@ -29,6 +29,8 @@ class KernelAbs( abc.ABC ) :
     self.data_rd_id   = data_rd_id
     self.data_rd_size = data_rd_size
 
+  # Expand an (abstract, symbolic) value description into a (concrete) sequence of bytes.
+
   def expand( self, x ) :
     if   ( type( x ) == tuple ) :
       return tuple( [     self._expand( v )   for      v   in x         ] )
@@ -45,4 +47,20 @@ class KernelAbs( abc.ABC ) :
 
   @abc.abstractmethod
   def supports_policy( self, x ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def policy_user_init( self, spec                           ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def policy_user_step( self, spec, n, i, data               ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def policy_tvla_init( self, spec,             mode = 'lhs' ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
     raise NotImplementedError()
