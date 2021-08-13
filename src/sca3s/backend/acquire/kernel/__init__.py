@@ -20,9 +20,9 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelAbs( abc.ABC ) :
-  def __init__( self, nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
+  def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
     self.nameof       = nameof
-    self.typeof       = typeof
+    self.modeof       = modeof
 
     self.data_wr_id   = data_wr_id
     self.data_wr_size = data_wr_size

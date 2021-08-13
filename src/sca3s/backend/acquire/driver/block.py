@@ -23,14 +23,6 @@ class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-    self.trace_spec    = self.job.conf.get( 'trace_spec' )
-
-    self.trace_content =       self.trace_spec.get( 'content' )
-    self.trace_count   =  int( self.trace_spec.get( 'count'   ) )
-
-    self.policy_id     = self.driver_spec.get( 'policy_id'   )
-    self.policy_spec   = self.driver_spec.get( 'policy_spec' )
-
   # Perform acquisition step: encryption operation
 
   def _acquire_enc( self, data ) :
@@ -160,16 +152,16 @@ class DriverImp( driver.DriverAbs ) :
   # Acquire data wrt. this driver
 
   def acquire( self, data = dict() ) :
-    if   ( self.job.board.kernel.typeof == 'enc' ) :
+    if   ( self.job.board.kernel.modeof == 'enc' ) :
       return self._acquire_enc( data )
-    elif ( self.job.board.kernel.typeof == 'dec' ) :
+    elif ( self.job.board.kernel.modeof == 'dec' ) :
       return self._acquire_dec( data )
 
   # Prepare the driver:
   #
   # 1. check the on-board driver for consistency
-  # 2. check the on-board kernel for consistency
-  # 3. check the kernel model supports whatever policy is selected
+  # 2. set any defaults
+  # 3. check the on-board kernel for consistency
 
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
@@ -177,18 +169,21 @@ class DriverImp( driver.DriverAbs ) :
     if ( self.driver_id !=               ( self.job.board.driver_id      ) ) :
       raise Exception( 'inconsistent driver identifier' )
     
-    if ( self.job.board.kernel.nameof not in [ 'generic', 'aes' ] ) :
+    if ( self.job.board.kernel.nameof not in [ 'generic', 'aes'        ] ) :
       raise Exception( 'unsupported kernel name'   )
-    if ( self.job.board.kernel.typeof not in [     'enc', 'dec' ] ) :
+    if ( self.job.board.kernel.modeof not in [ 'default', 'enc', 'dec' ] ) :
       raise Exception( 'unsupported kernel type'   )
 
-    if ( self.job.board.kernel.typeof == 'enc' ) :
+    if ( self.job.board.kernel.modeof == 'default' ) :
+      self.job.board.kernel.modeof = 'enc'
+
+    if ( self.job.board.kernel.modeof == 'enc'     ) :
       if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
       if ( not ( self.job.board.kernel.data_rd_id >= set( [ 'fec', 'fcc',      'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
-    if ( self.job.board.kernel.typeof == 'dec' ) :
+    if ( self.job.board.kernel.modeof == 'dec'     ) :
       if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
       if ( not ( self.job.board.kernel.data_rd_id >= set( [ 'fec', 'fcc',      'm' ] ) ) ) :

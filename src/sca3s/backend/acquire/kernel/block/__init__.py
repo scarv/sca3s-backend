@@ -20,14 +20,14 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelType( kernel.KernelAbs ) :
-  def __init__( self, nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
-    super().__init__( nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
+  def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
+    super().__init__( nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
 
-    if   ( self.typeof == 'enc' ) :
+    if   ( self.modeof == 'enc' ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.sizeof_c = self.data_wr_size[ 'm' ]
       self.sizeof_m = self.data_rd_size[ 'c' ]
-    elif ( self.typeof == 'dec' ) :
+    elif ( self.modeof == 'dec' ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.sizeof_c = self.data_wr_size[ 'c' ]
       self.sizeof_m = self.data_rd_size[ 'm' ]
@@ -44,10 +44,10 @@ class KernelType( kernel.KernelAbs ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
-    if   ( self.typeof == 'enc' ) :
+    if   ( self.modeof == 'enc' ) :
       k = self.expand( user_value.get( 'k' ) )
       x = self.expand( user_value.get( 'm' ) )
-    elif ( self.typeof == 'dec' ) :
+    elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) )
       c = self.expand( user_value.get( 'c' ) )
 
@@ -60,10 +60,10 @@ class KernelType( kernel.KernelAbs ) :
     k = data[ 'k' ]
     x = data[ 'x' ]
 
-    if   ( self.typeof == 'enc' ) :
+    if   ( self.modeof == 'enc' ) :
       k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
       x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( x )
-    elif ( self.typeof == 'dec' ) :
+    elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
       x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( x )
 

@@ -21,10 +21,18 @@ import abc, h5py, numpy, os
 
 class DriverAbs( abc.ABC ) :
   def __init__( self, job ) :
-    self.job         = job
+    self.job           = job
 
-    self.driver_id   = self.job.conf.get( 'driver_id'   )
-    self.driver_spec = self.job.conf.get( 'driver_spec' )
+    self.driver_id     = self.job.conf.get( 'driver_id'   )
+    self.driver_spec   = self.job.conf.get( 'driver_spec' )
+
+    self.trace_spec    = self.job.conf.get( 'trace_spec' )
+
+    self.trace_content =       self.trace_spec.get( 'content' )
+    self.trace_count   =  int( self.trace_spec.get( 'count'   ) )
+
+    self.policy_id     = self.driver_spec.get( 'policy_id'   )
+    self.policy_spec   = self.driver_spec.get( 'policy_spec' )
 
   def __str__( self ) :
     return self.driver_id + ' ' + '(' + self.job.board.kernel_id + ')'

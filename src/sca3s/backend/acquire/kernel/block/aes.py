@@ -20,8 +20,8 @@ from sca3s.backend.acquire import depo   as depo
 import binascii, struct
 
 class KernelImp( kernel.block.KernelType ) :
-  def __init__( self, nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
-    super().__init__( nameof, typeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
+  def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
+    super().__init__( nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
 
     self.tvla_s_0 = None
     self.tvla_s_1 = None
@@ -180,9 +180,9 @@ class KernelImp( kernel.block.KernelType ) :
       x = bytes( binascii.a2b_hex( '8B8A490BDF7C00BDD7E6066C61002412' ) ) ; i = struct.pack( '<I', i )
       x = bytes( [ a ^ b for ( a, b ) in zip( x[ 0 : 4 ], i[ 0 : 4 ] ) ] ) + x[ 4 : ]
 
-      if   ( self.typeof == 'enc' ) :
+      if   ( self.modeof == 'enc' ) :
         x = sca3s_be.share.crypto.AES( k ).enc_rev( x, tvla_round )
-      elif ( self.typeof == 'dec' ) :
+      elif ( self.modeof == 'dec' ) :
         x = sca3s_be.share.crypto.AES( k ).dec_rev( x, tvla_round )
 
     elif( tvla_mode == 'rvr_d' ) :
