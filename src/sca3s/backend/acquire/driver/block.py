@@ -23,8 +23,6 @@ class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
-  # Perform acquisition step: encryption operation
-
   def _acquire_enc( self, data ) :
     esr = data[ 'esr' ] if ( 'esr' in data ) else None
     k   = data[ 'k'   ] if ( 'k'   in data ) else None
@@ -68,8 +66,6 @@ class DriverImp( driver.DriverAbs ) :
 
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'k' : k, 'm' : m, 'c' : c }
 
-  # Perform acquisition step: decryption operation
-
   def _acquire_dec( self, data ) :
     esr = data[ 'esr' ] if ( 'esr' in data ) else None
     k   = data[ 'k'   ] if ( 'k'   in data ) else None
@@ -112,8 +108,6 @@ class DriverImp( driver.DriverAbs ) :
         raise Exception( 'failed I/O verification => dec( k, c ) != m' )
 
     return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'c' : c, 'm' : m } 
-
-  # HDF5 file manipulation: add attributes
    
   def hdf5_add_attr( self, fd              ) :
     spec = [ ( 'sizeof_k', self.job.board.kernel.sizeof_k, '<u8' ),
@@ -125,8 +119,6 @@ class DriverImp( driver.DriverAbs ) :
 
     sca3s_be.share.util.hdf5_add_attr( spec, self.trace_content, fd              )
 
-  # HDF5 file manipulation: add data
- 
   def hdf5_add_data( self, fd, n           ) :
     spec = [ ( 'k', ( n, self.job.board.kernel.sizeof_k ), 'B' ),
              ( 'm', ( n, self.job.board.kernel.sizeof_m ), 'B' ),
@@ -136,8 +128,6 @@ class DriverImp( driver.DriverAbs ) :
     self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
 
     sca3s_be.share.util.hdf5_add_data( spec, self.trace_content, fd, n           )
- 
-  # HDF5 file manipulation: set data
 
   def hdf5_set_data( self, fd, n, i, trace ) :
     spec = [ ( 'k', lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 ) ),
@@ -149,19 +139,11 @@ class DriverImp( driver.DriverAbs ) :
 
     sca3s_be.share.util.hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
 
-  # Acquire data wrt. this driver
-
   def acquire( self, data = dict() ) :
     if   ( self.job.board.kernel.modeof == 'enc' ) :
       return self._acquire_enc( data )
     elif ( self.job.board.kernel.modeof == 'dec' ) :
       return self._acquire_dec( data )
-
-  # Prepare the driver:
-  #
-  # 1. check the on-board driver for consistency
-  # 2. set any defaults
-  # 3. check the on-board kernel for consistency
 
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
@@ -169,13 +151,10 @@ class DriverImp( driver.DriverAbs ) :
     if ( self.driver_id !=               ( self.job.board.driver_id      ) ) :
       raise Exception( 'inconsistent driver identifier' )
     
-    if ( self.job.board.kernel.nameof not in [ 'generic', 'aes'        ] ) :
+    if ( self.job.board.kernel.nameof not in [ 'generic', 'aes' ] ) :
       raise Exception( 'unsupported kernel name'   )
-    if ( self.job.board.kernel.modeof not in [ 'default', 'enc', 'dec' ] ) :
+    if ( self.job.board.kernel.modeof not in [ 'enc', 'dec' ] ) :
       raise Exception( 'unsupported kernel type'   )
-
-    if ( self.job.board.kernel.modeof == 'default' ) :
-      self.job.board.kernel.modeof = 'enc'
 
     if ( self.job.board.kernel.modeof == 'enc'     ) :
       if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'm' ] ) ) ) :

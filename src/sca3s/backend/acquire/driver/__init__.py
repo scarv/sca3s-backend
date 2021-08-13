@@ -147,21 +147,31 @@ class DriverAbs( abc.ABC ) :
   def _analyse_contest( self ) :
     self.job.result_response[ 'score' ] = 0
 
+  # HDF5 file manipulation: add attributes
+
   @abc.abstractmethod
   def hdf5_add_attr( self, fd              ) :
     raise NotImplementedError()
+
+  # HDF5 file manipulation: add data
 
   @abc.abstractmethod
   def hdf5_add_data( self, fd, n           ) :
     raise NotImplementedError()
 
+  # HDF5 file manipulation: set data
+
   @abc.abstractmethod
   def hdf5_set_data( self, fd, n, i, trace ) :
     raise NotImplementedError()
 
+  # Acquire via driver
+
   @abc.abstractmethod
   def acquire( self ) :
     raise NotImplementedError()
+
+  # Prepare the driver
 
   @abc.abstractmethod
   def prepare( self ) :

@@ -22,28 +22,18 @@ import binascii, h5py, importlib, numpy, os
 class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
+   
+  def hdf5_add_attr( self, fd              ) :
+    pass 
 
-  # Acquire data wrt. this driver
+  def hdf5_add_data( self, fd, n           ) :
+    pass 
+
+  def hdf5_set_data( self, fd, n, i, trace ) :
+    pass
 
   def acquire( self, x = None ) :
     pass
 
-  # Prepare the driver
-
   def prepare( self ) : 
-    pass
-
-  # Execute the driver prologue
-
-  def execute_prologue( self ) :
-    pass
-
-  # Execute the driver
-
-  def execute( self ) :
-    pass
-
-  # Execute the driver epilogue
-
-  def execute_epilogue( self ) :
     pass
