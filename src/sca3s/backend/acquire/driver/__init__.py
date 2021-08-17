@@ -119,6 +119,7 @@ class DriverAbs( abc.ABC ) :
     self.job.log.indent_inc( message = 'generate report preamble' )
     doc.emit_preamble()
     self.job.log.indent_dec()
+
     self.job.log.indent_inc( message = 'generate report prologue' )
     doc.emit_prologue()
     self.job.log.indent_dec()
@@ -135,6 +136,7 @@ class DriverAbs( abc.ABC ) :
 
     self.job.log.indent_inc( message = 'generate report epilogue' )
     doc.emit_epilogue()
+    self.job.log.indent_dec()
   
     self.job.log.indent_inc( message = 'compile  report'          )
     doc.compile( os.path.join( self.job.path, 'acquire.pdf' ) )
