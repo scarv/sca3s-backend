@@ -65,7 +65,7 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
     sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
 
-    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_kernel() ) :
+    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
       if ( self.job.board.kernel.kernel_enc( k, a, m ) != c ) :
         raise Exception( 'failed I/O verification => enc( k, a, m ) != c' )
 
@@ -113,7 +113,7 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
     sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
 
-    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_kernel() ) :
+    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
       if ( self.job.board.kernel.kernel_dec( k, a, c ) != m ) :
         raise Exception( 'failed I/O verification => dec( k, a, c ) != m' )
 
@@ -166,8 +166,11 @@ class DriverImp( driver.DriverAbs ) :
     
     if ( self.job.board.kernel.nameof not in [ 'generic' ] ) :
       raise Exception( 'unsupported kernel name'   )
-    if ( self.job.board.kernel.modeof not in [ 'enc', 'dec' ] ) :
+    if ( self.job.board.kernel.modeof not in [ 'default', 'enc', 'dec' ] ) :
       raise Exception( 'unsupported kernel type'   )
+
+    if ( self.job.board.kernel.modeof == 'default' ) :
+      self.job.board.kernel.modeof = 'enc'
 
     if ( self.job.board.kernel.modeof == 'enc'     ) :
       if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'a', 'm' ] ) ) ) :
@@ -181,5 +184,7 @@ class DriverImp( driver.DriverAbs ) :
       if ( not ( self.job.board.kernel.data_rd_id >= set( [ 'fec', 'fcc',           'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
-    if ( not self.job.board.kernel.supports_policy( self.policy_id ) ) :
+    if ( ( self.policy_id == 'user' ) and not self.job.board.kernel.supports_policy_user( self.policy_spec ) ) :
+      raise Exception( 'unsupported kernel policy' )
+    if ( ( self.policy_id == 'tvla' ) and not self.job.board.kernel.supports_policy_tvla( self.policy_spec ) ) :
       raise Exception( 'unsupported kernel policy' )

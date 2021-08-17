@@ -28,6 +28,7 @@ class KernelType( kernel.KernelAbs ) :
       self.sizeof_a = self.data_wr_size[ 'a' ]
       self.sizeof_c = self.data_wr_size[ 'm' ]
       self.sizeof_m = self.data_rd_size[ 'c' ]
+
     elif ( self.modeof == 'dec' ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.sizeof_a = self.data_wr_size[ 'a' ]
@@ -35,11 +36,11 @@ class KernelType( kernel.KernelAbs ) :
       self.sizeof_m = self.data_rd_size[ 'm' ]
 
   @abc.abstractmethod
-  def kernel_enc( self, k, a, m ) :
+  def model_enc( self, k, a, m ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def kernel_dec( self, k, a, c ) :
+  def model_dec( self, k, a, c ) :
     raise NotImplementedError()
 
   def policy_user_init( self, spec             ) :
@@ -50,10 +51,11 @@ class KernelType( kernel.KernelAbs ) :
       k = self.expand( user_value.get( 'k' ) )
       a = self.expand( user_value.get( 'a' ) )
       x = self.expand( user_value.get( 'm' ) )
+
     elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) )
       a = self.expand( user_value.get( 'a' ) )
-      c = self.expand( user_value.get( 'c' ) )
+      x = self.expand( user_value.get( 'c' ) )
 
     return { 'k' : k, 'a' : a, 'x' : x }
 
@@ -61,17 +63,14 @@ class KernelType( kernel.KernelAbs ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
-    k = data[ 'k' ]
-    a = data[ 'a' ]
-    x = data[ 'x' ]
-
     if   ( self.modeof == 'enc' ) :
-      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
-      a = self.expand( user_value.get( 'a' ) ) if ( user_select.get( 'a' ) == 'each' ) else ( a )
-      x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( x )
+      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( data[ 'k' ] )
+      a = self.expand( user_value.get( 'a' ) ) if ( user_select.get( 'a' ) == 'each' ) else ( data[ 'a' ] )
+      x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( data[ 'x' ] )
+
     elif ( self.modeof == 'dec' ) :
-      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
-      a = self.expand( user_value.get( 'a' ) ) if ( user_select.get( 'a' ) == 'each' ) else ( a )
-      x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( x )
+      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( data[ 'k' ] )
+      a = self.expand( user_value.get( 'a' ) ) if ( user_select.get( 'a' ) == 'each' ) else ( data[ 'a' ] )
+      x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( data[ 'x' ] )
 
     return { 'k' : k, 'a' : a, 'x' : x }

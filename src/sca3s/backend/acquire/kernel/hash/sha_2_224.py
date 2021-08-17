@@ -17,31 +17,26 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc
+import binascii, struct
 
-class KernelType( kernel.KernelAbs ) :
+class KernelImp( kernel.block.KernelType ) :
   def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
     super().__init__( nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
 
-    self.sizeof_m = self.data_wr_size[ 'm' ]
-    self.sizeof_d = self.data_wr_size[ 'd' ]
+  def supports_model( self ) :
+    return True
 
-  @abc.abstractmethod
+  def supports_policy_user( self, spec ) :
+    return True
+
+  def supports_policy_tvla( self, spec ) :
+    return False
+
   def model( self, m ) :
-    raise NotImplementedError()
+    return sca3s_be.share.crypto.SHA_2_224().digest( m )
 
-  def policy_user_init( self, spec             ) :
-    user_select = spec.get( 'user_select' )
-    user_value  = spec.get( 'user_value'  )
+  def policy_tvla_init( self, spec,             mode = 'lhs' ) :
+    return dict()
 
-    m = self.expand( user_value.get( 'm' ) )
-
-    return { 'm' : m }
-
-  def policy_user_step( self, spec, n, i, data ) :
-    user_select = spec.get( 'user_select' )
-    user_value  = spec.get( 'user_value'  )
-
-    m = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( data[ 'm' ] )
-
-    return { 'm' : m }
+  def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
+    return dict()

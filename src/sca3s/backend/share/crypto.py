@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import itertools 
+import hashlib, itertools
 
 AES_ENC_SBOX = [ 0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5,
                  0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
@@ -143,6 +143,7 @@ AES_DIVX     = [ 0x00, 0x00, 0x01, 0x01, 0x02, 0x02, 0x03, 0x03,
 
 AES_RCON     = [ 0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 
                  0x80, 0x1B, 0x36 ]
+
 class AES( object ) :
   def __init__( self, k ) :
     super().__init__()
@@ -304,3 +305,38 @@ class AES( object ) :
     self._enc_key( s, self.rk[ self.Nr ] )
 
     return bytes( s )
+
+class SHA_1( object ) :
+  def __init__( self ) :
+    super().__init__()
+
+  def digest( m ) :
+    t = hashlib.sha1()   ; t.update( m ) ; return t.digest()
+
+class SHA_2_224( object ) :
+  def __init__( self ) :
+    super().__init__()
+
+  def digest( m ) :
+    t = hashlib.sha224() ; t.update( m ) ; return t.digest()
+
+class SHA_2_256( object ) :
+  def __init__( self ) :
+    super().__init__()
+
+  def digest( m ) :
+    t = hashlib.sha256() ; t.update( m ) ; return t.digest()
+
+class SHA_2_384( object ) :
+  def __init__( self ) :
+    super().__init__()
+
+  def digest( m ) :
+    t = hashlib.sha384() ; t.update( m ) ; return t.digest()
+
+class SHA_2_512( object ) :
+  def __init__( self ) :
+    super().__init__()
+
+  def digest( m ) :
+    t = hashlib.sha512() ; t.update( m ) ; return t.digest()

@@ -27,17 +27,18 @@ class KernelType( kernel.KernelAbs ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.sizeof_c = self.data_wr_size[ 'm' ]
       self.sizeof_m = self.data_rd_size[ 'c' ]
+
     elif ( self.modeof == 'dec' ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.sizeof_c = self.data_wr_size[ 'c' ]
       self.sizeof_m = self.data_rd_size[ 'm' ]
 
   @abc.abstractmethod
-  def kernel_enc( self, k, m ) :
+  def model_enc( self, k, m ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def kernel_dec( self, k, c ) :
+  def model_dec( self, k, c ) :
     raise NotImplementedError()
 
   def policy_user_init( self, spec             ) :
@@ -47,9 +48,10 @@ class KernelType( kernel.KernelAbs ) :
     if   ( self.modeof == 'enc' ) :
       k = self.expand( user_value.get( 'k' ) )
       x = self.expand( user_value.get( 'm' ) )
+
     elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) )
-      c = self.expand( user_value.get( 'c' ) )
+      x = self.expand( user_value.get( 'c' ) )
 
     return { 'k' : k, 'x' : x }
 
@@ -57,14 +59,12 @@ class KernelType( kernel.KernelAbs ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
-    k = data[ 'k' ]
-    x = data[ 'x' ]
-
     if   ( self.modeof == 'enc' ) :
-      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
-      x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( x )
+      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( data[ 'k' ] )
+      x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( data[ 'x' ] )
+
     elif ( self.modeof == 'dec' ) :
-      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( k )
-      x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( x )
+      k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( data[ 'k' ] )
+      x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( data[ 'x' ] )
 
     return { 'k' : k, 'x' : x }

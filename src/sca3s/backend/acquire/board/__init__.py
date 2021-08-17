@@ -41,9 +41,6 @@ class BoardAbs( abc.ABC ) :
     self.kernel_data_rd_id         = None
     self.kernel_data_rd_size       = dict()
 
-    self.kernel_nameof             = None
-    self.kernel_modeof             = None
-
     self.kernel                    = None
 
   def __str__( self ) :
@@ -245,13 +242,13 @@ class BoardAbs( abc.ABC ) :
     if ( len( t ) != 2 ) :
       raise Exception( 'cannot parse kernel identifier' )
 
-    self.kernel_nameof = t[ 0 ]
-    self.kernel_modeof = t[ 1 ]
+    kernel_nameof = t[ 0 ]
+    kernel_modeof = t[ 1 ]
 
-    x = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + self.kernel_nameof
+    x = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + kernel_nameof
 
     try :
-      self.kernel = importlib.import_module( x ).KernelImp( self.kernel_nameof, self.kernel_modeof, self.kernel_data_wr_id, self.kernel_data_wr_size, self.kernel_data_rd_id, self.kernel_data_rd_size )
+      self.kernel = importlib.import_module( x ).KernelImp( kernel_nameof, kernel_modeof, self.kernel_data_wr_id, self.kernel_data_wr_size, self.kernel_data_rd_id, self.kernel_data_rd_size )
     except :
       raise ImportError( 'failed to construct %s instance' % ( x ) )
 
