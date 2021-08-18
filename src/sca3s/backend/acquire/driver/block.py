@@ -152,9 +152,9 @@ class DriverImp( driver.DriverAbs ) :
       raise Exception( 'inconsistent driver identifier' )
     
     if ( self.job.board.kernel.nameof not in [ 'generic', 'aes' ] ) :
-      raise Exception( 'unsupported kernel name'   )
+      raise Exception( 'unsupported kernel name' )
     if ( self.job.board.kernel.modeof not in [ 'default', 'enc', 'dec' ] ) :
-      raise Exception( 'unsupported kernel type'   )
+      raise Exception( 'unsupported kernel type' )
 
     if ( self.job.board.kernel.modeof == 'default' ) :
       self.job.board.kernel.modeof = 'enc'

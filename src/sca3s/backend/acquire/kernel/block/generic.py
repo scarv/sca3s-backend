@@ -22,24 +22,3 @@ import binascii, struct
 class KernelImp( kernel.block.KernelType ) :
   def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
     super().__init__( nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
-
-  def supports_model( self ) :
-    return False
-
-  def supports_policy_user( self, spec ) :
-    return True
-
-  def supports_policy_tvla( self, spec ) :
-    return False
-
-  def model_enc( self, k, m ) :
-    return None
-
-  def model_dec( self, k, c ) :
-    return None
-
-  def policy_tvla_init( self, spec,             mode = 'lhs' ) :
-    return dict()
-
-  def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
-    return dict()

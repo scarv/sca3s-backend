@@ -34,11 +34,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF9'                                 ) )
         x =                                        bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
-
       elif ( self.sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF994F4D92CD2FAE645'                 ) )
         x =                                        bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
-
       elif ( self.sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF994F4D92CD2FAE64537B940EA5E1AF112' ) )
         x =                                        bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
@@ -47,11 +45,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601890'                                 ) )
-
       elif ( self.sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601888'                                 ) )
-
       elif ( self.sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601895'                                 ) )
@@ -60,11 +56,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x = None
-
       elif ( self.sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x = None
-
       elif ( self.sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x = None
@@ -73,11 +67,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -113,11 +105,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -126,11 +116,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -139,11 +127,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-
       elif ( self.sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
@@ -161,11 +147,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
@@ -189,11 +173,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
@@ -232,11 +214,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
@@ -245,11 +225,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
@@ -258,11 +236,9 @@ class KernelImp( kernel.block.KernelType ) :
       if   ( self.sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-
       elif ( self.sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
