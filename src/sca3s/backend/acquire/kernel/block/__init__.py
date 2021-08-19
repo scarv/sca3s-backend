@@ -25,8 +25,8 @@ class KernelType( kernel.KernelAbs ) :
 
     if   ( self.modeof == 'enc' ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
-      self.sizeof_m = self.data_rd_size[ 'm' ]
-      self.sizeof_c = self.data_wr_size[ 'c' ]
+      self.sizeof_m = self.data_wr_size[ 'm' ]
+      self.sizeof_c = self.data_rd_size[ 'c' ]
     elif ( self.modeof == 'dec' ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.sizeof_c = self.data_wr_size[ 'c' ]

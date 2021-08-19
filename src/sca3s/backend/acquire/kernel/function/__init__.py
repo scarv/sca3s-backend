@@ -24,7 +24,7 @@ class KernelType( kernel.KernelAbs ) :
     super().__init__( nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
 
     self.sizeof_x = self.data_wr_size[ 'x' ]
-    self.sizeof_r = self.data_wr_size[ 'r' ]
+    self.sizeof_r = self.data_rd_size[ 'r' ]
 
   def _policy_tvla_init_lhs( self, spec,            ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
