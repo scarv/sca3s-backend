@@ -26,17 +26,5 @@ class KernelImp( kernel.block.KernelType ) :
   def supports_model( self ) :
     return True
 
-  def supports_policy_user( self, spec ) :
-    return True
-
-  def supports_policy_tvla( self, spec ) :
-    return False
-
   def model( self, m ) :
     return sca3s_be.share.crypto.SHA_2_256().digest( m )
-
-  def policy_tvla_init( self, spec,             mode = 'lhs' ) :
-    return dict()
-
-  def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
-    return dict()

@@ -26,9 +26,53 @@ class KernelType( kernel.KernelAbs ) :
     self.sizeof_m = self.data_wr_size[ 'm' ]
     self.sizeof_d = self.data_wr_size[ 'd' ]
 
-  @abc.abstractmethod
+  def _policy_tvla_init_lhs( self, spec,            ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    return None
+    
+  def _policy_tvla_init_rhs( self, spec,            ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    return None
+
+  def _policy_tvla_step_lhs( self, spec, n, i, data ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    return None
+
+  def _policy_tvla_step_rhs( self, spec, n, i, data ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    return None
+
+  def supports_model( self ) :
+    return False
+
+  def supports_policy_user( self, spec ) :
+    return True
+
+  def supports_policy_tvla( self, spec ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data  vs.  random key, random data
+      return False
+    elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data  vs.  fixed  key, random data
+      return False
+    elif( tvla_mode == 'svr_d' ) :#   fixed key, semi-fixed  data  vs.  fixed  key, random data
+      return False
+    elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data  vs.  fixed  key, random data
+      return False
+
+    return False
+
   def model( self, m ) :
-    raise NotImplementedError()
+    return None
 
   def policy_user_init( self, spec             ) :
     user_select = spec.get( 'user_select' )
@@ -45,3 +89,19 @@ class KernelType( kernel.KernelAbs ) :
     m = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( data[ 'm' ] )
 
     return { 'm' : m }
+
+  def policy_tvla_init( self, spec,             mode = 'lhs' ) :
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_init_lhs( spec             )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_init_rhs( spec             )
+
+    return None
+
+  def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_step_lhs( spec, n, i, data )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_step_rhs( spec, n, i, data )
+
+    return None
