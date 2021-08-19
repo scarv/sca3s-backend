@@ -153,7 +153,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     commit_rhs = repo.commit()
 
     for entry in commit_lhs.diff( commit_rhs ) :
-      if   ( ( entry.a_blob == None ) and ( entry.b_blob != None ) ) : # file added
+      if   ( ( entry.a_blob == None ) and ( entry.b_blob != None ) ) : # file   added
         filename = str( entry.b_path ).strip()
 
         if( True ) :
