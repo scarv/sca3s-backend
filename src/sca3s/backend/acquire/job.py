@@ -149,14 +149,29 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     repo.create_remote( 'upstream', template_url ).fetch() ; fail = False
 
-    for filename in repo.git.diff( 'upstream' + '/' + template_tag, name_only = True ).split( '\n' ) :
-      if ( not filename.strip() ) :
-        continue
+    commit_lhs = repo.commit( 'upstream' + '/' + template_tag )
+    commit_rhs = repo.commit()
 
-      if( None == re.match( template_pattern, filename ) ) :
-        self.log.info( '| failed: ' + filename ) ; fail = True
-      else :
-        self.log.info( '| passed: ' + filename )
+    for entry in commit_lhs.diff( commit_rhs ) :
+      if   ( ( entry.a_blob == None ) and ( entry.b_blob != None ) ) : # file added
+        filename = str( entry.b_path ).strip()
+
+        if( True ) :
+          self.log.info( '|   added -> passed: ' + filename )
+
+      elif ( ( entry.a_blob != None ) and ( entry.b_blob == None ) ) : # file deleted
+        filename = str( entry.a_path ).strip()
+
+        if( True ) :
+          self.log.info( '| deleted -> failed: ' + filename ) ; fail = True
+
+      elif ( ( entry.a_blob != None ) and ( entry.b_blob != None ) ) : # file changed
+        filename = str( entry.a_path ).strip()
+
+        if( None == re.match( template_pattern, filename ) ) :
+          self.log.info( '| changed -> failed: ' + filename ) ; fail = True
+        else :
+          self.log.info( '| changed -> passed: ' + filename )
 
     self.log.indent_dec()
 
