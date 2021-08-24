@@ -14,7 +14,7 @@ mpl.rc( 'font', **{ 'family' : 'serif'                                          
 
 class Report( pylatex.Document ) :
   def __init__( self, job ) :
-    super().__init__( geometry_options = { 'a4paper' : True, 'margin' : '2cm' } )
+    super().__init__( geometry_options = { 'a4paper' : True, 'tmargin' : '1.5cm', 'bmargin' : '1.5cm', 'lmargin' : '1.0cm', 'rmargin' : '1.0cm' } )
 
     self.job = job
 
@@ -159,7 +159,7 @@ class Report( pylatex.Document ) :
           if ( not 'trace/signal'  in fd ) :
             raise Exception()
       
-          self.append( render( fd, width = 0.5 ) )
+          self.append( render( fd, width = 0.45 ) )
 
       with self.create( pylatex.Subsection( 'Step 2: small trial(s)' ) ) :
         if ( not os.path.isfile( os.path.join( self.job.path, 'calibrate', 'calibrate-step_2.hdf5' ) ) ) :
@@ -171,7 +171,7 @@ class Report( pylatex.Document ) :
           if ( not 'trace/signal'  in fd ) :
             raise Exception()
       
-          self.append( render( fd, width = 0.5 ) )
+          self.append( render( fd, width = 0.45 ) )
 
       with self.create( pylatex.Subsection( 'Step 3: final trial(s)' ) ) :
         if ( not os.path.isfile( os.path.join( self.job.path, 'calibrate', 'calibrate-step_3.hdf5' ) ) ) :
@@ -183,7 +183,7 @@ class Report( pylatex.Document ) :
           if ( not 'trace/signal'  in fd ) :
             raise Exception()
       
-          self.append( render( fd, width = 0.5 ) )
+          self.append( render( fd, width = 0.45 ) )
 
   # Emit document content: latency     report.
 
@@ -235,7 +235,7 @@ class Report( pylatex.Document ) :
           if ( not 'perf/cycle'    in fd ) :
             raise Exception()
 
-          ( fig, tab ) = render( fd, width = 0.5, metric = 'cycle'    )
+          ( fig, tab ) = render( fd, width = 0.45, metric = 'cycle'    )
 
           self.append( fig )
           self.append( tab )
@@ -245,7 +245,7 @@ class Report( pylatex.Document ) :
           if ( not 'perf/duration' in fd ) :
             raise Exception()
 
-          ( fig, tab ) = render( fd, width = 0.5, metric = 'duration' )
+          ( fig, tab ) = render( fd, width = 0.45, metric = 'duration' )
 
           self.append( fig )
           self.append( tab )

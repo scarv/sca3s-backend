@@ -20,14 +20,12 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelAbs( abc.ABC ) :
-  def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
-    self.nameof       = nameof
-    self.modeof       = modeof
+  def __init__( self, nameof, modeof, data_wr, data_rd ) :
+    self.nameof = nameof
+    self.modeof = modeof
 
-    self.data_wr_id   = data_wr_id
-    self.data_wr_size = data_wr_size
-    self.data_rd_id   = data_rd_id
-    self.data_rd_size = data_rd_size
+    ( self.data_wr_id, self.data_wr_type, self.data_wr_size ) = data_wr
+    ( self.data_rd_id, self.data_rd_type, self.data_rd_size ) = data_rd
 
   # Expand an (abstract, symbolic) value description into a (concrete) sequence of bytes.
 

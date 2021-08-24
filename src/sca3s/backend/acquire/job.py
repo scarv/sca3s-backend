@@ -33,13 +33,13 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
   # Construct a parameterised job-related object.
 
-  def _object( self, id, x, f ) :
-    x = 'sca3s.backend.acquire.%s' % ( x )  + '.' + id.replace( '/', '.' )
+  def _object( self, id, module, cons ) :
+    module = 'sca3s.backend.acquire.%s' % ( module )  + '.' + id.replace( '/', '.' )
 
     try :
-      r = getattr( importlib.import_module( x ), f ) ; return r( self )
+      t = getattr( importlib.import_module( module ), cons ) ; return t( self )
     except :
-      raise ImportError( 'failed to construct %s instance' % ( x ) )
+      raise ImportError( 'failed to construct %s instance' % ( module ) )
 
   # Prepare the board:
   # 

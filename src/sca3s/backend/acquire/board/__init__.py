@@ -36,11 +36,6 @@ class BoardAbs( abc.ABC ) :
     self.kernel_id                 = None
     self.kernel_io                 = dict()
 
-    self.kernel_data_wr_id         = None
-    self.kernel_data_wr_size       = dict()
-    self.kernel_data_rd_id         = None
-    self.kernel_data_rd_size       = dict()
-
     self.kernel                    = None
 
   def __str__( self ) :
@@ -124,11 +119,11 @@ class BoardAbs( abc.ABC ) :
     return r
 
   def hdf5_add_attr( self, trace_content, fd              ) :
-    spec = [ ( 'driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
-             ( 'driver_id',      str( self.driver_id      ), h5py.special_dtype( vlen = str ) ),
+    spec = [ ( 'board/driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
+             ( 'board/driver_id',      str( self.driver_id      ), h5py.special_dtype( vlen = str ) ),
  
-             ( 'kernel_id',      str( self.kernel_id      ), h5py.special_dtype( vlen = str ) ),
-             ( 'kernel_io',      str( self.kernel_io      ), h5py.special_dtype( vlen = str ) ) ]
+             ( 'board/kernel_id',      str( self.kernel_id      ), h5py.special_dtype( vlen = str ) ),
+             ( 'board/kernel_io',      str( self.kernel_io      ), h5py.special_dtype( vlen = str ) ) ]
 
     sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
 
@@ -184,15 +179,17 @@ class BoardAbs( abc.ABC ) :
 
     # produce dummy data for each potential output from kernel
 
-    if ( '<kernel_data' in self.kernel_io ) :
-      for id in self.kernel_io[ '<kernel_data' ].split( ',' ) :
-        if ( ( '?data %s' % ( id ) ) in self.kernel_io ) :
-          self.kernel_io[ id ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * int( self.kernel_io[ '?data %s' % ( id ) ] ) ) )
+    if ( '<kernel' in self.kernel_io ) :
+      for id in self.kernel_io[ '<kernel' ].split( ',' ) :
+        if ( ( '|data %s' % ( id ) ) in self.kernel_io ) :
+          self.kernel_io[ id ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * int( self.kernel_io[ '|data %s' % ( id ) ] ) ) )
 
     # convert integer sizes into octet strings
 
     for ( k, v ) in self.kernel_io.items() :
-      if ( k.startswith( '?data' ) ) :
+      if ( k.startswith( '|data' ) ) :
+        self.kernel_io[ k ] = sca3s_be.share.util.int2octetstr( int( v ) )
+      if ( k.startswith( '#data' ) ) :
         self.kernel_io[ k ] = sca3s_be.share.util.int2octetstr( int( v ) )
 
     fd.close()
@@ -206,7 +203,7 @@ class BoardAbs( abc.ABC ) :
     raise NotImplementedError()
 
   def prepare( self ) :
-    t = self.interact( '?kernel_id' ).split( ':' )
+    t = self.interact( '?kernel' ).split( ':' )
   
     if ( len( t ) != 3 ) :
       raise Exception( 'cannot parse kernel identifier' )
@@ -216,26 +213,36 @@ class BoardAbs( abc.ABC ) :
   
     self.kernel_id      = t[ 2 ]
   
-    self.job.log.info( '?kernel_id   -> driver version = %s', self.driver_version )
-    self.job.log.info( '?kernel_id   -> driver id      = %s', self.driver_id      )
+    self.job.log.info( '?kernel -> driver version = %s', self.driver_version )
+    self.job.log.info( '?kernel -> driver id      = %s', self.driver_id      )
 
-    self.job.log.info( '?kernel_id   -> kernel id      = %s', self.kernel_id      )
+    self.job.log.info( '?kernel -> kernel id      = %s', self.kernel_id      )
   
-    self.kernel_data_wr_id = set( self.job.board.interact( '>kernel_data' ).split( ',' ) )
+    data_wr_id   =  set( self.job.board.interact( '>kernel' ).split( ',' ) )
+    data_wr_type = dict()
+    data_wr_size = dict()
 
-    for id in self.kernel_data_wr_id :
-      self.kernel_data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '?data %s' % ( id ) ) )
+    self.job.log.info( '>kernel -> register id    = %s', data_wr_id   )
 
-    self.job.log.info( '>kernel_data -> kernel data wr = %s', self.kernel_data_wr_id   )
-    self.job.log.info( '             -> kernel data wr = %s', self.kernel_data_wr_size )
+    for id in data_wr_id :
+      data_wr_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
+      data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
 
-    self.kernel_data_rd_id = set( self.job.board.interact( '<kernel_data' ).split( ',' ) )
+    self.job.log.info( '        -> register type  = %s', data_wr_type )
+    self.job.log.info( '        -> register size  = %s', data_wr_size )
 
-    for id in self.kernel_data_rd_id :
-      self.kernel_data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '?data %s' % ( id ) ) )
+    data_rd_id   =  set( self.job.board.interact( '<kernel' ).split( ',' ) )
+    data_rd_type = dict()
+    data_rd_size = dict()
 
-    self.job.log.info( '<kernel_data -> kernel data rd = %s', self.kernel_data_rd_id   )
-    self.job.log.info( '             -> kernel data rd = %s', self.kernel_data_rd_size )
+    self.job.log.info( '<kernel -> register id    = %s', data_rd_id   )
+
+    for id in data_rd_id :
+      data_rd_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
+      data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
+
+    self.job.log.info( '        -> register type  = %s', data_rd_type )
+    self.job.log.info( '        -> register size  = %s', data_rd_size )
 
     t = self.kernel_id.split( '/' )
 
@@ -245,12 +252,15 @@ class BoardAbs( abc.ABC ) :
     kernel_nameof = t[ 0 ]
     kernel_modeof = t[ 1 ]
 
-    x = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + kernel_nameof
+    data_wr       = ( data_wr_id, data_wr_type, data_wr_size ) 
+    data_rd       = ( data_rd_id, data_rd_type, data_rd_size ) 
+
+    module = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + kernel_nameof
 
     try :
-      self.kernel = importlib.import_module( x ).KernelImp( kernel_nameof, kernel_modeof, self.kernel_data_wr_id, self.kernel_data_wr_size, self.kernel_data_rd_id, self.kernel_data_rd_size )
+      self.kernel = importlib.import_module( module ).KernelImp( kernel_nameof, kernel_modeof, data_wr, data_rd )
     except :
-      raise ImportError( 'failed to construct %s instance' % ( x ) )
+      raise ImportError( 'failed to construct %s instance' % ( module ) )
 
   @abc.abstractmethod
   def  open( self ) :

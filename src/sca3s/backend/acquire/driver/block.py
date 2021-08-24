@@ -17,7 +17,7 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii, numpy
+import binascii, h5py, numpy
 
 class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
@@ -61,10 +61,13 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
 
     if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
-      if ( self.job.board.kernel.kernel_enc( k, m ) != c ) :
-        raise Exception( 'failed I/O verification => enc( k, m ) != c' )
+      if ( self.job.board.kernel.model_enc( k, m ) != c ) :
+        raise Exception( 'failed I/O verification => model_enc( k, m ) != c' )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 'k' : k, 'm' : m, 'c' : c }
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 
+             'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 
+             'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 
+             'data/k' : k, 'data/m' : m, 'data/c' : c }
 
   def _acquire_dec( self, data ) :
     esr = data[ 'esr' ] if ( 'esr' in data ) else None
@@ -100,19 +103,22 @@ class DriverImp( driver.DriverAbs ) :
 
     sca3s_be.share.sys.log.debug( 'acquire : esr = %s', binascii.b2a_hex( esr ) )
     sca3s_be.share.sys.log.debug( 'acquire : k   = %s', binascii.b2a_hex( k   ) )
-    sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
     sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
+    sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
 
     if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
-      if ( self.job.board.kernel.kernel_dec( k, c ) != m ) :
-        raise Exception( 'failed I/O verification => dec( k, c ) != m' )
+      if ( self.job.board.kernel.model_dec( k, c ) != m ) :
+        raise Exception( 'failed I/O verification => model_dec( k, c ) != m' )
 
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 'k' : k, 'c' : c, 'm' : m } 
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 
+             'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 
+             'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 
+             'data/k' : k, 'data/m' : m, 'data/c' : c }
    
   def hdf5_add_attr( self, fd              ) :
-    spec = [ ( 'sizeof_k', self.job.board.kernel.sizeof_k, '<u8' ),
-             ( 'sizeof_m', self.job.board.kernel.sizeof_m, '<u8' ),
-             ( 'sizeof_c', self.job.board.kernel.sizeof_c, '<u8' ) ]
+    spec = [ ( 'kernel/sizeof_k',      self.job.board.kernel.sizeof_k,   '<u8' ),
+             ( 'kernel/sizeof_m',      self.job.board.kernel.sizeof_m,   '<u8' ),
+             ( 'kernel/sizeof_c',      self.job.board.kernel.sizeof_c,   '<u8' ) ]
 
     self.job.board.hdf5_add_attr( self.trace_content, fd              )
     self.job.scope.hdf5_add_attr( self.trace_content, fd              )
@@ -120,9 +126,12 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.util.hdf5_add_attr( spec, self.trace_content, fd              )
 
   def hdf5_add_data( self, fd, n           ) :
-    spec = [ ( 'k', ( n, self.job.board.kernel.sizeof_k ), 'B' ),
-             ( 'm', ( n, self.job.board.kernel.sizeof_m ), 'B' ),
-             ( 'c', ( n, self.job.board.kernel.sizeof_c ), 'B' ) ]
+    spec = [ (   'data/k',        ( n, self.job.board.kernel.sizeof_k ), 'B'   ),
+             (   'data/usedof_k', ( n,                                ), '<u8' ),
+             (   'data/m',        ( n, self.job.board.kernel.sizeof_m ), 'B'   ),
+             (   'data/usedof_m', ( n,                                ), '<u8' ),
+             (   'data/c',        ( n, self.job.board.kernel.sizeof_c ), 'B'   ),
+             (   'data/usedof_c', ( n,                                ), '<u8' ) ]
 
     self.job.board.hdf5_add_data( self.trace_content, fd, n           )
     self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
@@ -130,9 +139,12 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.util.hdf5_add_data( spec, self.trace_content, fd, n           )
 
   def hdf5_set_data( self, fd, n, i, trace ) :
-    spec = [ ( 'k', lambda trace : numpy.frombuffer( trace[ 'k' ], dtype = numpy.uint8 ) ),
-             ( 'm', lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 ) ),
-             ( 'c', lambda trace : numpy.frombuffer( trace[ 'c' ], dtype = numpy.uint8 ) ) ]
+    spec = [ (   'data/k',        lambda trace : numpy.frombuffer( trace[ 'data/k' ], dtype = numpy.uint8 ) ),
+             (   'data/usedof_k', lambda trace :              len( trace[ 'data/k' ]                      ) ),
+             (   'data/m',        lambda trace : numpy.frombuffer( trace[ 'data/m' ], dtype = numpy.uint8 ) ),
+             (   'data/usedof_m', lambda trace :              len( trace[ 'data/m' ]                      ) ),
+             (   'data/c',        lambda trace : numpy.frombuffer( trace[ 'data/c' ], dtype = numpy.uint8 ) ),
+             (   'data/usedof_c', lambda trace :              len( trace[ 'data/c' ]                      ) ) ]
 
     self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
     self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
@@ -155,9 +167,6 @@ class DriverImp( driver.DriverAbs ) :
       raise Exception( 'unsupported kernel name' )
     if ( self.job.board.kernel.modeof not in [ 'default', 'enc', 'dec' ] ) :
       raise Exception( 'unsupported kernel type' )
-
-    if ( self.job.board.kernel.modeof == 'default' ) :
-      self.job.board.kernel.modeof = 'enc'
 
     if ( self.job.board.kernel.modeof == 'enc'     ) :
       if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'm' ] ) ) ) :

@@ -17,15 +17,56 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii, h5py, importlib, numpy, os
+import binascii, h5py, numpy
 
 class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
 
+  def _acquire( self, data ) :
+    esr = data[ 'esr' ] if ( 'esr' in data ) else None
+    m   = data[ 'm'   ] if ( 'm'   in data ) else None
+
+    if ( esr == None ) :
+      esr = self.job.board.kernel.expand( '{$*|esr|}' )
+    if ( m   == None ) :
+      m   = self.job.board.kernel.expand( '{$*|m|}'   )
+
+    self.job.board.interact( '>data esr %s' % sca3s_be.share.util.str2octetstr( esr ).upper() )
+    self.job.board.interact( '>data m %s'   % sca3s_be.share.util.str2octetstr( m   ).upper() )
+  
+    _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
+
+    self.job.board.interact( '!kernel_prologue' )
+
+    self.job.board.interact( '!kernel'          )
+    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+    self.job.board.interact( '!kernel_nop' )
+    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+
+    self.job.board.interact( '!kernel_epilogue' )
+  
+    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
+    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
+  
+    d = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data d' ) )
+
+    sca3s_be.share.sys.log.debug( 'acquire : esr = %s', binascii.b2a_hex( esr ) )
+    sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
+    sca3s_be.share.sys.log.debug( 'acquire : d   = %s', binascii.b2a_hex( d   ) )
+
+    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
+      if ( self.job.board.kernel.model( m ) != d ) :
+        raise Exception( 'failed I/O verification => model( m ) != d' )
+
+    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 
+             'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 
+             'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 
+             'data/m' : m, 'data/d' : d }
+
   def hdf5_add_attr( self, fd              ) :
-    spec = [ ( 'sizeof_m', self.job.board.kernel.sizeof_m, '<u8' ),
-             ( 'sizeof_d', self.job.board.kernel.sizeof_d, '<u8' ) ]
+    spec = [ ( 'kernel/sizeof_m',      self.job.board.kernel.sizeof_m,   '<u8' ),
+             ( 'kernel/sizeof_d',      self.job.board.kernel.sizeof_d,   '<u8' ) ]
 
     self.job.board.hdf5_add_attr( self.trace_content, fd              )
     self.job.scope.hdf5_add_attr( self.trace_content, fd              )
@@ -33,8 +74,10 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.util.hdf5_add_attr( spec, self.trace_content, fd              )
 
   def hdf5_add_data( self, fd, n           ) :
-    spec = [ ( 'm', ( n, self.job.board.kernel.sizeof_m ), 'B' ),
-             ( 'd', ( n, self.job.board.kernel.sizeof_d ), 'B' ) ]
+    spec = [ (   'data/m',        ( n, self.job.board.kernel.sizeof_m ), 'B'   ),
+             (   'data/usedof_m', ( n,                                ), '<u8' ),
+             (   'data/d',        ( n, self.job.board.kernel.sizeof_d ), 'B'   ),
+             (   'data/usedof_d', ( n,                                ), '<u8' ) ]
 
     self.job.board.hdf5_add_data( self.trace_content, fd, n           )
     self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
@@ -42,8 +85,10 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.util.hdf5_add_data( spec, self.trace_content, fd, n           )
 
   def hdf5_set_data( self, fd, n, i, trace ) :
-    spec = [ ( 'm', lambda trace : numpy.frombuffer( trace[ 'm' ], dtype = numpy.uint8 ) ),
-             ( 'd', lambda trace : numpy.frombuffer( trace[ 'd' ], dtype = numpy.uint8 ) ) ]
+    spec = [ (   'data/m',        lambda trace : numpy.frombuffer( trace[ 'data/m' ], dtype = numpy.uint8 ) ),
+             (   'data/usedof_m', lambda trace :              len( trace[ 'data/m' ]                      ) ),
+             (   'data/d',        lambda trace : numpy.frombuffer( trace[ 'data/d' ], dtype = numpy.uint8 ) ),
+             (   'data/usedof_d', lambda trace :              len( trace[ 'data/d' ]                      ) ) ]
 
     self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
     self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
@@ -51,7 +96,7 @@ class DriverImp( driver.DriverAbs ) :
     sca3s_be.share.util.hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
 
   def acquire( self, data = dict() ) :
-    pass
+    return self._acquire( data )
 
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :

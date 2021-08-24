@@ -20,17 +20,20 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelType( kernel.KernelAbs ) :
-  def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
-    super().__init__( nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
+  def __init__( self, nameof, modeof, data_wr, data_rd ) :
+    super().__init__( nameof, modeof, data_wr, data_rd )
 
-    if   ( self.modeof == 'enc' ) :
+    if   ( self.modeof == 'default' ) :
+      self.modeof   = 'enc'
+
+    if   ( self.modeof == 'enc'     ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.sizeof_m = self.data_wr_size[ 'm' ]
       self.sizeof_c = self.data_rd_size[ 'c' ]
-    elif ( self.modeof == 'dec' ) :
+    elif ( self.modeof == 'dec'     ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
-      self.sizeof_c = self.data_wr_size[ 'c' ]
       self.sizeof_m = self.data_rd_size[ 'm' ]
+      self.sizeof_c = self.data_wr_size[ 'c' ]
 
   def _policy_tvla_init_lhs( self, spec,            ) :
     tvla_mode  = spec.get( 'tvla_mode'  )

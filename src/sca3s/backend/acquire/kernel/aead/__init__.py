@@ -20,19 +20,24 @@ from sca3s.backend.acquire import depo   as depo
 import abc
 
 class KernelType( kernel.KernelAbs ) :
-  def __init__( self, nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size ) :
-    super().__init__( nameof, modeof, data_wr_id, data_wr_size, data_rd_id, data_rd_size )
+  def __init__( self, nameof, modeof, data_wr, data_rd ) :
+    super().__init__( nameof, modeof, data_wr, data_rd )
 
-    if   ( self.modeof == 'enc' ) :
+    if   ( self.modeof == 'default' ) :
+      self.modeof   = 'enc'
+
+    if   ( self.modeof == 'enc'     ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
+      self.sizeof_n = self.data_wr_size[ 'n' ]
       self.sizeof_a = self.data_wr_size[ 'a' ]
       self.sizeof_m = self.data_wr_size[ 'm' ]
       self.sizeof_c = self.data_rd_size[ 'c' ]
-    elif ( self.modeof == 'dec' ) :
+    elif ( self.modeof == 'dec'     ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
+      self.sizeof_n = self.data_wr_size[ 'n' ]
       self.sizeof_a = self.data_wr_size[ 'a' ]
-      self.sizeof_c = self.data_wr_size[ 'c' ]
       self.sizeof_m = self.data_rd_size[ 'm' ]
+      self.sizeof_c = self.data_wr_size[ 'c' ]
 
   def _policy_tvla_init_lhs( self, spec,            ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
@@ -99,10 +104,10 @@ class KernelType( kernel.KernelAbs ) :
 
     return False
 
-  def model_enc( self, k, a, m ) :
+  def model_enc( self, k, n, a, m ) :
     return None
 
-  def model_dec( self, k, a, c ) :
+  def model_dec( self, k, n, a, c ) :
     return None
 
   def policy_user_init( self, spec             ) :
@@ -111,15 +116,16 @@ class KernelType( kernel.KernelAbs ) :
 
     if   ( self.modeof == 'enc' ) :
       k = self.expand( user_value.get( 'k' ) )
+      n = self.expand( user_value.get( 'n' ) )
       a = self.expand( user_value.get( 'a' ) )
       x = self.expand( user_value.get( 'm' ) )
-
     elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) )
+      n = self.expand( user_value.get( 'n' ) )
       a = self.expand( user_value.get( 'a' ) )
       x = self.expand( user_value.get( 'c' ) )
 
-    return { 'k' : k, 'a' : a, 'x' : x }
+    return { 'k' : k, 'n' : n, 'a' : a, 'x' : x }
 
   def policy_user_step( self, spec, n, i, data ) :
     user_select = spec.get( 'user_select' )
@@ -127,15 +133,16 @@ class KernelType( kernel.KernelAbs ) :
 
     if   ( self.modeof == 'enc' ) :
       k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( data[ 'k' ] )
+      n = self.expand( user_value.get( 'n' ) ) if ( user_select.get( 'n' ) == 'each' ) else ( data[ 'n' ] )
       a = self.expand( user_value.get( 'a' ) ) if ( user_select.get( 'a' ) == 'each' ) else ( data[ 'a' ] )
       x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( data[ 'x' ] )
-
     elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( data[ 'k' ] )
+      n = self.expand( user_value.get( 'n' ) ) if ( user_select.get( 'n' ) == 'each' ) else ( data[ 'n' ] )
       a = self.expand( user_value.get( 'a' ) ) if ( user_select.get( 'a' ) == 'each' ) else ( data[ 'a' ] )
       x = self.expand( user_value.get( 'c' ) ) if ( user_select.get( 'c' ) == 'each' ) else ( data[ 'x' ] )
 
-    return { 'k' : k, 'a' : a, 'x' : x }
+    return { 'k' : k, 'n' : n, 'a' : a, 'x' : x }
 
   def policy_tvla_init( self, spec,             mode = 'lhs' ) :
     if   ( mode == 'lhs' ) :
