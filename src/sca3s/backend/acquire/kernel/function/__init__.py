@@ -23,8 +23,13 @@ class KernelType( kernel.KernelAbs ) :
   def __init__( self, nameof, modeof, data_wr, data_rd ) :
     super().__init__( nameof, modeof, data_wr, data_rd )
 
-    self.sizeof_x = self.data_wr_size[ 'x' ]
-    self.sizeof_r = self.data_rd_size[ 'r' ]
+    self.elemof_x = len( filter( lambda x : re.match( 'x[0-9]+', x ), self.data_wr_id ) )
+    self.elemof_r = len( filter( lambda x : re.match( 'r[0-9]+', x ), self.data_rd_id ) )
+
+    self.typeof_x = [ self.data_wr_type[ 'x%d' % ( i ) ] for i in range( self.elemof_x ) ]
+    self.sizeof_x = [ self.data_wr_size[ 'x%d' % ( i ) ] for i in range( self.elemof_x ) ]
+    self.typeof_r = [ self.data_rd_type[ 'r%d' % ( i ) ] for i in range( self.elemof_r ) ]
+    self.sizeof_r = [ self.data_rd_size[ 'r%d' % ( i ) ] for i in range( self.elemof_r ) ]
 
   def _policy_tvla_init_lhs( self, spec,            ) :
     tvla_mode  = spec.get( 'tvla_mode'  )

@@ -28,16 +28,26 @@ class KernelType( kernel.KernelAbs ) :
 
     if   ( self.modeof == 'enc'     ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
+      self.typeof_k = self.data_wr_type[ 'k' ]
       self.sizeof_n = self.data_wr_size[ 'n' ]
+      self.typeof_n = self.data_wr_type[ 'n' ]
       self.sizeof_a = self.data_wr_size[ 'a' ]
+      self.typeof_a = self.data_wr_type[ 'a' ]
       self.sizeof_m = self.data_wr_size[ 'm' ]
+      self.typeof_m = self.data_wr_type[ 'm' ]
       self.sizeof_c = self.data_rd_size[ 'c' ]
+      self.typeof_c = self.data_rd_type[ 'c' ]
     elif ( self.modeof == 'dec'     ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
+      self.typeof_k = self.data_wr_type[ 'k' ]
       self.sizeof_n = self.data_wr_size[ 'n' ]
+      self.typeof_n = self.data_wr_type[ 'n' ]
       self.sizeof_a = self.data_wr_size[ 'a' ]
+      self.typeof_a = self.data_wr_type[ 'a' ]
       self.sizeof_m = self.data_rd_size[ 'm' ]
+      self.typeof_m = self.data_rd_type[ 'm' ]
       self.sizeof_c = self.data_wr_size[ 'c' ]
+      self.typeof_c = self.data_wr_type[ 'c' ]
 
   def _policy_tvla_init_lhs( self, spec,            ) :
     tvla_mode  = spec.get( 'tvla_mode'  )

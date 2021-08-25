@@ -24,8 +24,8 @@ class KernelAbs( abc.ABC ) :
     self.nameof = nameof
     self.modeof = modeof
 
-    ( self.data_wr_id, self.data_wr_type, self.data_wr_size ) = data_wr
-    ( self.data_rd_id, self.data_rd_type, self.data_rd_size ) = data_rd
+    ( self.data_wr_id, self.data_wr_size, self.data_wr_type ) = data_wr
+    ( self.data_rd_id, self.data_rd_size, self.data_rd_type ) = data_rd
 
   # Expand an (abstract, symbolic) value description into a (concrete) sequence of bytes.
 

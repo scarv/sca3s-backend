@@ -219,30 +219,30 @@ class BoardAbs( abc.ABC ) :
     self.job.log.info( '?kernel -> kernel id      = %s', self.kernel_id      )
   
     data_wr_id   =  set( self.job.board.interact( '>kernel' ).split( ',' ) )
-    data_wr_type = dict()
     data_wr_size = dict()
+    data_wr_type = dict()
 
     self.job.log.info( '>kernel -> register id    = %s', data_wr_id   )
 
     for id in data_wr_id :
-      data_wr_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
       data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
+      data_wr_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
 
-    self.job.log.info( '        -> register type  = %s', data_wr_type )
     self.job.log.info( '        -> register size  = %s', data_wr_size )
+    self.job.log.info( '        -> register type  = %s', data_wr_type )
 
     data_rd_id   =  set( self.job.board.interact( '<kernel' ).split( ',' ) )
-    data_rd_type = dict()
     data_rd_size = dict()
+    data_rd_type = dict()
 
     self.job.log.info( '<kernel -> register id    = %s', data_rd_id   )
 
     for id in data_rd_id :
-      data_rd_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
       data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
+      data_rd_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
 
-    self.job.log.info( '        -> register type  = %s', data_rd_type )
     self.job.log.info( '        -> register size  = %s', data_rd_size )
+    self.job.log.info( '        -> register type  = %s', data_rd_type )
 
     t = self.kernel_id.split( '/' )
 
@@ -252,8 +252,8 @@ class BoardAbs( abc.ABC ) :
     kernel_nameof = t[ 0 ]
     kernel_modeof = t[ 1 ]
 
-    data_wr       = ( data_wr_id, data_wr_type, data_wr_size ) 
-    data_rd       = ( data_rd_id, data_rd_type, data_rd_size ) 
+    data_wr       = ( data_wr_id, data_wr_size, data_wr_type ) 
+    data_rd       = ( data_rd_id, data_rd_size, data_rd_type ) 
 
     module = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + kernel_nameof
 
