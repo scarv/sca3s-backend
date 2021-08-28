@@ -41,7 +41,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     except :
       raise ImportError( 'failed to construct %s instance' % ( module ) )
 
-  # Prepare the board:
+  # Prepare the board.
   # 
   # 1. clean
   # 2. build
@@ -82,7 +82,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     self.board.prepare()
     self.log.indent_dec()
 
-  # Prepare the scope:
+  # Prepare the scope.
   # 
   # 1. transfer board parameters
   # 2. calibrate
@@ -116,7 +116,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     self.log.info( 'conf = %s', t )
 
-  # Prepare the repo.:
+  # Prepare the repo.
   # 
   # 1. create and initialise git index for repo.
   # 2. check repo. vs. whitelist
@@ -178,28 +178,56 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     if ( template_enforce and fail ) :
       raise Exception( 'failed repo. preparation' )
 
-  # Execute job prologue:
-  #
-  # 1. dump manifest
-  # 2. construct 
-  #    - board  object
-  #    - scope  object
-  #    - driver object
-  #    - repo.  object
-  #    - depo.  object
+  # Prepare the depo.
+
+  def _prepare_depo( self ) :
+    pass
+
+  # Execute job prologue.
 
   def execute_prologue( self ) :
+    self.log.banner()
+  
+    self.log.indent_inc( message = 'dump manifest' )
+    self.conf.dump( self.log, level = logging.INFO )
+    self.log.indent_dec()
+
+  # Execute job.
+  #
+  # 1. - construct board
+  #    - construct scope
+  #    - construct repo.
+  #    - construct depo.
+  #
+  # 2. - open      board
+  #    - prepare   board,  e.g., build and program target implementation
+  #
+  # 3. - transfer  target implementation from repo. to local copy 
+  #
+  # 4. - prepare   repo.
+  #    - prepare   depo.
+  #
+  # 5. - construct driver
+  #    - prepare   driver, e.g., query target implemention parameters
+  #
+  # 6. - open      scope
+  #    - prepare   scope,  e.g., calibrate wrt. target implementation
+  #
+  # 7. - execute driver prologue, e.g., job-specific  pre-processing/computation
+  #    - execute driver,          i.e., acquisition process wrt. target implementation
+  #    - execute driver epilogue, e.g., job-specific post-processing/computation
+  #
+  # 8. - transfer target implementation from local copy to depo.
+  #
+  # 9. - close     board
+  #    - close     scope
+
+  def execute( self ) :
     try :
       self.log.indent_rst()
-  
+
       self.result_transfer[ 'acquire.log'     ] = { 'ContentType':        'text/plain',        'CacheControl': 'no-cache, max-age=0' }
       self.result_transfer[ 'acquire.hdf5.gz' ] = { 'ContentType': 'application/octet-stream', 'CacheControl': 'no-cache, max-age=0' }
-
-      self.log.banner()
-  
-      self.log.indent_inc( message = 'dump manifest' )
-      self.conf.dump( self.log, level = logging.INFO )
-      self.log.indent_dec()
 
       if ( self.conf.get( 'board_id' ) == self.conf.get( 'scope_id' ) ) :
         self.log.indent_inc( message = 'construct hybrid object' )
@@ -222,12 +250,8 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
         self.log.indent_inc( message = 'construct scope  object' )
         self.scope  = self._object( self.conf.get(  'scope_id' ),  'scope',  'ScopeImp' )
         self.log.indent_dec()
-  
+   
       if ( True ) :
-        self.log.indent_inc( message = 'construct driver object' )
-        self.driver = self._object( self.conf.get( 'driver_id' ), 'driver', 'DriverImp' )
-        self.log.indent_dec()
-  
         self.log.indent_inc( message = 'construct repo   object' )
         self.repo   = self._object( self.conf.get(   'repo_id' ),   'repo',   'RepoImp' )
         self.log.indent_dec()
@@ -236,71 +260,53 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
         self.depo   = self._object( self.conf.get(   'depo_id' ),   'depo',   'DepoImp' )
         self.log.indent_dec()
 
-    except Exception as e :
-      raise e
+        self.log.indent_inc( message = 'transfer local <- repo.' )
+        self.repo.transfer()
+        self.log.indent_dec()
+    
+        self.log.indent_inc( message = 'prepare repo.'           )
+        self._prepare_repo()
+        self.log.indent_dec()
 
-  # Execute job:
-  #
-  # 1. open  devices
-  #    - board
-  #    - scope
-  # 2. transfer target implementation from repo. to local copy 
-  # 3. prepare repo.,  e.g., check vs. diff
-  # 4. prepare board,  e.g., build and program target implementation
-  # 5. prepare driver, e.g., query target implemention parameters
-  # 6. prepare scope,  e.g., calibrate wrt. target implementation
-  # 7. execute
-  #    - driver prologue, e.g., job-specific  pre-processing/computation
-  #    - driver,          i.e., acquisition process wrt. target implementation
-  #    - driver epilogue, e.g., job-specific post-processing/computation
-  # 8. transfer target implementation from local copy to depo.
-  # 9. close devices
-  #    - board
-  #    - scope
+        self.log.indent_inc( message = 'prepare depo.'           )
+        self._prepare_depo()
+        self.log.indent_dec()
 
-  def execute( self ) :
-    try :
-      self.log.indent_rst()
+        self.log.indent_inc( message = 'open board'              )
+        self.board.open()
+        self.log.indent_dec()
+  
+        self.log.indent_inc( message = 'prepare board'           )
+        self._prepare_board()
+        self.log.indent_dec()
 
-      self.log.indent_inc( message = 'open board'                )
-      self.board.open()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'open scope'                )
-      self.scope.open()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'transfer local <- repo.'   )
-      self.repo.transfer()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'prepare repo.'             )
-      self._prepare_repo()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'prepare board'             )
-      self._prepare_board()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'prepare driver'            )
-      self.driver.prepare()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'prepare scope'             )
-      self._prepare_scope()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'execute driver prologue'   )
-      self.driver.execute_prologue()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'execute driver'            )
-      self.driver.execute()
-      self.log.indent_dec()
-  
-      self.log.indent_inc( message = 'execute driver epilogue'   )
-      self.driver.execute_epilogue()
-      self.log.indent_dec()
+        self.log.indent_inc( message = 'construct driver object' )
+        self.driver = self._object( self.conf.get( 'driver_id' ), 'driver', 'DriverImp' )
+        self.log.indent_dec()
+
+        self.log.indent_inc( message = 'prepare driver'          )
+        self.driver.prepare()
+        self.log.indent_dec()
+           
+        self.log.indent_inc( message = 'open scope'              )
+        self.scope.open()
+        self.log.indent_dec()
+   
+        self.log.indent_inc( message = 'prepare scope'           )
+        self._prepare_scope()
+        self.log.indent_dec()
+    
+        self.log.indent_inc( message = 'execute driver prologue' )
+        self.driver.execute_prologue()
+        self.log.indent_dec()
+    
+        self.log.indent_inc( message = 'execute driver'          )
+        self.driver.execute()
+        self.log.indent_dec()
+    
+        self.log.indent_inc( message = 'execute driver epilogue' )
+        self.driver.execute_epilogue()
+        self.log.indent_dec()
 
     except Exception as e :
       raise e
@@ -313,17 +319,20 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
       self.log.info( 'response = %s' % ( str( self.result_response ) ) )
       self.log.indent_dec()
 
-      self.log.indent_inc( message = 'transfer local -> depo.'   )
-      self.depo.transfer()
-      self.log.indent_dec()
+      if ( self.depo  != None ) :
+        self.log.indent_inc( message = 'transfer local -> depo.'   )
+        self.depo.transfer()
+        self.log.indent_dec()
 
-      self.log.indent_inc( message = 'close scope'               )
-      self.scope.close()
-      self.log.indent_dec()
+      if ( self.board != None ) :
+        self.log.indent_inc( message = 'close board'               )
+        self.board.close()
+        self.log.indent_dec()
 
-      self.log.indent_inc( message = 'close board'               )
-      self.board.close()
-      self.log.indent_dec()
+      if ( self.scope != None ) :
+        self.log.indent_inc( message = 'close scope'               )
+        self.scope.close()
+        self.log.indent_dec()
 
   # Execute job epilogue.
   

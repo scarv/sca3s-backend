@@ -84,8 +84,13 @@ def measure( mode, samples, threshold ) :
   elif ( mode == MEASURE_MODE_TRIGGER_NEG ) :
     return edge_neg
 
-def randbytes( n ) :
-  return bytes( [ random.getrandbits( 8 ) for i in range( n ) ] )
+def randbytes( n, seed = None ) :
+  if ( seed != None ) :
+    t = random.Random( seed )
+  else :
+    t = random
+
+  return bytes( [ t.getrandbits( 8 ) for i in range( n ) ] )
 
 def resize( xs, n, dtype = numpy.dtype( int ) ) :
   if   ( len( xs ) <  n ) :

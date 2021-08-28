@@ -39,34 +39,173 @@ class KernelAbs( abc.ABC ) :
 
     return x
 
-  @abc.abstractmethod
+  def _policy_tvla_init_lhs( self, spec,            ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    data        = dict()
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data (vs.  random key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x00 )
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x01 )
+        elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x03 )
+        elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x05 )
+
+    return data
+    
+  def _policy_tvla_init_rhs( self, spec,            ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    data        = dict()
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : # (fixed key,      random data  vs.) random key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x10 )
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x11 )
+        elif( tvla_mode == 'fvr_d' ) : # (fixed key,      fixed  data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x13 )
+        elif( tvla_mode == 'rvr_d' ) : # (fixed key,      random data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x15 )
+
+    return data
+
+  def _policy_tvla_step_lhs( self, spec, n, i, data ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data (vs.  random key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            pass
+        elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+
+    return data
+
+  def _policy_tvla_step_rhs( self, spec, n, i, data ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : # (fixed key,      random data  vs.) random key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        elif( tvla_mode == 'fvr_d' ) : # (fixed key,      fixed  data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        elif( tvla_mode == 'rvr_d' ) : # (fixed key,      random data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+
+    return data
+
   def supports_verify( self ) :
-    raise NotImplementedError()
+    return False
 
-  @abc.abstractmethod
   def supports_policy_user( self, spec ) :
-    raise NotImplementedError()
+    return True
 
-  @abc.abstractmethod
   def supports_policy_tvla( self, spec ) :
-    raise NotImplementedError()
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
 
-  @abc.abstractmethod
-  def verify( self, data_wr, data_rd ) :
-    raise NotImplementedError()
+    if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data  vs.  random key, random data
+      return True
+    elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data  vs.  fixed  key, random data
+      return True
+    elif( tvla_mode == 'svr_d' ) :#   fixed key, semi-fixed  data  vs.  fixed  key, random data
+      return False
+    elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data  vs.  fixed  key, random data
+      return True
 
-  @abc.abstractmethod
-  def policy_user_init( self, spec                           ) :
-    raise NotImplementedError()
+    return False
 
-  @abc.abstractmethod
-  def policy_user_step( self, spec, n, i, data               ) :
-    raise NotImplementedError()
+  def policy_user_init( self, spec             ) :
+    user_select = spec.get( 'user_select' )
+    user_value  = spec.get( 'user_value'  )
 
-  @abc.abstractmethod
+    data        = dict()
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+        data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        data[ id ] = self.expand( user_value.get( id ) )
+
+    return data
+
+  def policy_user_step( self, spec, n, i, data ) :
+    user_select = spec.get( 'user_select' )
+    user_value  = spec.get( 'user_value'  )
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+        data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        data[ id ] = self.expand( user_value.get( id ) ) if ( user_select.get( id ) == 'each' ) else ( data[ id ] )
+
+    return data
+
   def policy_tvla_init( self, spec,             mode = 'lhs' ) :
-    raise NotImplementedError()
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_init_lhs( spec             )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_init_rhs( spec             )
 
-  @abc.abstractmethod
+    return None
+
   def policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
-    raise NotImplementedError()
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_step_lhs( spec, n, i, data )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_step_rhs( spec, n, i, data )
+
+    return None
