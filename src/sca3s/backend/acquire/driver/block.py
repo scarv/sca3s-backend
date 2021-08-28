@@ -22,98 +22,6 @@ import binascii, h5py, numpy
 class DriverImp( driver.DriverAbs ) :
   def __init__( self, job ) :
     super().__init__( job )
-
-  def _acquire_enc( self, data ) :
-    esr = data[ 'esr' ] if ( 'esr' in data ) else None
-    k   = data[ 'k'   ] if ( 'k'   in data ) else None
-    m   = data[ 'x'   ] if ( 'x'   in data ) else None
-
-    if ( esr == None ) :
-      esr = self.job.board.kernel.expand( '{$*|esr|}' )
-    if ( k   == None ) :
-      k   = self.job.board.kernel.expand( '{$*|k|}'   )
-    if ( m   == None ) :
-      m   = self.job.board.kernel.expand( '{$*|m|}'   )
-
-    self.job.board.interact( '>data esr %s' % sca3s_be.share.util.str2octetstr( esr ).upper() )
-    self.job.board.interact( '>data k %s'   % sca3s_be.share.util.str2octetstr( k   ).upper() )
-    self.job.board.interact( '>data m %s'   % sca3s_be.share.util.str2octetstr( m   ).upper() )
-  
-    _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
-
-    self.job.board.interact( '!kernel_prologue' )
-
-    self.job.board.interact( '!kernel'          )
-    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-    self.job.board.interact( '!kernel_nop' )
-    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-
-    self.job.board.interact( '!kernel_epilogue' )
-  
-    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
-    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
-  
-    c = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data c' ) )
-
-    sca3s_be.share.sys.log.debug( 'acquire : esr = %s', binascii.b2a_hex( esr ) )
-    sca3s_be.share.sys.log.debug( 'acquire : k   = %s', binascii.b2a_hex( k   ) )
-    sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
-    sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
-
-    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
-      if ( self.job.board.kernel.model_enc( k, m ) != c ) :
-        raise Exception( 'failed I/O verification => model_enc( k, m ) != c' )
-
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 
-             'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 
-             'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration, 
-             'data/k' : k, 'data/m' : m, 'data/c' : c }
-
-  def _acquire_dec( self, data ) :
-    esr = data[ 'esr' ] if ( 'esr' in data ) else None
-    k   = data[ 'k'   ] if ( 'k'   in data ) else None
-    c   = data[ 'x'   ] if ( 'x'   in data ) else None
-
-    if ( esr == None ) :
-      esr = self.job.board.kernel.expand( '{$*|esr|}' )
-    if ( k   == None ) :
-      k   = self.job.board.kernel.expand( '{$*|k|}'   )
-    if ( c   == None ) :
-      c   = self.job.board.kernel.expand( '{$*|c|}'   )
-
-    self.job.board.interact( '>data esr %s' % sca3s_be.share.util.str2octetstr( esr ).upper() )
-    self.job.board.interact( '>data k %s'   % sca3s_be.share.util.str2octetstr( k   ).upper() )
-    self.job.board.interact( '>data c %s'   % sca3s_be.share.util.str2octetstr( c   ).upper() )
-  
-    _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
-  
-    self.job.board.interact( '!kernel_prologue' )
-
-    self.job.board.interact( '!kernel'          )
-    cycle_dec = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-    self.job.board.interact( '!kernel_nop'      )
-    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-
-    self.job.board.interact( '!kernel_epilogue' )
-  
-    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
-    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
-  
-    m = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data m' ) )
-
-    sca3s_be.share.sys.log.debug( 'acquire : esr = %s', binascii.b2a_hex( esr ) )
-    sca3s_be.share.sys.log.debug( 'acquire : k   = %s', binascii.b2a_hex( k   ) )
-    sca3s_be.share.sys.log.debug( 'acquire : m   = %s', binascii.b2a_hex( m   ) )
-    sca3s_be.share.sys.log.debug( 'acquire : c   = %s', binascii.b2a_hex( c   ) )
-
-    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
-      if ( self.job.board.kernel.model_dec( k, c ) != m ) :
-        raise Exception( 'failed I/O verification => model_dec( k, c ) != m' )
-
-    return { 'trace/trigger' : trigger, 'trace/signal' : signal, 
-             'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 
-             'perf/cycle' : cycle_dec - cycle_nop, 'perf/duration' : duration, 
-             'data/k' : k, 'data/m' : m, 'data/c' : c }
    
   def hdf5_add_attr( self, fd              ) :
     spec = [ ( 'kernel/sizeof_k',      self.job.board.kernel.sizeof_k,   '<u8' ),
@@ -151,12 +59,6 @@ class DriverImp( driver.DriverAbs ) :
 
     sca3s_be.share.util.hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
 
-  def acquire( self, data = dict() ) :
-    if   ( self.job.board.kernel.modeof == 'enc' ) :
-      return self._acquire_enc( data )
-    elif ( self.job.board.kernel.modeof == 'dec' ) :
-      return self._acquire_dec( data )
-
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
       raise Exception( 'inconsistent driver version'    )
@@ -169,15 +71,15 @@ class DriverImp( driver.DriverAbs ) :
       raise Exception( 'unsupported kernel type' )
 
     if ( self.job.board.kernel.modeof == 'enc'     ) :
-      if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'm' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_wr_id == set( [        'esr', 'k', 'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
-      if ( not ( self.job.board.kernel.data_rd_id >= set( [ 'fec', 'fcc',      'c' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_rd_id == set( [ 'fec', 'fcc',      'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
     if ( self.job.board.kernel.modeof == 'dec'     ) :
-      if ( not ( self.job.board.kernel.data_wr_id >= set( [        'esr', 'k', 'c' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_wr_id == set( [        'esr', 'k', 'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
-      if ( not ( self.job.board.kernel.data_rd_id >= set( [ 'fec', 'fcc',      'm' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_rd_id == set( [ 'fec', 'fcc',      'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
     if ( ( self.policy_id == 'user' ) and not self.job.board.kernel.supports_policy_user( self.policy_spec ) ) :

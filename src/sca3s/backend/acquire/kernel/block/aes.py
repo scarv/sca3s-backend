@@ -30,127 +30,145 @@ class KernelImp( kernel.block.KernelType ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
+    if   ( self.modeof == 'enc' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m
+    elif ( self.modeof == 'dec' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c
+
     if  ( tvla_mode == 'fvr_k' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF9'                                 ) )
         x =                                        bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF994F4D92CD2FAE645'                 ) )
         x =                                        bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '811E3731B0120A7842781E22B25CDDF994F4D92CD2FAE64537B940EA5E1AF112' ) )
         x =                                        bytes( binascii.a2b_hex( 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'                                 ) )
 
     elif( tvla_mode == 'fvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601890'                                 ) )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601888'                                 ) )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( 'DA39A3EE5E6B4B0D3255BFEF95601895'                                 ) )
 
     elif( tvla_mode == 'svr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x = None
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x = None
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x = None
 
     elif( tvla_mode == 'rvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    return { 'k' : k, 'x' : x }
+    if   ( self.modeof == 'enc' ) :
+      return { 'k' : k, 'm' : x }  
+    elif ( self.modeof == 'dec' ) :
+      return { 'k' : k, 'c' : x }  
 
   def _policy_tvla_init_rhs( self, spec             ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
+    if   ( self.modeof == 'enc' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m
+    elif ( self.modeof == 'dec' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c
+
     if  ( tvla_mode == 'fvr_k' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         self.tvla_s_0 =                            bytes( binascii.a2b_hex( '53535353535353535353535353535353'                                 ) )
 
-        k = ( self.tvla_s_0                 )[ 0 : self.sizeof_k ]
+        k = ( self.tvla_s_0                 )[ 0 : sizeof_k ]
         x =                                        bytes( binascii.a2b_hex( 'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'                                 ) )
 
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         self.tvla_s_0 =                            bytes( binascii.a2b_hex( '53535353535353535353535353535353'                                 ) )
         self.tvla_s_1 = sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( self.tvla_s_0 )
 
-        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : self.sizeof_k ]
+        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : sizeof_k ]
         x =                                        bytes( binascii.a2b_hex( 'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'                                 ) )
 
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         self.tvla_s_0 =                            bytes( binascii.a2b_hex( '53535353535353535353535353535353'                                 ) )
         self.tvla_s_1 = sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( self.tvla_s_0 )
 
-        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : self.sizeof_k ]
+        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : sizeof_k ]
         x =                                        bytes( binascii.a2b_hex( 'CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC'                                 ) )
 
     elif( tvla_mode == 'fvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
     elif( tvla_mode == 'svr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
     elif( tvla_mode == 'rvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF0'                                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF01'                 ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    return { 'k' : k, 'x' : x }
+    if   ( self.modeof == 'enc' ) :
+      return { 'k' : k, 'm' : x }  
+    elif ( self.modeof == 'dec' ) :
+      return { 'k' : k, 'c' : x }  
 
   def _policy_tvla_step_lhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    k = data[ 'k' ]
-    x = data[ 'x' ]
+    if   ( self.modeof == 'enc' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m ; k = data[ 'k' ] ; x = data[ 'm' ]
+    elif ( self.modeof == 'dec' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c ; k = data[ 'k' ] ; x = data[ 'c' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
@@ -170,82 +188,90 @@ class KernelImp( kernel.block.KernelType ) :
         x = sca3s_be.share.crypto.AES( k ).dec_rev( x, tvla_round )
 
     elif( tvla_mode == 'rvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
-    return { 'k' : k, 'x' : x }
+    if   ( self.modeof == 'enc' ) :
+      return { 'k' : k, 'm' : x }  
+    elif ( self.modeof == 'dec' ) :
+      return { 'k' : k, 'c' : x }  
 
   def _policy_tvla_step_rhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    k = data[ 'k' ]
-    x = data[ 'x' ]
+    if   ( self.modeof == 'enc' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m ; k = data[ 'k' ] ; x = data[ 'm' ]
+    elif ( self.modeof == 'dec' ) :
+      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c ; k = data[ 'k' ] ; x = data[ 'c' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
-      if   ( self.sizeof_k == 16 ) :
-        self.tvla_s_0 = self.model_enc( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_0 )
+      if   ( sizeof_k == 16 ) :
+        self.tvla_s_0 = sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_0 )
 
-        k = ( self.tvla_s_0                 )[ 0 : self.sizeof_k ]
+        k = ( self.tvla_s_0                 )[ 0 : sizeof_k ]
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
 
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         self.tvla_s_0 = sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_1 )
         self.tvla_s_1 = sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_0 )
 
-        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : self.sizeof_k ]
+        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : sizeof_k ]
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
 
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         self.tvla_s_0 = sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_1 )
         self.tvla_s_1 = sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0' ) ), self.tvla_s_0 )
 
-        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : self.sizeof_k ]
+        k = ( self.tvla_s_0 + self.tvla_s_1 )[ 0 : sizeof_k ]
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
     elif( tvla_mode == 'fvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
     elif( tvla_mode == 'svr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
     elif( tvla_mode == 'rvr_d' ) :
-      if   ( self.sizeof_k == 16 ) :
+      if   ( sizeof_k == 16 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDE0F0'                                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 24 ) :
+      elif ( sizeof_k == 24 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDE0F01'                 ) ) ).enc( x )
-      elif ( self.sizeof_k == 32 ) :
+      elif ( sizeof_k == 32 ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
-    return { 'k' : k, 'x' : x }
+    if   ( self.modeof == 'enc' ) :
+      return { 'k' : k, 'm' : x }  
+    elif ( self.modeof == 'dec' ) :
+      return { 'k' : k, 'c' : x }  
 
-  def supports_model( self ) :
+  def supports_verify( self ) :
     return True
 
   def supports_policy_user( self, spec ) :
@@ -266,11 +292,13 @@ class KernelImp( kernel.block.KernelType ) :
 
     return False
 
-  def model_enc( self, k, m ) :
-    return sca3s_be.share.crypto.AES( k ).enc( m )
+  def verify( self, data_wr, data_rd ) :
+    if   ( self.modeof == 'enc' ) :
+      return ( sca3s_be.share.crypto.AES( data_wr[ 'k' ] ).enc( data_wr[ 'm' ] ) ) == ( data_rd[ 'c' ] )
+    elif ( self.modeof == 'dec' ) :
+      return ( sca3s_be.share.crypto.AES( data_wr[ 'k' ] ).dec( data_wr[ 'c' ] ) ) == ( data_rd[ 'm' ] )
 
-  def model_dec( self, k, c ) :
-    return sca3s_be.share.crypto.AES( k ).dec( c )
+    return False
 
   def policy_tvla_init( self, spec,             mode = 'lhs' ) :
     if   ( mode == 'lhs' ) :

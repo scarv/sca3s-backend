@@ -169,9 +169,51 @@ class DriverAbs( abc.ABC ) :
 
   # Acquire via driver
 
-  @abc.abstractmethod
-  def acquire( self ) :
-    raise NotImplementedError()
+  def acquire( self, data = None ) :
+    if ( data == None ) :
+      data = dict()
+
+    for id in self.job.board.kernel.data_wr_id :
+      if ( not id in data ) :
+        data[ id ] = self.job.board.kernel.expand( '{$*|%s|}' % ( id ) )
+
+      self.job.board.interact( '>data %s %s' % ( id, sca3s_be.share.util.str2octetstr( data[ id ] ).upper() ) )
+  
+    _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
+
+    self.job.board.interact( '!kernel_prologue' )
+ 
+    self.job.board.interact( '!kernel'          )
+    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+    self.job.board.interact( '!kernel_nop' )
+    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
+
+    self.job.board.interact( '!kernel_epilogue' )
+  
+    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
+    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
+  
+    for id in self.job.board.kernel.data_rd_id :
+      data[ id ] = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data %s' % ( id ) ) )
+
+    data_wr = { id : data[ id ] for id in self.job.board.kernel.data_wr_id }
+    data_rd = { id : data[ id ] for id in self.job.board.kernel.data_rd_id }
+
+    self.job.log.info( 'acquire: data_wr => %s' % str( data_wr ) )
+    self.job.log.info( 'acquire: data_rd => %s' % str( data_rd ) )
+
+    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
+      if ( self.job.board.kernel.model( data_wr, data_rd ) ) :
+        raise Exception( 'failed I/O verification: interactive I/O != model' )
+
+    trace = { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration }
+
+    trace.update( { 'data/%s'        % ( id ) :      data_wr[ id ]   for id in self.job.board.kernel.data_wr_id } )
+    trace.update( { 'data/usedof_%s' % ( id ) : len( data_wr[ id ] ) for id in self.job.board.kernel.data_wr_id } )
+    trace.update( { 'data/%s'        % ( id ) :      data_rd[ id ]   for id in self.job.board.kernel.data_rd_id } )
+    trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel.data_rd_id } )
+
+    return trace
 
   # Prepare the driver
 

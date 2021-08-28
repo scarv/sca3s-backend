@@ -40,7 +40,7 @@ class KernelAbs( abc.ABC ) :
     return x
 
   @abc.abstractmethod
-  def supports_model( self ) :
+  def supports_verify( self ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
@@ -49,6 +49,10 @@ class KernelAbs( abc.ABC ) :
 
   @abc.abstractmethod
   def supports_policy_tvla( self, spec ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def verify( self, data_wr, data_rd ) :
     raise NotImplementedError()
 
   @abc.abstractmethod

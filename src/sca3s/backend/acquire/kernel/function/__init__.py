@@ -17,14 +17,14 @@ from sca3s.backend.acquire import kernel as kernel
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc
+import abc, re
 
 class KernelType( kernel.KernelAbs ) :
   def __init__( self, nameof, modeof, data_wr, data_rd ) :
     super().__init__( nameof, modeof, data_wr, data_rd )
 
-    self.elemof_x = len( filter( lambda x : re.match( 'x[0-9]+', x ), self.data_wr_id ) )
-    self.elemof_r = len( filter( lambda x : re.match( 'r[0-9]+', x ), self.data_rd_id ) )
+    self.elemof_x = len( list( filter( lambda x : re.match( 'x[0-9]+', x ), self.data_wr_id ) ) )
+    self.elemof_r = len( list( filter( lambda x : re.match( 'r[0-9]+', x ), self.data_rd_id ) ) )
 
     self.typeof_x = [ self.data_wr_type[ 'x%d' % ( i ) ] for i in range( self.elemof_x ) ]
     self.sizeof_x = [ self.data_wr_size[ 'x%d' % ( i ) ] for i in range( self.elemof_x ) ]
@@ -55,7 +55,7 @@ class KernelType( kernel.KernelAbs ) :
 
     return None
 
-  def supports_model( self ) :
+  def supports_verify( self ) :
     return False
 
   def supports_policy_user( self, spec ) :
@@ -76,8 +76,8 @@ class KernelType( kernel.KernelAbs ) :
 
     return False
 
-  def model( self, x ) :
-    return None
+  def verify( self, data_wr, data_rd ) :
+    return False
 
   def policy_user_init( self, spec             ) :
     user_select = spec.get( 'user_select' )

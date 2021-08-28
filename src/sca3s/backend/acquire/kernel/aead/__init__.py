@@ -37,6 +37,7 @@ class KernelType( kernel.KernelAbs ) :
       self.typeof_m = self.data_wr_type[ 'm' ]
       self.sizeof_c = self.data_rd_size[ 'c' ]
       self.typeof_c = self.data_rd_type[ 'c' ]
+
     elif ( self.modeof == 'dec'     ) :
       self.sizeof_k = self.data_wr_size[ 'k' ]
       self.typeof_k = self.data_wr_type[ 'k' ]
@@ -53,21 +54,11 @@ class KernelType( kernel.KernelAbs ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    if   ( self.modeof == 'enc' ) :
-      sizeof_x = self.sizeof_m
-    elif ( self.modeof == 'dec' ) :
-      sizeof_x = self.sizeof_c
-
     return None
     
   def _policy_tvla_init_rhs( self, spec,            ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
-
-    if   ( self.modeof == 'enc' ) :
-      sizeof_x = self.sizeof_m
-    elif ( self.modeof == 'dec' ) :
-      sizeof_x = self.sizeof_c
 
     return None
 
@@ -75,25 +66,15 @@ class KernelType( kernel.KernelAbs ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    if   ( self.modeof == 'enc' ) :
-      sizeof_x = self.sizeof_m
-    elif ( self.modeof == 'dec' ) :
-      sizeof_x = self.sizeof_c
-
     return None
 
   def _policy_tvla_step_rhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    if   ( self.modeof == 'enc' ) :
-      sizeof_x = self.sizeof_m
-    elif ( self.modeof == 'dec' ) :
-      sizeof_x = self.sizeof_c
-
     return None
 
-  def supports_model( self ) :
+  def supports_verify( self ) :
     return False
 
   def supports_policy_user( self, spec ) :
@@ -114,11 +95,13 @@ class KernelType( kernel.KernelAbs ) :
 
     return False
 
-  def model_enc( self, k, n, a, m ) :
-    return None
+  def verify( self, data_wr, data_rd ) :
+    if   ( self.modeof == 'enc' ) :
+      return False
+    elif ( self.modeof == 'dec' ) :
+      return False
 
-  def model_dec( self, k, n, a, c ) :
-    return None
+    return False
 
   def policy_user_init( self, spec             ) :
     user_select = spec.get( 'user_select' )
@@ -129,6 +112,7 @@ class KernelType( kernel.KernelAbs ) :
       n = self.expand( user_value.get( 'n' ) )
       a = self.expand( user_value.get( 'a' ) )
       x = self.expand( user_value.get( 'm' ) )
+
     elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) )
       n = self.expand( user_value.get( 'n' ) )
@@ -146,6 +130,7 @@ class KernelType( kernel.KernelAbs ) :
       n = self.expand( user_value.get( 'n' ) ) if ( user_select.get( 'n' ) == 'each' ) else ( data[ 'n' ] )
       a = self.expand( user_value.get( 'a' ) ) if ( user_select.get( 'a' ) == 'each' ) else ( data[ 'a' ] )
       x = self.expand( user_value.get( 'm' ) ) if ( user_select.get( 'm' ) == 'each' ) else ( data[ 'x' ] )
+
     elif ( self.modeof == 'dec' ) :
       k = self.expand( user_value.get( 'k' ) ) if ( user_select.get( 'k' ) == 'each' ) else ( data[ 'k' ] )
       n = self.expand( user_value.get( 'n' ) ) if ( user_select.get( 'n' ) == 'each' ) else ( data[ 'n' ] )

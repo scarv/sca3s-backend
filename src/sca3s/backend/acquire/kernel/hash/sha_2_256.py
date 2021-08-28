@@ -23,8 +23,8 @@ class KernelImp( kernel.block.KernelType ) :
   def __init__( self, nameof, modeof, data_wr, data_rd ) :
     super().__init__( nameof, modeof, data_wr, data_rd )
 
-  def supports_model( self ) :
+  def supports_verify( self ) :
     return True
 
-  def model( self, m ) :
-    return sca3s_be.share.crypto.SHA_2_256().digest( m )
+  def verify( self, data_wr, data_rd ) :
+    return ( sca3s_be.share.crypto.SHA_2_256().digest( data_wr[ 'm' ] ) ) == ( data_rd[ 'd' ] )

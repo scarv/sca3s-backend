@@ -52,7 +52,7 @@ class KernelType( kernel.KernelAbs ) :
 
     return None
 
-  def supports_model( self ) :
+  def supports_verify( self ) :
     return False
 
   def supports_policy_user( self, spec ) :
@@ -73,8 +73,8 @@ class KernelType( kernel.KernelAbs ) :
 
     return False
 
-  def model( self, m ) :
-    return None
+  def verify( self, data_wr, data_rd ) :
+    return False
 
   def policy_user_init( self, spec             ) :
     user_select = spec.get( 'user_select' )
