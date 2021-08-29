@@ -12,7 +12,6 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -36,7 +35,16 @@ class BoardAbs( abc.ABC ) :
     self.kernel_id                 = None
     self.kernel_io                 = dict()
 
-    self.kernel                    = None
+    self.kernel_nameof             = None
+    self.kernel_modeof             = None
+
+    self.kernel_data_wr_id         =  set()
+    self.kernel_data_wr_size       = dict()
+    self.kernel_data_wr_type       = dict()
+
+    self.kernel_data_rd_id         =  set()
+    self.kernel_data_rd_size       = dict()
+    self.kernel_data_rd_type       = dict()
 
   def __str__( self ) :
     return self.board_id
@@ -118,6 +126,20 @@ class BoardAbs( abc.ABC ) :
 
     return r
 
+  def interact( self, x ) :
+    sca3s_be.share.sys.log.debug( '> uart : %s', x )
+    self.uart_send( x ) ; t = self.uart_recv()
+    sca3s_be.share.sys.log.debug( '< uart : %s', t )
+
+    if   ( t[ 0 ] == '+' ) :
+      return t[ 1 : ]
+    elif ( t[ 0 ] == '-' ) :
+      raise Exception( 'failed board interaction' )
+    elif ( t[ 0 ] == '~' ) :
+      raise Exception( 'failed board interaction' )
+    else :
+      raise Exception( 'failed board interaction' )
+
   def hdf5_add_attr( self, trace_content, fd              ) :
     spec = [ ( 'board/driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
              ( 'board/driver_id',      str( self.driver_id      ), h5py.special_dtype( vlen = str ) ),
@@ -138,20 +160,6 @@ class BoardAbs( abc.ABC ) :
              ( 'perf/duration', lambda trace : trace[ 'perf/duration' ] ) ]
 
     sca3s_be.share.util.hdf5_set_data( spec, trace_content, fd, n, i, trace )
-
-  def interact( self, x ) :
-    sca3s_be.share.sys.log.debug( '> uart : %s', x )
-    self.uart_send( x ) ; t = self.uart_recv()
-    sca3s_be.share.sys.log.debug( '< uart : %s', t )
-
-    if   ( t[ 0 ] == '+' ) :
-      return t[ 1 : ]
-    elif ( t[ 0 ] == '-' ) :
-      raise Exception( 'failed board interaction' )
-    elif ( t[ 0 ] == '~' ) :
-      raise Exception( 'failed board interaction' )
-    else :
-      raise Exception( 'failed board interaction' )
 
   def io( self ) :
     fn = os.path.join( self.job.path, 'target', 'build', self.board_id, 'target.io' )
@@ -217,50 +225,34 @@ class BoardAbs( abc.ABC ) :
     self.job.log.info( '?kernel -> driver id      = %s', self.driver_id      )
 
     self.job.log.info( '?kernel -> kernel id      = %s', self.kernel_id      )
-  
-    data_wr_id   =  set( self.job.board.interact( '>kernel' ).split( ',' ) )
-    data_wr_size = dict()
-    data_wr_type = dict()
-
-    self.job.log.info( '>kernel -> register id    = %s', data_wr_id   )
-
-    for id in data_wr_id :
-      data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
-      data_wr_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
-
-    self.job.log.info( '        -> register size  = %s', data_wr_size )
-    self.job.log.info( '        -> register type  = %s', data_wr_type )
-
-    data_rd_id   =  set( self.job.board.interact( '<kernel' ).split( ',' ) )
-    data_rd_size = dict()
-    data_rd_type = dict()
-
-    self.job.log.info( '<kernel -> register id    = %s', data_rd_id   )
-
-    for id in data_rd_id :
-      data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
-      data_rd_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
-
-    self.job.log.info( '        -> register size  = %s', data_rd_size )
-    self.job.log.info( '        -> register type  = %s', data_rd_type )
 
     t = self.kernel_id.split( '/' )
 
     if ( len( t ) != 2 ) :
       raise Exception( 'cannot parse kernel identifier' )
 
-    kernel_nameof = t[ 0 ]
-    kernel_modeof = t[ 1 ]
+    self.kernel_nameof  = t[ 0 ]
+    self.kernel_modeof  = t[ 1 ]
 
-    data_wr       = ( data_wr_id, data_wr_size, data_wr_type ) 
-    data_rd       = ( data_rd_id, data_rd_size, data_rd_type ) 
+    for id in self.job.board.interact( '>kernel' ).split( ',' ) :
+      self.data_wr_id.add( id )
 
-    module = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + kernel_nameof
+      data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
+      data_wr_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
 
-    try :
-      self.kernel = importlib.import_module( module ).KernelImp( kernel_nameof, kernel_modeof, data_wr, data_rd )
-    except :
-      raise ImportError( 'failed to construct %s instance' % ( module ) )
+    for id in self.job.board.interact( '<kernel' ).split( ',' ) :
+      self.data_rd_id.add( id )
+
+      data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
+      data_rd_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
+
+    self.job.log.info( '>kernel -> register id    = %s', data_wr_id   )
+    self.job.log.info( '        -> register size  = %s', data_wr_size )
+    self.job.log.info( '        -> register type  = %s', data_wr_type )
+
+    self.job.log.info( '<kernel -> register id    = %s', data_rd_id   )
+    self.job.log.info( '        -> register size  = %s', data_rd_size )
+    self.job.log.info( '        -> register type  = %s', data_rd_type )
 
   @abc.abstractmethod
   def  open( self ) :

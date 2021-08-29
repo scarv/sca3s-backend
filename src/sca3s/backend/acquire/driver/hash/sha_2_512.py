@@ -12,13 +12,18 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii
+import binascii, struct
 
 class KernelImp( kernel.block.KernelType ) :
   def __init__( self, nameof, modeof, data_wr, data_rd ) :
     super().__init__( nameof, modeof, data_wr, data_rd )
+
+  def supports_verify( self ) :
+    return True
+
+  def verify( self, data_wr, data_rd ) :
+    return ( sca3s_be.share.crypto.SHA_2_512().digest( data_wr[ 'm' ] ) ) == ( data_rd[ 'd' ] )

@@ -12,7 +12,6 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -37,13 +36,17 @@ class DriverAbs( abc.ABC ) :
   def __str__( self ) :
     return self.driver_id + ' ' + '(' + self.job.board.kernel_id + ')'
 
-  # Measure the duration of trigger period (wrt. current scope configuration).
+  # Expand an (abstract, symbolic) value description into a (concrete) sequence of bytes.
 
-  def _measure( self, trigger ) :
-    edge_pos = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
-    edge_neg = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
-      
-    return ( edge_pos, edge_neg, float( edge_neg - edge_pos ) * self.job.scope.signal_interval )
+  def _expand( self, x ) :
+    if   ( type( x ) == tuple ) :
+      return tuple( [     self._expand( v )   for      v   in x         ] )
+    elif ( type( x ) == dict  ) :
+      return dict( [ ( k, self._expand( v ) ) for ( k, v ) in x.items() ] )
+    elif ( type( x ) == str   ) :
+      return sca3s_be.share.util.value( x, ids = { **self.data_wr_size, **self.data_rd_size } )
+
+    return x
 
   # Logging: emit entry re. start  of trace acquisition.
 
@@ -57,23 +60,216 @@ class DriverAbs( abc.ABC ) :
     width = len( str( n - 1 ) ) ; message = '' if ( message == None ) else ( ': ' + message )
     self.job.log.indent_dec( message = 'finished acquiring trace {0:>{width}d} of {1:d} {message:s}'.format( i, n, width = width, message = message  ) )
 
-  # Driver policy: user-driven
+  # Driver policy: TVLA-driven => initialise LHS.
+
+  def _policy_tvla_init_lhs( self, spec,            ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    data        = dict()
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data (vs.  random key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x00 )
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x01 )
+        elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x03 )
+        elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x05 )
+
+    return data
+
+  # Driver policy: TVLA-driven => initialise RHS.
+
+  def _policy_tvla_init_rhs( self, spec,            ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    data        = dict()
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : # (fixed key,      random data  vs.) random key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x10 )
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x11 )
+        elif( tvla_mode == 'fvr_d' ) : # (fixed key,      fixed  data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x13 )
+        elif( tvla_mode == 'rvr_d' ) : # (fixed key,      random data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x15 )
+
+    return data
+
+  # Driver policy: TVLA-driven => step       LHS.
+
+  def _policy_tvla_step_lhs( self, spec, n, i, data ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data (vs.  random key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            pass
+        elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data (vs.  fixed  key, random data)
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+
+    return data
+
+  # Driver policy: TVLA-driven => step       RHS.
+
+  def _policy_tvla_step_rhs( self, spec, n, i, data ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        if  ( tvla_mode == 'fvr_k' ) : # (fixed key,      random data  vs.) random key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        elif( tvla_mode == 'fvr_d' ) : # (fixed key,      fixed  data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        elif( tvla_mode == 'rvr_d' ) : # (fixed key,      random data  vs.) fixed  key, random data
+          if ( '$' in self.data_wr_type[ id ] ) :
+            pass
+          else :
+            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+
+    return data
+
+  # Driver policy: user-driven => initialise.
+
+  def _policy_user_init( self, spec             ) :
+    user_select = spec.get( 'user_select' )
+    user_value  = spec.get( 'user_value'  )
+
+    data        = dict()
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+        data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        data[ id ] = self._expand( user_value.get( id ) )
+
+    return data
+
+  # Driver policy: user-driven => step.
+
+  def _policy_user_step( self, spec, n, i, data ) :
+    user_select = spec.get( 'user_select' )
+    user_value  = spec.get( 'user_value'  )
+
+    for id in self.data_wr_id :
+      if ( id == 'esr' ) :
+        data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+      else :
+        data[ id ] = self._expand( user_value.get( id ) ) if ( user_select.get( id ) == 'each' ) else ( data[ id ] )
+
+    return data
+
+  # Driver policy: TVLA-driven => initialise.
+
+  def _policy_tvla_init( self, spec,             mode = 'lhs' ) :
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_init_lhs( spec             )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_init_rhs( spec             )
+
+    return None
+
+  # Driver policy: TVLA-driven => step.
+
+  def _policy_tvla_step( self, spec, n, i, data, mode = 'lhs' ) :
+    if   ( mode == 'lhs' ) :
+      return self._policy_tvla_step_lhs( spec, n, i, data )
+    elif ( mode == 'rhs' ) :
+      return self._policy_tvla_step_rhs( spec, n, i, data )
+
+    return None
+
+  # Support query: user-driven policy.
+
+  def _supports_policy_user( self, spec ) :
+    return  True
+
+  # Support query: TVLA-driven policy.
+
+  def _supports_policy_tvla( self, spec ) :
+    tvla_mode  = spec.get( 'tvla_mode'  )
+    tvla_round = spec.get( 'tvla_round' )
+
+    if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data  vs.  random key, random data
+      return  True
+    elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data  vs.  fixed  key, random data
+      return  True
+    elif( tvla_mode == 'svr_d' ) :#   fixed key, semi-fixed  data  vs.  fixed  key, random data
+      return False
+    elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data  vs.  fixed  key, random data
+      return  True
+
+    return False
+
+  # Support query: verify, i.e., check interactive I/O vs. model.
+ 
+  def _supports_verify( self ) :
+    return False
+
+  # Driver policy: user-driven.
 
   def _policy_user( self, fd ) :
     n   = 1 * self.trace_count
 
     self.hdf5_add_attr( fd ) ; self.hdf5_add_data( fd, n )
 
-    data = self.job.board.kernel.policy_user_init( self.policy_spec )
+    data = self.job.board.kernel._policy_user_init( self.policy_spec )
 
     for i in range( n ) :
       self._acquire_log_inc( n, i )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i )
 
-      data = self.job.board.kernel.policy_user_step( self.policy_spec, n, i, data )
+      data = self.job.board.kernel._policy_user_step( self.policy_spec, n, i, data )
 
-  # Driver policy: TVLA-driven
+  # Driver policy: TVLA-driven.
   #
   # - mode = fvr_k ~>  fixed-versus random  key
   # - mode = fvr_d ~>  fixed-versus random data  
@@ -93,25 +289,30 @@ class DriverAbs( abc.ABC ) :
 
     self.hdf5_add_attr( fd ) ; self.hdf5_add_data( fd, n )
 
-    data = self.job.board.kernel.policy_tvla_init( self.policy_spec, mode = 'lhs' )
+    data = self.job.board.kernel._policy_tvla_init( self.policy_spec, mode = 'lhs' )
 
     for i in lhs :
       self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self.job.board.kernel.policy_tvla_step( self.policy_spec, n, i, data, mode = 'lhs' )
+      data = self.job.board.kernel._policy_tvla_step( self.policy_spec, n, i, data, mode = 'lhs' )
 
-    data = self.job.board.kernel.policy_tvla_init( self.policy_spec, mode = 'rhs' )
+    data = self.job.board.kernel._policy_tvla_init( self.policy_spec, mode = 'rhs' )
 
     for i in rhs :
       self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self.job.board.kernel.policy_tvla_step( self.policy_spec, n, i, data, mode = 'rhs' )
+      data = self.job.board.kernel._policy_tvla_step( self.policy_spec, n, i, data, mode = 'rhs' )
 
-  # Post-processing, aka. fixed-function analysis: CI 
+  # TODO
+
+  def _verify( self, data_wr, data_rd ) :
+    return False
+
+  # Post-processing, aka. fixed-function analysis: CI.
 
   def _analyse_ci( self ) :    
     doc = sca3s_be.share.report.Report( self.job )
@@ -144,30 +345,12 @@ class DriverAbs( abc.ABC ) :
     
     self.job.result_transfer[ 'acquire.pdf' ] = { 'ContentType': 'application/pdf', 'CacheControl': 'no-cache, max-age=0', 'ACL': 'public-read' }
 
-  # Post-processing, aka. fixed-function analysis: contest
+  # Post-processing, aka. fixed-function analysis: contest.
 
   def _analyse_contest( self ) :
     self.job.result_response[ 'score' ] = 0
 
-  # HDF5 file manipulation: add attributes
-
-  @abc.abstractmethod
-  def hdf5_add_attr( self, fd              ) :
-    raise NotImplementedError()
-
-  # HDF5 file manipulation: add data
-
-  @abc.abstractmethod
-  def hdf5_add_data( self, fd, n           ) :
-    raise NotImplementedError()
-
-  # HDF5 file manipulation: set data
-
-  @abc.abstractmethod
-  def hdf5_set_data( self, fd, n, i, trace ) :
-    raise NotImplementedError()
-
-  # Acquire via driver
+  # Acquire via driver.
 
   def acquire( self, data = None ) :
     if ( data == None ) :
@@ -191,7 +374,11 @@ class DriverAbs( abc.ABC ) :
     self.job.board.interact( '!kernel_epilogue' )
   
     ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
-    ( edge_pos, edge_neg, duration ) = self._measure( trigger )
+
+    edge_pos = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
+    edge_neg = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
+
+    duration = float( edge_neg - edge_pos ) * self.job.scope.signal_interval
   
     for id in self.job.board.kernel.data_rd_id :
       data[ id ] = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data %s' % ( id ) ) )
@@ -202,8 +389,8 @@ class DriverAbs( abc.ABC ) :
     self.job.log.info( 'acquire: data_wr => %s' % str( data_wr ) )
     self.job.log.info( 'acquire: data_rd => %s' % str( data_rd ) )
 
-    if ( ( self.job.board.board_mode == 'interactive' ) and self.job.board.kernel.supports_model() ) :
-      if ( self.job.board.kernel.model( data_wr, data_rd ) ) :
+    if ( ( self.job.board.board_mode == 'interactive' ) and self._supports_verify() ) :
+      if ( self.job.board.kernel.verify( data_wr, data_rd ) ) :
         raise Exception( 'failed I/O verification: interactive I/O != model' )
 
     trace = { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration }
@@ -214,6 +401,24 @@ class DriverAbs( abc.ABC ) :
     trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel.data_rd_id } )
 
     return trace
+
+  # HDF5 file manipulation: add attributes
+
+  @abc.abstractmethod
+  def hdf5_add_attr( self, fd              ) :
+    raise NotImplementedError()
+
+  # HDF5 file manipulation: add data
+
+  @abc.abstractmethod
+  def hdf5_add_data( self, fd, n           ) :
+    raise NotImplementedError()
+
+  # HDF5 file manipulation: set data
+
+  @abc.abstractmethod
+  def hdf5_set_data( self, fd, n, i, trace ) :
+    raise NotImplementedError()
 
   # Prepare the driver
 

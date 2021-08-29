@@ -12,7 +12,6 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -27,4 +26,4 @@ class KernelImp( kernel.block.KernelType ) :
     return True
 
   def verify( self, data_wr, data_rd ) :
-    return ( sca3s_be.share.crypto.SHA_2_256().digest( data_wr[ 'm' ] ) ) == ( data_rd[ 'd' ] )
+    return ( sca3s_be.share.crypto.SHA_1().digest( data_wr[ 'm' ] ) ) == ( data_rd[ 'd' ] )

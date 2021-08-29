@@ -12,7 +12,6 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -25,6 +24,8 @@ class DriverImp( driver.DriverAbs ) :
    
   def hdf5_add_attr( self, fd              ) :
     spec = [ ( 'kernel/sizeof_k',      self.job.board.kernel.sizeof_k,   '<u8' ),
+             ( 'kernel/sizeof_a',      self.job.board.kernel.sizeof_a,   '<u8' ),
+             ( 'kernel/sizeof_n',      self.job.board.kernel.sizeof_n,   '<u8' ),
              ( 'kernel/sizeof_m',      self.job.board.kernel.sizeof_m,   '<u8' ),
              ( 'kernel/sizeof_c',      self.job.board.kernel.sizeof_c,   '<u8' ) ]
 
@@ -36,6 +37,10 @@ class DriverImp( driver.DriverAbs ) :
   def hdf5_add_data( self, fd, n           ) :
     spec = [ (   'data/k',        ( n, self.job.board.kernel.sizeof_k ), 'B'   ),
              (   'data/usedof_k', ( n,                                ), '<u8' ),
+             (   'data/n',        ( n, self.job.board.kernel.sizeof_n ), 'B'   ),
+             (   'data/usedof_n', ( n,                                ), '<u8' ),
+             (   'data/a',        ( n, self.job.board.kernel.sizeof_a ), 'B'   ),
+             (   'data/usedof_a', ( n,                                ), '<u8' ),
              (   'data/m',        ( n, self.job.board.kernel.sizeof_m ), 'B'   ),
              (   'data/usedof_m', ( n,                                ), '<u8' ),
              (   'data/c',        ( n, self.job.board.kernel.sizeof_c ), 'B'   ),
@@ -49,6 +54,10 @@ class DriverImp( driver.DriverAbs ) :
   def hdf5_set_data( self, fd, n, i, trace ) :
     spec = [ (   'data/k',        lambda trace : numpy.frombuffer( trace[ 'data/k' ], dtype = numpy.uint8 ) ),
              (   'data/usedof_k', lambda trace :              len( trace[ 'data/k' ]                      ) ),
+             (   'data/n',        lambda trace : numpy.frombuffer( trace[ 'data/n' ], dtype = numpy.uint8 ) ),
+             (   'data/usedof_n', lambda trace :              len( trace[ 'data/n' ]                      ) ),
+             (   'data/a',        lambda trace : numpy.frombuffer( trace[ 'data/a' ], dtype = numpy.uint8 ) ),
+             (   'data/usedof_a', lambda trace :              len( trace[ 'data/a' ]                      ) ),
              (   'data/m',        lambda trace : numpy.frombuffer( trace[ 'data/m' ], dtype = numpy.uint8 ) ),
              (   'data/usedof_m', lambda trace :              len( trace[ 'data/m' ]                      ) ),
              (   'data/c',        lambda trace : numpy.frombuffer( trace[ 'data/c' ], dtype = numpy.uint8 ) ),
@@ -65,21 +74,21 @@ class DriverImp( driver.DriverAbs ) :
     if ( self.driver_id !=               ( self.job.board.driver_id      ) ) :
       raise Exception( 'inconsistent driver identifier' )
     
-    if ( self.job.board.kernel.nameof not in [ 'generic', 'aes' ] ) :
-      raise Exception( 'unsupported kernel name' )
+    if ( self.job.board.kernel.nameof not in [ 'generic' ] ) :
+      raise Exception( 'unsupported kernel name'   )
     if ( self.job.board.kernel.modeof not in [ 'default', 'enc', 'dec' ] ) :
-      raise Exception( 'unsupported kernel type' )
+      raise Exception( 'unsupported kernel type'   )
 
     if ( self.job.board.kernel.modeof == 'enc'     ) :
-      if ( not ( self.job.board.kernel.data_wr_id == set( [        'esr', 'k', 'm' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_wr_id == set( [        'esr', 'k', 'n', 'a', 'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
-      if ( not ( self.job.board.kernel.data_rd_id == set( [ 'fec', 'fcc',      'c' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_rd_id == set( [ 'fec', 'fcc',                'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
     if ( self.job.board.kernel.modeof == 'dec'     ) :
-      if ( not ( self.job.board.kernel.data_wr_id == set( [        'esr', 'k', 'c' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_wr_id == set( [        'esr', 'k', 'n', 'a', 'c' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
-      if ( not ( self.job.board.kernel.data_rd_id == set( [ 'fec', 'fcc',      'm' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_rd_id == set( [ 'fec', 'fcc',                'm' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
     if ( ( self.policy_id == 'user' ) and not self.job.board.kernel.supports_policy_user( self.policy_spec ) ) :

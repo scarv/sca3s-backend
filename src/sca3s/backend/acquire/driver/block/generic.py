@@ -12,13 +12,12 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc
+import binascii
 
-class KernelType( kernel.KernelAbs ) :
+class KernelImp( kernel.block.KernelType ) :
   def __init__( self, nameof, modeof, data_wr, data_rd ) :
     super().__init__( nameof, modeof, data_wr, data_rd )

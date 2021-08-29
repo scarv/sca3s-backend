@@ -12,7 +12,6 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -24,35 +23,13 @@ class DriverImp( driver.DriverAbs ) :
     super().__init__( job )
 
   def hdf5_add_attr( self, fd              ) :
-    spec = [ ( 'kernel/sizeof_m',      self.job.board.kernel.sizeof_m,   '<u8' ),
-             ( 'kernel/sizeof_d',      self.job.board.kernel.sizeof_d,   '<u8' ) ]
-
-    self.job.board.hdf5_add_attr( self.trace_content, fd              )
-    self.job.scope.hdf5_add_attr( self.trace_content, fd              )
-
-    sca3s_be.share.util.hdf5_add_attr( spec, self.trace_content, fd              )
+    pass
 
   def hdf5_add_data( self, fd, n           ) :
-    spec = [ (   'data/m',        ( n, self.job.board.kernel.sizeof_m ), 'B'   ),
-             (   'data/usedof_m', ( n,                                ), '<u8' ),
-             (   'data/d',        ( n, self.job.board.kernel.sizeof_d ), 'B'   ),
-             (   'data/usedof_d', ( n,                                ), '<u8' ) ]
-
-    self.job.board.hdf5_add_data( self.trace_content, fd, n           )
-    self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
-
-    sca3s_be.share.util.hdf5_add_data( spec, self.trace_content, fd, n           )
+    pass
 
   def hdf5_set_data( self, fd, n, i, trace ) :
-    spec = [ (   'data/m',        lambda trace : numpy.frombuffer( trace[ 'data/m' ], dtype = numpy.uint8 ) ),
-             (   'data/usedof_m', lambda trace :              len( trace[ 'data/m' ]                      ) ),
-             (   'data/d',        lambda trace : numpy.frombuffer( trace[ 'data/d' ], dtype = numpy.uint8 ) ),
-             (   'data/usedof_d', lambda trace :              len( trace[ 'data/d' ]                      ) ) ]
-
-    self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
-    self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
-
-    sca3s_be.share.util.hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
+    pass
 
   def prepare( self ) : 
     if ( not sca3s_be.share.version.match( self.job.board.driver_version ) ) :
@@ -66,9 +43,9 @@ class DriverImp( driver.DriverAbs ) :
       raise Exception( 'unsupported kernel type'   )
 
     if ( self.job.board.kernel.modeof == 'default' ) :
-      if ( not ( self.job.board.kernel.data_wr_id == set( [        'esr', 'm' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_wr_id <= set( [        'esr', 'x0', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
-      if ( not ( self.job.board.kernel.data_rd_id == set( [ 'fec', 'fcc', 'd' ] ) ) ) :
+      if ( not ( self.job.board.kernel.data_rd_id <= set( [ 'fec', 'fcc', 'r0', 'r1', 'r2', 'r3', 'r4', 'r5', 'r6', 'r7' ] ) ) ) :
         raise Exception( 'inconsistent kernel I/O spec.' )
 
     if ( ( self.policy_id == 'user' ) and not self.job.board.kernel.supports_policy_user( self.policy_spec ) ) :

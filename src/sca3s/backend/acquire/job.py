@@ -12,7 +12,6 @@ from sca3s.backend.acquire import scope  as scope
 from sca3s.backend.acquire import hybrid as hybrid
 
 from sca3s.backend.acquire import driver as driver
-from sca3s.backend.acquire import kernel as kernel
 
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
@@ -279,6 +278,13 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
         self.log.indent_inc( message = 'prepare board'           )
         self._prepare_board()
         self.log.indent_dec()
+
+#    module = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + kernel_nameof
+#
+#    try :
+#      self.kernel = importlib.import_module( module ).KernelImp( kernel_nameof, kernel_modeof, data_wr, data_rd )
+#    except :
+#      raise ImportError( 'failed to construct %s instance' % ( module ) )
 
         self.log.indent_inc( message = 'construct driver object' )
         self.driver = self._object( self.conf.get( 'driver_id' ), 'driver', 'DriverImp' )
