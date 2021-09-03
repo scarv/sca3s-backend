@@ -44,7 +44,7 @@ class DriverAbs( abc.ABC ) :
     elif ( type( x ) == dict  ) :
       return dict( [ ( k, self._expand( v ) ) for ( k, v ) in x.items() ] )
     elif ( type( x ) == str   ) :
-      return sca3s_be.share.util.value( x, ids = { **self.data_wr_size, **self.data_rd_size } )
+      return sca3s_be.share.util.value( x, ids = { **self.job.board.kernel_data_wr_size, **self.job.board.kernel_data_rd_size } )
 
     return x
 
@@ -68,25 +68,25 @@ class DriverAbs( abc.ABC ) :
 
     data        = dict()
 
-    for id in self.data_wr_id :
+    for id in self.job.board.kernel_data_wr_id :
       if ( id == 'esr' ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
       else :
         if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data (vs.  random key, random data)
-          if ( '$' in self.data_wr_type[ id ] ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x00 )
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x00 )
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x01 )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x01 )
         elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data (vs.  fixed  key, random data)
-          if ( '$' in self.data_wr_type[ id ] ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x03 )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x03 )
         elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data (vs.  fixed  key, random data)
-          if ( '$' in self.data_wr_type[ id ] ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x05 )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x05 )
 
     return data
 
@@ -98,25 +98,25 @@ class DriverAbs( abc.ABC ) :
 
     data        = dict()
 
-    for id in self.data_wr_id :
+    for id in self.job.board.kernel_data_wr_id :
       if ( id == 'esr' ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
       else :
         if  ( tvla_mode == 'fvr_k' ) : # (fixed key,      random data  vs.) random key, random data
-          if ( '$' in self.data_wr_type[ id ] ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x10 )
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x10 )
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x11 )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x11 )
         elif( tvla_mode == 'fvr_d' ) : # (fixed key,      fixed  data  vs.) fixed  key, random data
-          if ( '$' in self.data_wr_type[ id ] ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x02 ) # LHS = RHS
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x13 )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x13 )
         elif( tvla_mode == 'rvr_d' ) : # (fixed key,      random data  vs.) fixed  key, random data
-          if ( '$' in self.data_wr_type[ id ] ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x04 ) # LHS = RHS
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ], seed = 0x15 )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ], seed = 0x15 )
 
     return data
 
@@ -126,25 +126,25 @@ class DriverAbs( abc.ABC ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    for id in self.data_wr_id :
+    for id in self.job.board.kernel_data_wr_id :
       if ( id == 'esr' ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
       else :
         if  ( tvla_mode == 'fvr_k' ) : #  fixed key,      random data (vs.  random key, random data)
-          if ( '$' in self.data_wr_type[ id ] ) :
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
             pass
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
         elif( tvla_mode == 'fvr_d' ) : #  fixed key,      fixed  data (vs.  fixed  key, random data)
-          if ( '$' in self.data_wr_type[ id ] ) :
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
             pass
           else :
             pass
         elif( tvla_mode == 'rvr_d' ) : #  fixed key,      random data (vs.  fixed  key, random data)
-          if ( '$' in self.data_wr_type[ id ] ) :
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
             pass
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
 
     return data
 
@@ -154,25 +154,25 @@ class DriverAbs( abc.ABC ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    for id in self.data_wr_id :
+    for id in self.job.board.kernel_data_wr_id :
       if ( id == 'esr' ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
       else :
         if  ( tvla_mode == 'fvr_k' ) : # (fixed key,      random data  vs.) random key, random data
-          if ( '$' in self.data_wr_type[ id ] ) :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
         elif( tvla_mode == 'fvr_d' ) : # (fixed key,      fixed  data  vs.) fixed  key, random data
-          if ( '$' in self.data_wr_type[ id ] ) :
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
             pass
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
         elif( tvla_mode == 'rvr_d' ) : # (fixed key,      random data  vs.) fixed  key, random data
-          if ( '$' in self.data_wr_type[ id ] ) :
+          if ( '$' in self.job.board.kernel_data_wr_type[ id ] ) :
             pass
           else :
-            data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+            data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
 
     return data
 
@@ -184,9 +184,9 @@ class DriverAbs( abc.ABC ) :
 
     data        = dict()
 
-    for id in self.data_wr_id :
+    for id in self.job.board.kernel_data_wr_id :
       if ( id == 'esr' ) :
-        data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
       else :
         data[ id ] = self._expand( user_value.get( id ) )
 
@@ -198,9 +198,9 @@ class DriverAbs( abc.ABC ) :
     user_select = spec.get( 'user_select' )
     user_value  = spec.get( 'user_value'  )
 
-    for id in self.data_wr_id :
+    for id in self.job.board.kernel_data_wr_id :
       if ( id == 'esr' ) :
-        data[ id ] = sca3s_be.share.util.randbytes( self.data_wr_size[ id ] )
+        data[ id ] = sca3s_be.share.util.randbytes( self.job.board.kernel_data_wr_size[ id ] )
       else :
         data[ id ] = self._expand( user_value.get( id ) ) if ( user_select.get( id ) == 'each' ) else ( data[ id ] )
 
@@ -260,14 +260,14 @@ class DriverAbs( abc.ABC ) :
 
     self.hdf5_add_attr( fd ) ; self.hdf5_add_data( fd, n )
 
-    data = self.job.board.kernel._policy_user_init( self.policy_spec )
+    data = self._policy_user_init( self.policy_spec )
 
     for i in range( n ) :
       self._acquire_log_inc( n, i )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i )
 
-      data = self.job.board.kernel._policy_user_step( self.policy_spec, n, i, data )
+      data = self._policy_user_step( self.policy_spec, n, i, data )
 
   # Driver policy: TVLA-driven.
   #
@@ -289,23 +289,23 @@ class DriverAbs( abc.ABC ) :
 
     self.hdf5_add_attr( fd ) ; self.hdf5_add_data( fd, n )
 
-    data = self.job.board.kernel._policy_tvla_init( self.policy_spec, mode = 'lhs' )
+    data = self._policy_tvla_init( self.policy_spec, mode = 'lhs' )
 
     for i in lhs :
       self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self.job.board.kernel._policy_tvla_step( self.policy_spec, n, i, data, mode = 'lhs' )
+      data = self._policy_tvla_step( self.policy_spec, n, i, data, mode = 'lhs' )
 
-    data = self.job.board.kernel._policy_tvla_init( self.policy_spec, mode = 'rhs' )
+    data = self._policy_tvla_init( self.policy_spec, mode = 'rhs' )
 
     for i in rhs :
       self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
       self.hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self.job.board.kernel._policy_tvla_step( self.policy_spec, n, i, data, mode = 'rhs' )
+      data = self._policy_tvla_step( self.policy_spec, n, i, data, mode = 'rhs' )
 
   # TODO
 
@@ -356,9 +356,9 @@ class DriverAbs( abc.ABC ) :
     if ( data == None ) :
       data = dict()
 
-    for id in self.job.board.kernel.data_wr_id :
+    for id in self.job.board.kernel_data_wr_id :
       if ( not id in data ) :
-        data[ id ] = self.job.board.kernel.expand( '{$*|%s|}' % ( id ) )
+        data[ id ] = self._expand( '{$*|%s|}' % ( id ) )
 
       self.job.board.interact( '>data %s %s' % ( id, sca3s_be.share.util.str2octetstr( data[ id ] ).upper() ) )
   
@@ -380,25 +380,25 @@ class DriverAbs( abc.ABC ) :
 
     duration = float( edge_neg - edge_pos ) * self.job.scope.signal_interval
   
-    for id in self.job.board.kernel.data_rd_id :
+    for id in self.job.board.kernel_data_rd_id :
       data[ id ] = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data %s' % ( id ) ) )
 
-    data_wr = { id : data[ id ] for id in self.job.board.kernel.data_wr_id }
-    data_rd = { id : data[ id ] for id in self.job.board.kernel.data_rd_id }
+    data_wr = { id : data[ id ] for id in self.job.board.kernel_data_wr_id }
+    data_rd = { id : data[ id ] for id in self.job.board.kernel_data_rd_id }
 
     self.job.log.info( 'acquire: data_wr => %s' % str( data_wr ) )
     self.job.log.info( 'acquire: data_rd => %s' % str( data_rd ) )
 
     if ( ( self.job.board.board_mode == 'interactive' ) and self._supports_verify() ) :
-      if ( self.job.board.kernel.verify( data_wr, data_rd ) ) :
+      if ( self._verify( data_wr, data_rd ) ) :
         raise Exception( 'failed I/O verification: interactive I/O != model' )
 
     trace = { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration }
 
-    trace.update( { 'data/%s'        % ( id ) :      data_wr[ id ]   for id in self.job.board.kernel.data_wr_id } )
-    trace.update( { 'data/usedof_%s' % ( id ) : len( data_wr[ id ] ) for id in self.job.board.kernel.data_wr_id } )
-    trace.update( { 'data/%s'        % ( id ) :      data_rd[ id ]   for id in self.job.board.kernel.data_rd_id } )
-    trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel.data_rd_id } )
+    trace.update( { 'data/%s'        % ( id ) :      data_wr[ id ]   for id in self.job.board.kernel_data_wr_id } )
+    trace.update( { 'data/usedof_%s' % ( id ) : len( data_wr[ id ] ) for id in self.job.board.kernel_data_wr_id } )
+    trace.update( { 'data/%s'        % ( id ) :      data_rd[ id ]   for id in self.job.board.kernel_data_rd_id } )
+    trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel_data_rd_id } )
 
     return trace
 

@@ -19,5 +19,5 @@ from sca3s.backend.acquire import depo   as depo
 import binascii
 
 class KernelImp( kernel.block.KernelType ) :
-  def __init__( self, nameof, modeof, data_wr, data_rd ) :
-    super().__init__( nameof, modeof, data_wr, data_rd )
+  def __init__( self, job ) :
+    super().__init__( job )

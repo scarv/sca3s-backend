@@ -216,10 +216,10 @@ class BoardAbs( abc.ABC ) :
     if ( len( t ) != 3 ) :
       raise Exception( 'cannot parse kernel identifier' )
   
-    self.driver_version = t[ 0 ]
-    self.driver_id      = t[ 1 ]
+    self.driver_version   = t[ 0 ]
+    self.driver_id        = t[ 1 ]
   
-    self.kernel_id      = t[ 2 ]
+    self.kernel_id        = t[ 2 ]
   
     self.job.log.info( '?kernel -> driver version = %s', self.driver_version )
     self.job.log.info( '?kernel -> driver id      = %s', self.driver_id      )
@@ -231,28 +231,28 @@ class BoardAbs( abc.ABC ) :
     if ( len( t ) != 2 ) :
       raise Exception( 'cannot parse kernel identifier' )
 
-    self.kernel_nameof  = t[ 0 ]
-    self.kernel_modeof  = t[ 1 ]
+    self.kernel_id_nameof = t[ 0 ]
+    self.kernel_id_modeof = t[ 1 ]
 
     for id in self.job.board.interact( '>kernel' ).split( ',' ) :
-      self.data_wr_id.add( id )
+      self.kernel_data_wr_id.add( id )
 
-      data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
-      data_wr_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
+      self.kernel_data_wr_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
+      self.kernel_data_wr_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
 
     for id in self.job.board.interact( '<kernel' ).split( ',' ) :
-      self.data_rd_id.add( id )
+      self.kernel_data_rd_id.add( id )
 
-      data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
-      data_rd_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
+      self.kernel_data_rd_size[ id ] = sca3s_be.share.util.octetstr2int( self.job.board.interact( '|data %s' % ( id ) ) )
+      self.kernel_data_rd_type[ id ] =                              str( self.job.board.interact( '?data %s' % ( id ) ) )
 
-    self.job.log.info( '>kernel -> register id    = %s', data_wr_id   )
-    self.job.log.info( '        -> register size  = %s', data_wr_size )
-    self.job.log.info( '        -> register type  = %s', data_wr_type )
+    self.job.log.info( '>kernel -> register id    = %s', self.kernel_data_wr_id   )
+    self.job.log.info( '        -> register size  = %s', self.kernel_data_wr_size )
+    self.job.log.info( '        -> register type  = %s', self.kernel_data_wr_type )
 
-    self.job.log.info( '<kernel -> register id    = %s', data_rd_id   )
-    self.job.log.info( '        -> register size  = %s', data_rd_size )
-    self.job.log.info( '        -> register type  = %s', data_rd_type )
+    self.job.log.info( '<kernel -> register id    = %s', self.kernel_data_rd_id   )
+    self.job.log.info( '        -> register size  = %s', self.kernel_data_rd_size )
+    self.job.log.info( '        -> register type  = %s', self.kernel_data_rd_type )
 
   @abc.abstractmethod
   def  open( self ) :

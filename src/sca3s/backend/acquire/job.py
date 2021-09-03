@@ -199,22 +199,22 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   #    - construct depo.
   #
   # 2. - open      board
-  #    - prepare   board,  e.g., build and program target implementation
+  #    - prepare   board,          e.g., build and program target implementation
   #
   # 3. - transfer  target implementation from repo. to local copy 
   #
-  # 4. - prepare   repo.
+  # 4. - prepare   repo.,          e.g., check changes vs. those allowed
   #    - prepare   depo.
   #
   # 5. - construct driver
-  #    - prepare   driver, e.g., query target implemention parameters
+  #    - prepare   driver,         e.g., query target implemention parameters
   #
   # 6. - open      scope
-  #    - prepare   scope,  e.g., calibrate wrt. target implementation
+  #    - prepare   scope,          e.g., calibrate wrt. target implementation
   #
-  # 7. - execute driver prologue, e.g., job-specific  pre-processing/computation
-  #    - execute driver,          i.e., acquisition process wrt. target implementation
-  #    - execute driver epilogue, e.g., job-specific post-processing/computation
+  # 7. - execute  driver prologue, e.g., job-specific  pre-processing/computation
+  #    - execute  driver,          i.e., acquisition process wrt. target implementation
+  #    - execute  driver epilogue, e.g., job-specific post-processing/computation
   #
   # 8. - transfer target implementation from local copy to depo.
   #
@@ -279,15 +279,13 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
         self._prepare_board()
         self.log.indent_dec()
 
-#    module = 'sca3s.backend.acquire.kernel' + '.' + self.driver_id + '.' + kernel_nameof
-#
-#    try :
-#      self.kernel = importlib.import_module( module ).KernelImp( kernel_nameof, kernel_modeof, data_wr, data_rd )
-#    except :
-#      raise ImportError( 'failed to construct %s instance' % ( module ) )
+        if ( not sca3s_be.share.version.match( self.board.driver_version ) ) :
+          raise Exception( 'inconsistent driver version'    )
+        if ( self.conf.get( 'driver_id' ) != ( self.board.driver_id      ) ) :
+          raise Exception( 'inconsistent driver identifier' )
 
         self.log.indent_inc( message = 'construct driver object' )
-        self.driver = self._object( self.conf.get( 'driver_id' ), 'driver', 'DriverImp' )
+        self.driver = self._object( self.board.driver_id + '.' + self.board.kernel_id_nameof, 'driver', 'DriverImp' )
         self.log.indent_dec()
 
         self.log.indent_inc( message = 'prepare driver'          )
