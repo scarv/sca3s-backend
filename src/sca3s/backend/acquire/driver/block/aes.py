@@ -29,10 +29,12 @@ class DriverImp( driver.block.DriverType ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    if   ( self.modeof == 'enc' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m
-    elif ( self.modeof == 'dec' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'm' ]
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'c' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
       if   ( sizeof_k == 16 ) :
@@ -78,19 +80,21 @@ class DriverImp( driver.block.DriverType ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    if   ( self.modeof == 'enc' ) :
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
       return { 'k' : k, 'm' : x }  
-    elif ( self.modeof == 'dec' ) :
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
       return { 'k' : k, 'c' : x }  
 
   def _policy_tvla_init_rhs( self, spec             ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    if   ( self.modeof == 'enc' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m
-    elif ( self.modeof == 'dec' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'm' ]
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'c' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
       if   ( sizeof_k == 16 ) :
@@ -146,19 +150,21 @@ class DriverImp( driver.block.DriverType ) :
         k =                                        bytes( binascii.a2b_hex( '0123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDEF012' ) )
         x =                                        bytes( binascii.a2b_hex( '00000000000000000000000000000000'                                 ) )
 
-    if   ( self.modeof == 'enc' ) :
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
       return { 'k' : k, 'm' : x }  
-    elif ( self.modeof == 'dec' ) :
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
       return { 'k' : k, 'c' : x }  
 
   def _policy_tvla_step_lhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    if   ( self.modeof == 'enc' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m ; k = data[ 'k' ] ; x = data[ 'm' ]
-    elif ( self.modeof == 'dec' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c ; k = data[ 'k' ] ; x = data[ 'c' ]
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ] ; k = data[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'm' ] ; x = data[ 'm' ]
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ] ; k = data[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'c' ] ; x = data[ 'c' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
       if   ( sizeof_k == 16 ) :
@@ -181,9 +187,9 @@ class DriverImp( driver.block.DriverType ) :
       x = bytes( binascii.a2b_hex( '8B8A490BDF7C00BDD7E6066C61002412' ) ) ; i = struct.pack( '<I', i )
       x = bytes( [ a ^ b for ( a, b ) in zip( x[ 0 : 4 ], i[ 0 : 4 ] ) ] ) + x[ 4 : ]
 
-      if   ( self.modeof == 'enc' ) :
+      if   ( self.job.board.kernel_id_modeof == 'enc' ) :
         x = sca3s_be.share.crypto.AES( k ).enc_rev( x, tvla_round )
-      elif ( self.modeof == 'dec' ) :
+      elif ( self.job.board.kernel_id_modeof == 'dec' ) :
         x = sca3s_be.share.crypto.AES( k ).dec_rev( x, tvla_round )
 
     elif( tvla_mode == 'rvr_d' ) :
@@ -197,19 +203,21 @@ class DriverImp( driver.block.DriverType ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
-    if   ( self.modeof == 'enc' ) :
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
       return { 'k' : k, 'm' : x }  
-    elif ( self.modeof == 'dec' ) :
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
       return { 'k' : k, 'c' : x }  
 
   def _policy_tvla_step_rhs( self, spec, n, i, data ) :
     tvla_mode  = spec.get( 'tvla_mode'  )
     tvla_round = spec.get( 'tvla_round' )
 
-    if   ( self.modeof == 'enc' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_m ; k = data[ 'k' ] ; x = data[ 'm' ]
-    elif ( self.modeof == 'dec' ) :
-      sizeof_k = self.sizeof_k ; sizeof_x = self.sizeof_c ; k = data[ 'k' ] ; x = data[ 'c' ]
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ] ; k = data[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'm' ] ; x = data[ 'm' ]
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
+      sizeof_k = self.job.board.kernel_data_wr_size[ 'k' ] ; k = data[ 'k' ]
+      sizeof_x = self.job.board.kernel_data_wr_size[ 'c' ] ; x = data[ 'c' ]
 
     if  ( tvla_mode == 'fvr_k' ) :
       if   ( sizeof_k == 16 ) :
@@ -265,13 +273,10 @@ class DriverImp( driver.block.DriverType ) :
         k = k
         x =             sca3s_be.share.crypto.AES( bytes( binascii.a2b_hex( '123456789ABCDEF123456789ABCDEF023456789ABCDEF013456789ABCDE0F012' ) ) ).enc( x )
 
-    if   ( self.modeof == 'enc' ) :
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
       return { 'k' : k, 'm' : x }  
-    elif ( self.modeof == 'dec' ) :
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
       return { 'k' : k, 'c' : x }  
-
-  def _supports_verify( self ) :
-    return True
 
   def _supports_policy_user( self, spec ) :
     return True
@@ -291,10 +296,13 @@ class DriverImp( driver.block.DriverType ) :
 
     return False
 
+  def _supports_verify( self ) :
+    return True
+
   def _verify( self, data_wr, data_rd ) :
-    if   ( self.modeof == 'enc' ) :
+    if   ( self.job.board.kernel_id_modeof == 'enc' ) :
       return ( sca3s_be.share.crypto.AES( data_wr[ 'k' ] ).enc( data_wr[ 'm' ] ) ) == ( data_rd[ 'c' ] )
-    elif ( self.modeof == 'dec' ) :
+    elif ( self.job.board.kernel_id_modeof == 'dec' ) :
       return ( sca3s_be.share.crypto.AES( data_wr[ 'k' ] ).dec( data_wr[ 'c' ] ) ) == ( data_rd[ 'm' ] )
 
     return False

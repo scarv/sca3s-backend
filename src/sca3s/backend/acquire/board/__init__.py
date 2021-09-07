@@ -29,14 +29,11 @@ class BoardAbs( abc.ABC ) :
 
     self.board_uart                = None
 
-    self.driver_version            = None
-    self.driver_id                 = None
+    self.kernel_version            = None
 
     self.kernel_id                 = None
-    self.kernel_io                 = dict()
-
-    self.kernel_nameof             = None
-    self.kernel_modeof             = None
+    self.kernel_id_nameof          = None
+    self.kernel_id_modeof          = None
 
     self.kernel_data_wr_id         =  set()
     self.kernel_data_wr_size       = dict()
@@ -45,6 +42,8 @@ class BoardAbs( abc.ABC ) :
     self.kernel_data_rd_id         =  set()
     self.kernel_data_rd_size       = dict()
     self.kernel_data_rd_type       = dict()
+
+    self.kernel_io                 = dict()
 
   def __str__( self ) :
     return self.board_id
@@ -141,11 +140,13 @@ class BoardAbs( abc.ABC ) :
       raise Exception( 'failed board interaction' )
 
   def hdf5_add_attr( self, trace_content, fd              ) :
-    spec = [ ( 'board/driver_version', str( self.driver_version ), h5py.special_dtype( vlen = str ) ),
-             ( 'board/driver_id',      str( self.driver_id      ), h5py.special_dtype( vlen = str ) ),
- 
-             ( 'board/kernel_id',      str( self.kernel_id      ), h5py.special_dtype( vlen = str ) ),
-             ( 'board/kernel_io',      str( self.kernel_io      ), h5py.special_dtype( vlen = str ) ) ]
+    spec = [ ( 'board/kernel_version',   str( self.kernel_version   ), h5py.special_dtype( vlen = str ) ),
+
+             ( 'board/kernel_id',        str( self.kernel_id        ), h5py.special_dtype( vlen = str ) ),
+             ( 'board/kernel_id_nameof', str( self.kernel_id_nameof ), h5py.special_dtype( vlen = str ) ),
+             ( 'board/kernel_id_modeof', str( self.kernel_id_modeof ), h5py.special_dtype( vlen = str ) ),
+
+             ( 'board/kernel_io',        str( self.kernel_io        ), h5py.special_dtype( vlen = str ) ) ]
 
     sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
 
@@ -213,26 +214,20 @@ class BoardAbs( abc.ABC ) :
   def prepare( self ) :
     t = self.interact( '?kernel' ).split( ':' )
   
-    if ( len( t ) != 3 ) :
+    if ( len( t ) != 4 ) :
       raise Exception( 'cannot parse kernel identifier' )
   
-    self.driver_version   = t[ 0 ]
-    self.driver_id        = t[ 1 ]
+    self.kernel_version   = t[ 0 ]
+
+    self.kernel_id        = t[ 1 ]
+    self.kernel_id_nameof = t[ 2 ]
+    self.kernel_id_modeof = t[ 3 ]
   
-    self.kernel_id        = t[ 2 ]
-  
-    self.job.log.info( '?kernel -> driver version = %s', self.driver_version )
-    self.job.log.info( '?kernel -> driver id      = %s', self.driver_id      )
+    self.job.log.info( '?kernel -> kernel version = %s', self.kernel_version      )
 
-    self.job.log.info( '?kernel -> kernel id      = %s', self.kernel_id      )
-
-    t = self.kernel_id.split( '/' )
-
-    if ( len( t ) != 2 ) :
-      raise Exception( 'cannot parse kernel identifier' )
-
-    self.kernel_id_nameof = t[ 0 ]
-    self.kernel_id_modeof = t[ 1 ]
+    self.job.log.info( '?kernel -> kernel id      = %s', self.kernel_id           )
+    self.job.log.info( '?kernel -> kernel id name = %s', self.kernel_id_nameof    )
+    self.job.log.info( '?kernel -> kernel id mode = %s', self.kernel_id_modeof    )
 
     for id in self.job.board.interact( '>kernel' ).split( ',' ) :
       self.kernel_data_wr_id.add( id )

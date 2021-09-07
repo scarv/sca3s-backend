@@ -48,9 +48,11 @@ class LogAdapter( logging.LoggerAdapter ):
       if ( line != '' ) :
         self.log( level, line ) ; n = max( n, len( line ) )
   
+    version = 'v' + sca3s_be.share.version.ident()
+
     self.log( level, '' )
     self.log( level, ( 'Side-Channel Analysis As A Service' ).center( n, ' ' ) )
-    self.log( level, ( 'v' + sca3s_be.share.version.ident() ).center( n, ' ' ) )
+    self.log( level, (             version                  ).center( n, ' ' ) )
     self.log( level, (     'https://sca3s.scarv.org'        ).center( n, ' ' ) )
     self.log( level, '' )
   

@@ -13,16 +13,16 @@ MAJOR = 0x01
 MINOR = 0x02
 PATCH = 0x04
 
-def ident() :
-  x  = str( sca3s_be.share.sys.conf.get( 'major', section = 'version' ) )
-  x += '.'
-  x += str( sca3s_be.share.sys.conf.get( 'minor', section = 'version' ) )
-  x += '.'
-  x += str( sca3s_be.share.sys.conf.get( 'patch', section = 'version' ) )
+def ident(              pattern = MAJOR | MINOR | PATCH ) :
+  x = []
 
-  return x
+  x.append( str( sca3s_be.share.sys.conf.get( 'major', section = 'version' ) ) if ( pattern & MAJOR ) else '0' )
+  x.append( str( sca3s_be.share.sys.conf.get( 'minor', section = 'version' ) ) if ( pattern & MINOR ) else '0' )
+  x.append( str( sca3s_be.share.sys.conf.get( 'patch', section = 'version' ) ) if ( pattern & PATCH ) else '0' )
 
-def match( x, y = None, pattern = MAJOR | MINOR ) :
+  return '.'.join( x )
+
+def match( x, y = None, pattern = MAJOR | MINOR         ) :
   if ( y == None ) :
     y = ident()
 

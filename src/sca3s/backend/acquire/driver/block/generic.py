@@ -16,8 +16,8 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import binascii
+import binascii, struct
 
-class KernelImp( kernel.block.KernelType ) :
+class DriverImp( driver.block.DriverType ) :
   def __init__( self, job ) :
     super().__init__( job )

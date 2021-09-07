@@ -32,13 +32,16 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
   # Construct a parameterised job-related object.
 
-  def _object( self, id, module, cons ) :
-    module = 'sca3s.backend.acquire.%s' % ( module )  + '.' + id.replace( '/', '.' )
+  def _object( self, x, m, f ) :
+    x = x.replace( '/', '.' )
+    m = m.replace( '/', '.' )
+
+    x = 'sca3s.backend.acquire.{1:s}.{0:s}'.format( x, m )
 
     try :
-      t = getattr( importlib.import_module( module ), cons ) ; return t( self )
+      f = getattr( importlib.import_module( x ), f ) ; return f( self )
     except :
-      raise ImportError( 'failed to construct %s instance' % ( module ) )
+      raise ImportError( 'failed to construct %s instance' % ( x ) )
 
   # Prepare the board.
   # 
@@ -279,13 +282,13 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
         self._prepare_board()
         self.log.indent_dec()
 
-        if ( not sca3s_be.share.version.match( self.board.driver_version ) ) :
-          raise Exception( 'inconsistent driver version'    )
-        if ( self.conf.get( 'driver_id' ) != ( self.board.driver_id      ) ) :
-          raise Exception( 'inconsistent driver identifier' )
+        if ( not sca3s_be.share.version.match( self.board.kernel_version ) ) :
+          raise Exception( 'inconsistent kernel version'    )
+        if ( self.conf.get( 'driver_id' ) != ( self.board.kernel_id      ) ) :
+          raise Exception( 'inconsistent kernel identifier' )
 
         self.log.indent_inc( message = 'construct driver object' )
-        self.driver = self._object( self.board.driver_id + '.' + self.board.kernel_id_nameof, 'driver', 'DriverImp' )
+        self.driver = self._object( self.board.kernel_id + '/' + self.board.kernel_id_nameof, 'driver', 'DriverImp' )
         self.log.indent_dec()
 
         self.log.indent_inc( message = 'prepare driver'          )
@@ -312,29 +315,29 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
         self.driver.execute_epilogue()
         self.log.indent_dec()
 
+        self.log.indent_inc( message = 'dump driver outcome'     )
+        self.log.info( 'transfer = %s' % ( str( self.result_transfer ) ) )
+        self.log.info( 'response = %s' % ( str( self.result_response ) ) )
+        self.log.indent_dec()
+
     except Exception as e :
       raise e
 
     finally :
       self.log.indent_rst()
 
-      self.log.indent_inc( message = 'dump result'               )
-      self.log.info( 'transfer = %s' % ( str( self.result_transfer ) ) )
-      self.log.info( 'response = %s' % ( str( self.result_response ) ) )
-      self.log.indent_dec()
-
       if ( self.depo  != None ) :
-        self.log.indent_inc( message = 'transfer local -> depo.'   )
+        self.log.indent_inc( message = 'transfer local -> depo.' )
         self.depo.transfer()
         self.log.indent_dec()
 
       if ( self.board != None ) :
-        self.log.indent_inc( message = 'close board'               )
+        self.log.indent_inc( message = 'close board'             )
         self.board.close()
         self.log.indent_dec()
 
       if ( self.scope != None ) :
-        self.log.indent_inc( message = 'close scope'               )
+        self.log.indent_inc( message = 'close scope'             )
         self.scope.close()
         self.log.indent_dec()
 

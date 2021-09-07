@@ -18,12 +18,12 @@ from sca3s.backend.acquire import depo   as depo
 
 import binascii, struct
 
-class KernelImp( kernel.block.KernelType ) :
-  def __init__( self, nameof, modeof, data_wr, data_rd ) :
-    super().__init__( nameof, modeof, data_wr, data_rd )
+class DriverImp( driver.hash.DriverType ) :
+  def __init__( self, job ) :
+    super().__init__( job )
 
-  def supports_verify( self ) :
+  def _supports_verify( self ) :
     return True
 
-  def verify( self, data_wr, data_rd ) :
+  def _verify( self, data_wr, data_rd ) :
     return ( sca3s_be.share.crypto.SHA_2_224().digest( data_wr[ 'm' ] ) ) == ( data_rd[ 'd' ] )

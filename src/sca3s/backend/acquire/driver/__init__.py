@@ -34,7 +34,7 @@ class DriverAbs( abc.ABC ) :
     self.policy_spec   = self.driver_spec.get( 'policy_spec' )
 
   def __str__( self ) :
-    return self.driver_id + ' ' + '(' + self.job.board.kernel_id + ')'
+    return self.job.board.kernel_id + '/' + self.job.board.kernel_id_nameof + '(' + self.job.board.kernel_id_modeof + ')'
 
   # Expand an (abstract, symbolic) value description into a (concrete) sequence of bytes.
 
@@ -258,13 +258,13 @@ class DriverAbs( abc.ABC ) :
   def _policy_user( self, fd ) :
     n   = 1 * self.trace_count
 
-    self.hdf5_add_attr( fd ) ; self.hdf5_add_data( fd, n )
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
     data = self._policy_user_init( self.policy_spec )
 
     for i in range( n ) :
       self._acquire_log_inc( n, i )
-      self.hdf5_set_data( fd, n, i, self.acquire( data ) )
+      self._hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i )
 
       data = self._policy_user_step( self.policy_spec, n, i, data )
@@ -287,13 +287,13 @@ class DriverAbs( abc.ABC ) :
     if ( 'tvla/rhs' in self.trace_content ) :
       fd[ 'tvla/rhs' ] = rhs
 
-    self.hdf5_add_attr( fd ) ; self.hdf5_add_data( fd, n )
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
     data = self._policy_tvla_init( self.policy_spec, mode = 'lhs' )
 
     for i in lhs :
       self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self.hdf5_set_data( fd, n, i, self.acquire( data ) )
+      self._hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       data = self._policy_tvla_step( self.policy_spec, n, i, data, mode = 'lhs' )
@@ -302,7 +302,7 @@ class DriverAbs( abc.ABC ) :
 
     for i in rhs :
       self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self.hdf5_set_data( fd, n, i, self.acquire( data ) )
+      self._hdf5_set_data( fd, n, i, self.acquire( data ) )
       self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
       data = self._policy_tvla_step( self.policy_spec, n, i, data, mode = 'rhs' )
@@ -349,6 +349,61 @@ class DriverAbs( abc.ABC ) :
 
   def _analyse_contest( self ) :
     self.job.result_response[ 'score' ] = 0
+
+  # HDF5 file manipulation: add attributes
+
+  def _hdf5_add_attr( self, fd              ) :
+    spec = list()
+
+    for id in self.job.board.kernel_data_wr_id :
+      spec.append( ( 'kernel/sizeof_{0:s}'.format( id ),      self.job.board.kernel_data_wr_size[ id ],   '<u8' ) )
+    for id in self.job.board.kernel_data_rd_id :
+      spec.append( ( 'kernel/sizeof_{0:s}'.format( id ),      self.job.board.kernel_data_rd_size[ id ],   '<u8' ) )
+
+    self.job.board.hdf5_add_attr( self.trace_content, fd              )
+    self.job.scope.hdf5_add_attr( self.trace_content, fd              )
+
+    sca3s_be.share.util.hdf5_add_attr( spec, self.trace_content, fd              )
+
+  # HDF5 file manipulation: add data
+
+  def _hdf5_add_data( self, fd, n           ) :
+    spec = list()
+
+    for id in self.job.board.kernel_data_wr_id :
+      spec.append( (   'data/{0:s}'       .format( id ), ( n, self.job.board.kernel_data_wr_size[ id ] ), 'B'   ) )
+      spec.append( (   'data/usedof_{0:s}'.format( id ), ( n,                                          ), '<u8' ) )
+    for id in self.job.board.kernel_data_rd_id :
+      spec.append( (   'data/{0:s}'       .format( id ), ( n, self.job.board.kernel_data_rd_size[ id ] ), 'B'   ) )
+      spec.append( (   'data/usedof_{0:s}'.format( id ), ( n,                                          ), '<u8' ) )
+
+    self.job.board.hdf5_add_data( self.trace_content, fd, n           )
+    self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
+
+    sca3s_be.share.util.hdf5_add_data( spec, self.trace_content, fd, n           )
+
+  # HDF5 file manipulation: set data
+
+  def _hdf5_set_data( self, fd, n, i, trace ) :
+    spec = list()
+
+    for id in self.job.board.kernel_data_wr_id :
+      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.frombuffer( trace[ 'data/{0:s}'.format( id ) ], dtype = numpy.uint8 ) ) )
+      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :              len( trace[ 'data/{0:s}'.format( id ) ]                      ) ) )
+    for id in self.job.board.kernel_data_rd_id :
+      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.frombuffer( trace[ 'data/{0:s}'.format( id ) ], dtype = numpy.uint8 ) ) )
+      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :              len( trace[ 'data/{0:s}'.format( id ) ]                      ) ) )
+
+    self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
+    self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
+
+    sca3s_be.share.util.hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
+
+  # Prepare the driver
+
+  @abc.abstractmethod
+  def prepare( self ) :
+    raise NotImplementedError()
 
   # Acquire via driver.
 
@@ -402,30 +457,6 @@ class DriverAbs( abc.ABC ) :
 
     return trace
 
-  # HDF5 file manipulation: add attributes
-
-  @abc.abstractmethod
-  def hdf5_add_attr( self, fd              ) :
-    raise NotImplementedError()
-
-  # HDF5 file manipulation: add data
-
-  @abc.abstractmethod
-  def hdf5_add_data( self, fd, n           ) :
-    raise NotImplementedError()
-
-  # HDF5 file manipulation: set data
-
-  @abc.abstractmethod
-  def hdf5_set_data( self, fd, n, i, trace ) :
-    raise NotImplementedError()
-
-  # Prepare the driver
-
-  @abc.abstractmethod
-  def prepare( self ) :
-    raise NotImplementedError()
-
   # Execute the driver prologue
 
   def execute_prologue( self ) :
@@ -440,6 +471,10 @@ class DriverAbs( abc.ABC ) :
       self._policy_user( fd )
     elif ( self.policy_id == 'tvla' ) : 
       self._policy_tvla( fd )
+
+    self.job.log.indent_inc( message = 'dump acquisition summary' )
+    fd.visititems( lambda k, v : self.job.log.info( str( k ) ) )
+    self.job.log.indent_dec()
 
     fd.close()
 
