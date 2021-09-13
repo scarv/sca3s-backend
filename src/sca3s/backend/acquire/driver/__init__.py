@@ -22,16 +22,17 @@ class DriverAbs( abc.ABC ) :
   def __init__( self, job ) :
     self.job           = job
 
-    self.driver_id     = self.job.conf.get( 'driver_id'   )
-    self.driver_spec   = self.job.conf.get( 'driver_spec' )
+    self.driver_id         = self.job.conf.get( 'driver_id'   )
+    self.driver_spec       = self.job.conf.get( 'driver_spec' )
 
-    self.trace_spec    = self.job.conf.get( 'trace_spec' )
+    self.trace_spec        = self.job.conf.get(  'trace_spec' )
 
-    self.trace_content =       self.trace_spec.get( 'content' )
-    self.trace_count   =  int( self.trace_spec.get( 'count'   ) )
+    self.trace_content     =       self.trace_spec.get( 'content'     )
+    self.trace_count_major =  int( self.trace_spec.get( 'count_major' ) )
+    self.trace_count_minor =  int( self.trace_spec.get( 'count_minor' ) )
 
-    self.policy_id     = self.driver_spec.get( 'policy_id'   )
-    self.policy_spec   = self.driver_spec.get( 'policy_spec' )
+    self.policy_id         = self.driver_spec.get( 'policy_id'   )
+    self.policy_spec       = self.driver_spec.get( 'policy_spec' )
 
   def __str__( self ) :
     return self.job.board.kernel_id + '/' + self.job.board.kernel_id_nameof + '(' + self.job.board.kernel_id_modeof + ')'
@@ -256,7 +257,7 @@ class DriverAbs( abc.ABC ) :
   # Driver policy: user-driven.
 
   def _policy_user( self, fd ) :
-    n   = 1 * self.trace_count
+    n   = 1 * self.trace_count_major
 
     self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
 
@@ -277,7 +278,7 @@ class DriverAbs( abc.ABC ) :
   # - mode = rvr_d ~> random-versus random data  
 
   def _policy_tvla( self, fd ) :
-    n   = 2 * self.trace_count
+    n   = 2 * self.trace_count_major
 
     lhs = numpy.fromiter( range( 0, int( n / 2 ) ), numpy.int )
     rhs = numpy.fromiter( range( int( n / 2 ), n ), numpy.int )
