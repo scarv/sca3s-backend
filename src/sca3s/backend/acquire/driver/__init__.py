@@ -420,15 +420,15 @@ class DriverAbs( abc.ABC ) :
   
     _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
 
-    self.job.board.interact( '!kernel_prologue'                    )
+    self.job.board.interact( '!kernel_prologue'                              )
 
     self.job.board.interact( '!kernel' + ' ' + '%d' % self.trace_count_minor )
-    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) ) / self.trace_count_minor
+    cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
 
-    self.job.board.interact( '!kernel_epilogue'                    )
+    self.job.board.interact( '!kernel_epilogue'                              )
 
     self.job.board.interact( '!nop'    + ' ' + '%d' % self.trace_count_minor )
-    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) ) / self.trace_count_minor
+    cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
   
     ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
 
