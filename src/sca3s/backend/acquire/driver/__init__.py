@@ -443,7 +443,7 @@ class DriverAbs( abc.ABC ) :
     self.job.log.info( 'acquire: data_rd => %s' % str( data_rd ) )
 
     if ( ( self.job.board.board_mode == 'interactive' ) and self._supports_verify() ) :
-      if ( self._verify( data_wr, data_rd ) ) :
+      if ( not self._verify( data_wr, data_rd ) ) :
         raise Exception( 'failed I/O verification: interactive I/O != model' )
 
     trace = { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration }
