@@ -27,9 +27,9 @@ class DriverAbs( abc.ABC ) :
 
     self.trace_spec        = self.job.conf.get(  'trace_spec' )
 
-    self.trace_content     =       self.trace_spec.get( 'content' )
-    self.trace_count_major =  int( self.trace_spec.get( 'count'   ) )
-    self.trace_count_minor =  1
+    self.trace_content     =       self.trace_spec.get( 'content'     )
+    self.trace_count_major =  int( self.trace_spec.get( 'count_major' ) )
+    self.trace_count_minor =  int( self.trace_spec.get( 'count_minor' ) )
 
     self.policy_id         = self.driver_spec.get( 'policy_id'   )
     self.policy_spec       = self.driver_spec.get( 'policy_spec' )
