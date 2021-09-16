@@ -39,8 +39,7 @@ class HybridImp( hybrid.HybridAbs ) :
       return {}
   
     def get_docker_env ( self ) :
-      return { 'COUNT_MAJOR' : self.job.conf.get( 'trace_spec' ).get( 'count_major' )
-               'COUNT_MINOR' : self.job.conf.get( 'trace_spec' ).get( 'count_minor' ) }
+      return { 'COUNT_MAJOR' : self.job.conf.get( 'trace_spec' ).get( 'count' ), 'COUNT_MINOR' : 1 }
 
     def get_docker_conf( self ) :
       t = [ '-DDRIVER_NONINTERACTIVE' ]
@@ -61,38 +60,34 @@ class HybridImp( hybrid.HybridAbs ) :
       def set_cached( k, v ) :
         self.kernel_io[ k ] = v ; return v
   
-      if   ( x.startswith( '?data'            ) ) :
+      if   ( x.startswith( '?data'   ) ) :
         return get_cached( x              )
-      elif ( x.startswith( '|data'            ) ) :
+      elif ( x.startswith( '|data'   ) ) :
         return get_cached( x              )
-      elif ( x.startswith( '#data'            ) ) :
+      elif ( x.startswith( '#data'   ) ) :
         return get_cached( x              )
 
-      elif ( x.startswith( '>data'            ) ) :
+      elif ( x.startswith( '>data'   ) ) :
         x = x.split( ' ' ) ; 
         return set_cached( x[ 1 ], x[ 2 ] )  
-      elif ( x.startswith( '<data'            ) ) :
+      elif ( x.startswith( '<data'   ) ) :
         x = x.split( ' ' )
         return get_cached( x[ 1 ]         )
 
-      elif ( x.startswith( '?kernel'          ) ) :
+      elif ( x.startswith( '?kernel' ) ) :
         return get_cached( x              )
-      elif ( x.startswith( '>kernel'          ) ) :
+      elif ( x.startswith( '>kernel' ) ) :
         return get_cached( x              )
-      elif ( x.startswith( '<kernel'          ) ) :
+      elif ( x.startswith( '<kernel' ) ) :
         return get_cached( x              )
 
-      elif ( x.startswith( '!kernel_prologue' ) ) :
-        pass
-      elif ( x.startswith( '!kernel_epiloge'  ) ) :
-        pass
-      elif ( x.startswith( '!kernel'          ) ) :
+      elif ( x.startswith( '!kernel' ) ) :
         self.job.exec_docker(    'clean-harness', quiet = True )
         self.job.exec_docker(    'build-harness', quiet = True )
   
         self.job.exec_docker( 'simulate-harness', quiet = True )
 
-      elif ( x.startswith( '!nop'             ) ) :
+      elif ( x.startswith( '!nop'    ) ) :
         pass
 
       return ''
@@ -163,20 +158,20 @@ class HybridImp( hybrid.HybridAbs ) :
         for fn in sorted( glob.glob( os.path.join( self.job.path, 'target', 'build', self.job.board.board_id, '*.trs' ) ) ) :
           fd = trsfile.open( fn, 'r' )
   
-          if ( signal_trigger == None ) :
+          if ( signal_trigger is None ) :
             signal_trigger =                               numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd[ 0 ] ), dtype = self.signal_dtype )
           else :
             signal_trigger = numpy.append( signal_trigger, numpy.array( [ 0 ] * 10,                                                    dtype = self.signal_dtype ) )
             signal_trigger = numpy.append( signal_trigger, numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd[ 0 ] ), dtype = self.signal_dtype ) )
 
-          if ( signal_acquire == None ) :
+          if ( signal_acquire is None ) :
             signal_acquire =                               numpy.array(                                                   ( fd[ 0 ] ), dtype = self.signal_dtype )
           else :
             signal_acquire = numpy.append( signal_acquire, numpy.array( [ 0 ] * 10,                                                    dtype = self.signal_dtype ) )
             signal_acquire = numpy.append( signal_acquire, numpy.array(                                                   ( fd[ 0 ] ), dtype = self.signal_dtype ) )
   
           fd.close()
-  
+
         return ( signal_trigger, signal_acquire )
 
     def  open( self ) :

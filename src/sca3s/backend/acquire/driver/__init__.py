@@ -29,7 +29,7 @@ class DriverAbs( abc.ABC ) :
 
     self.trace_content     =       self.trace_spec.get( 'content' )
     self.trace_count_major =  int( self.trace_spec.get( 'count'   ) )
-    self.trace_count_minor =  int( self.trace_spec.get( 'count'   ) )
+    self.trace_count_minor =  1
 
     self.policy_id         = self.driver_spec.get( 'policy_id'   )
     self.policy_spec       = self.driver_spec.get( 'policy_spec' )
@@ -420,17 +420,13 @@ class DriverAbs( abc.ABC ) :
   
     _                   = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_PRIME )
 
-    self.job.board.interact( '!kernel_prologue'                              )
-
     self.job.board.interact( '!kernel' + ' ' + '%d' % self.trace_count_minor )
     cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
 
-    self.job.board.interact( '!kernel_epilogue'                              )
+    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
 
     self.job.board.interact( '!nop'    + ' ' + '%d' % self.trace_count_minor )
     cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
-  
-    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
 
     edge_pos = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
     edge_neg = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
