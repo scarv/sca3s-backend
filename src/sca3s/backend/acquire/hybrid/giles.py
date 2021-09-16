@@ -16,7 +16,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import os, numpy, trsfile
+import glob, os, numpy, trsfile
 
 class HybridImp( hybrid.HybridAbs ) :
   class HybridBoard( board.BoardAbs ) :
@@ -39,8 +39,9 @@ class HybridImp( hybrid.HybridAbs ) :
       return {}
   
     def get_docker_env ( self ) :
-      return {}
-  
+      return { 'COUNT_MAJOR' : self.job.conf.get( 'trace_spec' ).get( 'count_major' )
+               'COUNT_MINOR' : self.job.conf.get( 'trace_spec' ).get( 'count_minor' ) }
+
     def get_docker_conf( self ) :
       t = [ '-DDRIVER_NONINTERACTIVE' ]
   
@@ -156,17 +157,25 @@ class HybridImp( hybrid.HybridAbs ) :
         pass
   
       if ( mode & scope.ACQUIRE_MODE_FETCH ) :
-        fn_trs = os.path.join( self.job.path, 'target', 'build', self.job.board.board_id, 'target.trs' )
+        signal_trigger = None
+        signal_acquire = None
+
+        for fn in sorted( glob.glob( os.path.join( self.job.path, 'target', 'build', self.job.board.board_id, '*.trs' ) ) ) :
+          fd = trsfile.open( fn, 'r' )
   
-        if ( not os.path.isfile( fn_trs ) ) :
-          raise Exception( 'failed to open file' )
+          if ( signal_trigger == None ) :
+            signal_trigger =                               numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd[ 0 ] ), dtype = self.signal_dtype )
+          else :
+            signal_trigger = numpy.append( signal_trigger, numpy.array( [ 0 ] * 10,                                                    dtype = self.signal_dtype ) )
+            signal_trigger = numpy.append( signal_trigger, numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd[ 0 ] ), dtype = self.signal_dtype ) )
+
+          if ( signal_acquire == None ) :
+            signal_acquire =                               numpy.array(                                                   ( fd[ 0 ] ), dtype = self.signal_dtype )
+          else :
+            signal_acquire = numpy.append( signal_acquire, numpy.array( [ 0 ] * 10,                                                    dtype = self.signal_dtype ) )
+            signal_acquire = numpy.append( signal_acquire, numpy.array(                                                   ( fd[ 0 ] ), dtype = self.signal_dtype ) )
   
-        fd_trs = trsfile.open( fn_trs, 'r' ) ; n = len( fd_trs[ 0 ] )
-  
-        signal_trigger = numpy.array( [ self.job.scope.channel_trigger_threshold ] * len( fd_trs[ 0 ] ), dtype = self.signal_dtype )
-        signal_acquire = numpy.array(                                                   ( fd_trs[ 0 ] ), dtype = self.signal_dtype )
-  
-        fd_trs.close()
+          fd.close()
   
         return ( signal_trigger, signal_acquire )
 
