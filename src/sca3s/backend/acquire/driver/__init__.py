@@ -459,7 +459,7 @@ class DriverAbs( abc.ABC ) :
     trace.update( { 'data/%s'        % ( id ) :      data_rd[ id ]   for id in self.job.board.kernel_data_rd_id } )
     trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel_data_rd_id } )
 
-    self.job.log.debug( 'acquire => trace= %s' % ( str( trace ) ) )
+    sca3s_be.share.sys.log.debug( 'acquire => trace= %s' % ( str( trace ) ) )
 
     return trace
 
