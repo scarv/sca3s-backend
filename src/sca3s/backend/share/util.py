@@ -148,15 +148,17 @@ def hdf5_set_data( spec, trace_content, fd, n, i, trace ) :
 
       sca3s_be.share.sys.log.debug( '!!! trace = %s' % ( str( trace ) ) )
  
-      sca3s_be.share.sys.log.debug( '!!!     trace[data/%s]  = %s' % ( k, str(      trace[ 'data/%s' % k ]   ) ) )
-      sca3s_be.share.sys.log.debug( '!!! len(trace[data/%s]) = %d' % ( k, str( len( trace[ 'data/%s' % k ] ) ) ) )
+      sca3s_be.share.sys.log.debug( '!!!     trace[%s]  = %s' % ( k, str(      trace[ '%s' % k ]   ) ) )
+      if ( hasattr( trace[ '%s' % k ], '__len__' ) ) :
+        sca3s_be.share.sys.log.debug( '!!! len(trace[%s]) = %d' % ( k, str( len( trace[ '%s' % k ] ) ) ) )
 
       t = f( trace )
 
       sca3s_be.share.sys.log.debug( '!!! t = %s' % ( str( t ) ) )
 
-      sca3s_be.share.sys.log.debug( '!!!     trace[data/%s]  = %s' % ( k, str(      t   ) ) )
-      sca3s_be.share.sys.log.debug( '!!! len(trace[data/%s]) = %d' % ( k, str( len( t ) ) ) )
+      sca3s_be.share.sys.log.debug( '!!!     trace[%s]  = %s' % ( k, str(      t   ) ) )
+      if ( hasattr( t, '__len__' ) ) :
+        sca3s_be.share.sys.log.debug( '!!! len(trace[%s]) = %d' % ( k, str( len( t ) ) ) )
 
       fd[ k ][ i ] = t
 
