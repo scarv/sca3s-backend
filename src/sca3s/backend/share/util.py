@@ -139,5 +139,30 @@ def hdf5_add_data( spec, trace_content, fd, n           ) :
 
 def hdf5_set_data( spec, trace_content, fd, n, i, trace ) :
   for ( k, f )    in spec :
+    sca3s_be.share.sys.log.debug( '>>> trying %s' % k )
     if ( k in trace_content ) :
-      fd[ k ][ i ] = f( trace )
+      sca3s_be.share.sys.log.debug( '!!! k = %s' % k )
+
+      sca3s_be.share.sys.log.debug( '!!! n = %s' % n )
+      sca3s_be.share.sys.log.debug( '!!! i = %s' % i )
+
+      sca3s_be.share.sys.log.debug( '!!! trace = %s' % ( str( trace ) ) )
+ 
+      sca3s_be.share.sys.log.debug( '!!!     trace[data/%s]  = %s' % ( k, str(      trace[ 'data/%s' % k   ) ) ) )
+      sca3s_be.share.sys.log.debug( '!!! len(trace[data/%s]) = %d' % ( k, str( len( trace[ 'data/%s' % k ) ) ) ) )
+      t = f( trace )
+
+      sca3s_be.share.sys.log.debug( '!!! t = %s' % ( str( t ) ) )
+
+      sca3s_be.share.sys.log.debug( '!!!     trace[data/%s]  = %s' % ( k, str(      t   ) ) )
+      sca3s_be.share.sys.log.debug( '!!! len(trace[data/%s]) = %d' % ( k, str( len( t ) ) ) )
+
+      fd[ k ][ i ] = t
+
+      sca3s_be.share.sys.log.debug( '!!!' )
+
+
+
+  #for ( k, f )    in spec :
+  #  if ( k in trace_content ) :
+  #    fd[ k ][ i ] = f( trace )
