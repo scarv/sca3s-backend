@@ -392,12 +392,14 @@ class DriverAbs( abc.ABC ) :
   def _hdf5_set_data( self, fd, n, i, trace ) :
     spec = list()
 
+
+
     for id in self.job.board.kernel_data_wr_id :
-      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.frombuffer( trace[ 'data/{0:s}'.format( id ) ], dtype = numpy.uint8 ) ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :              len( trace[ 'data/{0:s}'.format( id ) ]                      ) ) )
+      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.array( [ t for t in trace[ 'data/{0:s}'.format( id ) ] ], dtype = numpy.uint8 ) ) )
+      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :                      len( trace[ 'data/{0:s}'.format( id ) ]                        ) ) )
     for id in self.job.board.kernel_data_rd_id :
-      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.frombuffer( trace[ 'data/{0:s}'.format( id ) ], dtype = numpy.uint8 ) ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :              len( trace[ 'data/{0:s}'.format( id ) ]                      ) ) )
+      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.array( [ t for t in trace[ 'data/{0:s}'.format( id ) ] ], dtype = numpy.uint8 ) ) )
+      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :                      len( trace[ 'data/{0:s}'.format( id ) ]                        ) ) )
 
     sca3s_be.share.sys.log.debug( 'HDF5 => set_data, spec = %s' % ( str( spec ) ) )
 
