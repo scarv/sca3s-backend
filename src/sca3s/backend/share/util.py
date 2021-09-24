@@ -141,8 +141,6 @@ def hdf5_add_data( spec, trace_content, fd, n           ) :
     if ( k in trace_content ) :
       fd.create_dataset( k, v, t )
 
-from dill.source import getsource      
-      
 def hdf5_set_data( spec, trace_content, fd, n, i, trace ) :
   sca3s_be.share.sys.log.debug( 'HDF5 => set_data, spec = %s' % ( str( spec ) ) )
   
