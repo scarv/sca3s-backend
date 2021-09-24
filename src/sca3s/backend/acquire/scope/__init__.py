@@ -133,30 +133,34 @@ class ScopeAbs( abc.ABC ) :
     return t
 
   def hdf5_add_attr( self, trace_content, fd              ) :
-    spec = [ ( 'scope/signal_resolution',    ( self.signal_resolution ), '<u8'                            ),
-             ( 'scope/signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) ),
+    spec = list()
+    
+    spec.append( ( 'scope/signal_resolution',    ( self.signal_resolution ), '<u8'                            ) )
+    spec.append( ( 'scope/signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) ) )
 
-             ( 'scope/signal_interval',      ( self.signal_interval   ), '<f8'                            ),
-             ( 'scope/signal_duration',      ( self.signal_duration   ), '<f8'                            ),  
-             ( 'scope/signal_samples',       ( self.signal_samples    ), '<u8'                            ) ]
+    spec.append( ( 'scope/signal_interval',      ( self.signal_interval   ), '<f8'                            ) )
+    spec.append( ( 'scope/signal_duration',      ( self.signal_duration   ), '<f8'                            ) ) 
+    spec.append( ( 'scope/signal_samples',       ( self.signal_samples    ), '<u8'                            ) )
 
     sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
 
   def hdf5_add_data( self, trace_content, fd, n           ) :
-    spec = [ ( 'trace/trigger',  ( n, self.signal_samples ),    self.signal_dtype ),
-             ( 'trace/signal',   ( n, self.signal_samples ),    self.signal_dtype ),
-   
-             (  'crop/trigger',  ( n,                     ), h5py.regionref_dtype ),
-             (  'crop/signal',   ( n,                     ), h5py.regionref_dtype ) ]
+    spec = list()
+    
+    spec.append( ( 'trace/trigger',  ( n, self.signal_samples ),    self.signal_dtype ) )
+    spec.append( (  'crop/trigger',  ( n,                     ), h5py.regionref_dtype ) )
+    spec.append( ( 'trace/signal',   ( n, self.signal_samples ),    self.signal_dtype ) )
+    spec.append( (  'crop/signal',   ( n,                     ), h5py.regionref_dtype ) )
 
     sca3s_be.share.util.hdf5_add_data( spec, trace_content, fd, n           )
 
   def hdf5_set_data( self, trace_content, fd, n, i, trace ) :
-    spec = [ ( 'trace/trigger',  lambda trace : trace[ 'trace/trigger' ]                                                           ),
-             ( 'trace/signal',   lambda trace : trace[ 'trace/signal'  ]                                                           ),
+    spec = list()
 
-             (  'crop/trigger',  lambda trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ),
-             (  'crop/signal',   lambda trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) ]
+    spec.append( ( 'trace/trigger', lambda k, fd, n, i, trace : trace[ 'trace/trigger' ]                                                           ) )
+    spec.append( (  'crop/trigger', lambda k, fd, n, i, trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) )
+    spec.append( ( 'trace/signal',  lambda k, fd, n, i, trace : trace[ 'trace/signal'  ]                                                           ) )
+    spec.append( (  'crop/signal',  lambda k, fd, n, i, trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) )
 
     if ( 'trace/trigger' in trace ) :
       trace[ 'trace/trigger' ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )

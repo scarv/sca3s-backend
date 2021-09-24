@@ -129,45 +129,23 @@ def value( x, ids = dict() ) :
   return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
 
 def hdf5_add_attr( spec, trace_content, fd              ) :
+  sca3s_be.share.sys.log.debug( 'HDF5 => add_addr, spec = %s' % ( str( spec ) ) )
+  
   for ( k, v, t ) in spec :
     fd.attrs.create( k, v, dtype = t )
 
 def hdf5_add_data( spec, trace_content, fd, n           ) :
+  sca3s_be.share.sys.log.debug( 'HDF5 => add_data, spec = %s' % ( str( spec ) ) )
+  
   for ( k, v, t ) in spec :
     if ( k in trace_content ) :
       fd.create_dataset( k, v, t )
 
+from dill.source import getsource      
+      
 def hdf5_set_data( spec, trace_content, fd, n, i, trace ) :
+  sca3s_be.share.sys.log.debug( 'HDF5 => set_data, spec = %s' % ( str( spec ) ) )
+  
   for ( k, f )    in spec :
-    sca3s_be.share.sys.log.debug( '>>> trying %s' % k )
     if ( k in trace_content ) :
-      sca3s_be.share.sys.log.debug( '!!! k = %s' % k )
-
-      sca3s_be.share.sys.log.debug( '!!! n = %s' % n )
-      sca3s_be.share.sys.log.debug( '!!! i = %s' % i )
-
-      sca3s_be.share.sys.log.debug( '!!! trace = %s' % ( str( trace ) ) )
- 
-      if ( k in trace ) :
-        sca3s_be.share.sys.log.debug( '!!!     trace[%s]  = %s' % ( k, str(      trace[ '%s' % k ]   ) ) )
-        if ( hasattr( trace[ '%s' % k ], '__len__' ) ) :
-          sca3s_be.share.sys.log.debug( '!!! len(trace[%s]) = %s' % ( k, str( len( trace[ '%s' % k ] ) ) ) )
-
-      t = f( trace )
-
-      sca3s_be.share.sys.log.debug( '!!! t = %s' % ( str( t ) ) )
-
-      if ( k in trace ) :
-        sca3s_be.share.sys.log.debug( '!!!     trace[%s]  = %s' % ( k, str(      t   ) ) )
-        if ( hasattr( t, '__len__' ) ) :
-          sca3s_be.share.sys.log.debug( '!!! len(trace[%s]) = %s' % ( k, str( len( t ) ) ) )
-
-      fd[ k ][ i ] = t
-
-      sca3s_be.share.sys.log.debug( '!!!' )
-
-
-
-  #for ( k, f )    in spec :
-  #  if ( k in trace_content ) :
-  #    fd[ k ][ i ] = f( trace )
+      fd[ k ][ i ] = f( k, fd, n, i, trace )

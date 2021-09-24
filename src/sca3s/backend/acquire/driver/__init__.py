@@ -361,8 +361,6 @@ class DriverAbs( abc.ABC ) :
     for id in self.job.board.kernel_data_rd_id :
       spec.append( ( 'kernel/sizeof_{0:s}'.format( id ),      self.job.board.kernel_data_rd_size[ id ],   '<u8' ) )
 
-    sca3s_be.share.sys.log.debug( 'HDF5 => add_addr, spec = %s' % ( str( spec ) ) )
-
     self.job.board.hdf5_add_attr( self.trace_content, fd              )
     self.job.scope.hdf5_add_attr( self.trace_content, fd              )
 
@@ -380,8 +378,6 @@ class DriverAbs( abc.ABC ) :
       spec.append( (   'data/{0:s}'       .format( id ), ( n, self.job.board.kernel_data_rd_size[ id ] ), 'B'   ) )
       spec.append( (   'data/usedof_{0:s}'.format( id ), ( n,                                          ), '<u8' ) )
 
-    sca3s_be.share.sys.log.debug( 'HDF5 => add_data, spec = %s' % ( str( spec ) ) )
-
     self.job.board.hdf5_add_data( self.trace_content, fd, n           )
     self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
 
@@ -389,19 +385,15 @@ class DriverAbs( abc.ABC ) :
 
   # HDF5 file manipulation: set data
 
-  def _hdf5_set_data( self, fd, n, i, trace ) :
+  def _hdf5_set_data( self, fd, n, i, trace ) :    
     spec = list()
-
-
-
+    
     for id in self.job.board.kernel_data_wr_id :
-      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.array( [ t for t in trace[ 'data/{0:s}'.format( id ) ] ], dtype = numpy.uint8 ) ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :                      len( trace[ 'data/{0:s}'.format( id ) ]                        ) ) )
+      spec.append( ( 'data/{0:s}'       .format( id ), lambda k, fd, n, i, trace : [ trace[ k ][ i ] if i < len( trace[ k ] ) else 0 for i in range( len( fd[ k ][ i ] ) ) ] ) )
+      spec.append( ( 'data/usedof_{0:s}'.format( id ), lambda k, fd, n, i, trace :   trace[ k ]                                                                              ) )
     for id in self.job.board.kernel_data_rd_id :
-      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.array( [ t for t in trace[ 'data/{0:s}'.format( id ) ] ], dtype = numpy.uint8 ) ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :                      len( trace[ 'data/{0:s}'.format( id ) ]                        ) ) )
-
-    sca3s_be.share.sys.log.debug( 'HDF5 => set_data, spec = %s' % ( str( spec ) ) )
+      spec.append( ( 'data/{0:s}'       .format( id ), lambda k, fd, n, i, trace : [ trace[ k ][ i ] if i < len( trace[ k ] ) else 0 for i in range( len( fd[ k ][ i ] ) ) ] ) )
+      spec.append( ( 'data/usedof_{0:s}'.format( id ), lambda k, fd, n, i, trace :   trace[ k ]                                                                              ) )
 
     self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
     self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
