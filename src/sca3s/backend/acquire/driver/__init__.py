@@ -385,15 +385,15 @@ class DriverAbs( abc.ABC ) :
 
   # HDF5 file manipulation: set data
 
-  def _hdf5_set_data( self, fd, n, i, trace ) :
+  def _hdf5_set_data( self, fd, n, i, trace ) :    
     spec = list()
-
+    
     for id in self.job.board.kernel_data_wr_id :
-      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.frombuffer( trace[ 'data/{0:s}'.format( id ) ], dtype = numpy.uint8 ) ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :              len( trace[ 'data/{0:s}'.format( id ) ]                      ) ) )
+      spec.append( ( 'data/{0:s}'       .format( id ), lambda k, fd, n, i, trace : [ trace[ k ][ i ] if i < len( trace[ k ] ) else 0 for i in range( len( fd[ k ][ i ] ) ) ] ) )
+      spec.append( ( 'data/usedof_{0:s}'.format( id ), lambda k, fd, n, i, trace :   trace[ k ]                                                                              ) )
     for id in self.job.board.kernel_data_rd_id :
-      spec.append( (   'data/{0:s}'       .format( id ), lambda trace : numpy.frombuffer( trace[ 'data/{0:s}'.format( id ) ], dtype = numpy.uint8 ) ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), lambda trace :              len( trace[ 'data/{0:s}'.format( id ) ]                      ) ) )
+      spec.append( ( 'data/{0:s}'       .format( id ), lambda k, fd, n, i, trace : [ trace[ k ][ i ] if i < len( trace[ k ] ) else 0 for i in range( len( fd[ k ][ i ] ) ) ] ) )
+      spec.append( ( 'data/usedof_{0:s}'.format( id ), lambda k, fd, n, i, trace :   trace[ k ]                                                                              ) )
 
     self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
     self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
@@ -443,7 +443,7 @@ class DriverAbs( abc.ABC ) :
     self.job.log.info( 'acquire: data_rd => %s' % str( data_rd ) )
 
     if ( ( self.job.board.board_mode == 'interactive' ) and self._supports_verify() ) :
-      if ( self._verify( data_wr, data_rd ) ) :
+      if ( not self._verify( data_wr, data_rd ) ) :
         raise Exception( 'failed I/O verification: interactive I/O != model' )
 
     trace = { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration }
@@ -452,6 +452,8 @@ class DriverAbs( abc.ABC ) :
     trace.update( { 'data/usedof_%s' % ( id ) : len( data_wr[ id ] ) for id in self.job.board.kernel_data_wr_id } )
     trace.update( { 'data/%s'        % ( id ) :      data_rd[ id ]   for id in self.job.board.kernel_data_rd_id } )
     trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel_data_rd_id } )
+
+    sca3s_be.share.sys.log.debug( 'acquire => trace= %s' % ( str( trace ) ) )
 
     return trace
 

@@ -140,25 +140,31 @@ class BoardAbs( abc.ABC ) :
       raise Exception( 'failed board interaction' )
 
   def hdf5_add_attr( self, trace_content, fd              ) :
-    spec = [ ( 'board/kernel_version',   str( self.kernel_version   ), h5py.special_dtype( vlen = str ) ),
+    spec = list()
+    
+    spec.append( ( 'board/kernel_version',   str( self.kernel_version   ), h5py.special_dtype( vlen = str ) ) )
 
-             ( 'board/kernel_id',        str( self.kernel_id        ), h5py.special_dtype( vlen = str ) ),
-             ( 'board/kernel_id_nameof', str( self.kernel_id_nameof ), h5py.special_dtype( vlen = str ) ),
-             ( 'board/kernel_id_modeof', str( self.kernel_id_modeof ), h5py.special_dtype( vlen = str ) ),
+    spec.append( ( 'board/kernel_id',        str( self.kernel_id        ), h5py.special_dtype( vlen = str ) ) )
+    spec.append( ( 'board/kernel_id_nameof', str( self.kernel_id_nameof ), h5py.special_dtype( vlen = str ) ) )
+    spec.append( ( 'board/kernel_id_modeof', str( self.kernel_id_modeof ), h5py.special_dtype( vlen = str ) ) )
 
-             ( 'board/kernel_io',        str( self.kernel_io        ), h5py.special_dtype( vlen = str ) ) ]
+    spec.append( ( 'board/kernel_io',        str( self.kernel_io        ), h5py.special_dtype( vlen = str ) ) )
 
     sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
 
   def hdf5_add_data( self, trace_content, fd, n           ) :
-    spec = [ ( 'perf/cycle',    ( n, ), '<u8' ),
-             ( 'perf/duration', ( n, ), '<f8' ) ]
+    spec = list()
+    
+    spec.append( ( 'perf/cycle',    ( n, ), '<u8' ) )
+    spec.append( ( 'perf/duration', ( n, ), '<f8' ) )
 
     sca3s_be.share.util.hdf5_add_data( spec, trace_content, fd, n           )
 
   def hdf5_set_data( self, trace_content, fd, n, i, trace ) :
-    spec = [ ( 'perf/cycle',    lambda trace : trace[ 'perf/cycle'    ] ),
-             ( 'perf/duration', lambda trace : trace[ 'perf/duration' ] ) ]
+    spec = list()
+    
+    spec.append( ( 'perf/cycle',    lambda k, fd, n, i, trace : trace[ 'perf/cycle'    ] ) )
+    spec.append( ( 'perf/duration', lambda k, fd, n, i, trace : trace[ 'perf/duration' ] ) )
 
     sca3s_be.share.util.hdf5_set_data( spec, trace_content, fd, n, i, trace )
 
