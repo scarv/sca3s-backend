@@ -133,35 +133,24 @@ class ScopeAbs( abc.ABC ) :
     return t
 
   def hdf5_add_attr( self, trace_content, fd              ) :
-    spec = list()
-    
-    spec.append( ( 'scope/signal_resolution',    ( self.signal_resolution ), '<u8'                            ) )
-    spec.append( ( 'scope/signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) ) )
+    fd.attrs.create( 'scope/signal_resolution',    ( self.signal_resolution ), '<u8'                            )
+    fd.attrs.create( 'scope/signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) )
 
-    spec.append( ( 'scope/signal_interval',      ( self.signal_interval   ), '<f8'                            ) )
-    spec.append( ( 'scope/signal_duration',      ( self.signal_duration   ), '<f8'                            ) ) 
-    spec.append( ( 'scope/signal_samples',       ( self.signal_samples    ), '<u8'                            ) )
-
-    sca3s_be.share.util.hdf5_add_attr( spec, trace_content, fd              )
+    fd.attrs.create( 'scope/signal_interval',      ( self.signal_interval   ), '<f8'                            )
+    fd.attrs.create( 'scope/signal_duration',      ( self.signal_duration   ), '<f8'                            )
+    fd.attrs.create( 'scope/signal_samples',       ( self.signal_samples    ), '<u8'                            )
 
   def hdf5_add_data( self, trace_content, fd, n           ) :
-    spec = list()
-    
-    spec.append( ( 'trace/trigger',  ( n, self.signal_samples ),    self.signal_dtype ) )
-    spec.append( (  'crop/trigger',  ( n,                     ), h5py.regionref_dtype ) )
-    spec.append( ( 'trace/signal',   ( n, self.signal_samples ),    self.signal_dtype ) )
-    spec.append( (  'crop/signal',   ( n,                     ), h5py.regionref_dtype ) )
-
-    sca3s_be.share.util.hdf5_add_data( spec, trace_content, fd, n           )
+    if ( 'trace/trigger' in trace_content ) :
+      fd.create_dataset( 'trace/trigger',  ( n, self.signal_samples ),    self.signal_dtype )
+    if (  'trace/signal' in trace_content ) :
+      fd.create_dataset( 'trace/signal',   ( n, self.signal_samples ),    self.signal_dtype )
+    if (  'crop/trigger' in trace_content ) :
+      fd.create_dataset(  'crop/trigger',  ( n,                     ), h5py.regionref_dtype )
+    if (  'crop/signal'  in trace_content ) :
+      fd.create_dataset(  'crop/signal',   ( n,                     ), h5py.regionref_dtype )
 
   def hdf5_set_data( self, trace_content, fd, n, i, trace ) :
-    spec = list()
-
-    spec.append( ( 'trace/trigger', lambda k, fd, n, i, trace : trace[ 'trace/trigger' ]                                                           ) )
-    spec.append( (  'crop/trigger', lambda k, fd, n, i, trace :    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) )
-    spec.append( ( 'trace/signal',  lambda k, fd, n, i, trace : trace[ 'trace/signal'  ]                                                           ) )
-    spec.append( (  'crop/signal',  lambda k, fd, n, i, trace :    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ] ) )
-
     if ( 'trace/trigger' in trace ) :
       trace[ 'trace/trigger' ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )
     if ( 'trace/signal'  in trace ) :
@@ -171,7 +160,14 @@ class ScopeAbs( abc.ABC ) :
     if ( 'edge/neg'      in trace ) :
       trace[ 'edge/neg'      ] = min( trace[ 'edge/neg' ], self.signal_samples - 1 )
 
-    sca3s_be.share.util.hdf5_set_data( spec, trace_content, fd, n, i, trace )
+    if ( 'trace/trigger' in trace_content ) :
+      fd[ 'trace/trigger' ][ i ] = trace[ 'trace/trigger' ]
+    if ( 'trace/signal'  in trace_content ) :
+      fd[ 'trace/signal'  ][ i ] = trace[ 'trace/signal'  ]
+    if (  'crop/trigger' in trace_content ) :
+      fd[  'crop/trigger' ][ i ] =    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ]
+    if (  'crop/signal'  in trace_content ) :
+      fd[  'crop/signal'  ][ i ] =    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ]
 
   @abc.abstractmethod
   def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :

@@ -354,51 +354,64 @@ class DriverAbs( abc.ABC ) :
   # HDF5 file manipulation: add attributes
 
   def _hdf5_add_attr( self, fd              ) :
-    spec = list()
-
-    for id in self.job.board.kernel_data_wr_id :
-      spec.append( ( 'kernel/sizeof_{0:s}'.format( id ),      self.job.board.kernel_data_wr_size[ id ],   '<u8' ) )
-    for id in self.job.board.kernel_data_rd_id :
-      spec.append( ( 'kernel/sizeof_{0:s}'.format( id ),      self.job.board.kernel_data_rd_size[ id ],   '<u8' ) )
-
     self.job.board.hdf5_add_attr( self.trace_content, fd              )
     self.job.scope.hdf5_add_attr( self.trace_content, fd              )
 
-    sca3s_be.share.util.hdf5_add_attr( spec, self.trace_content, fd              )
+    for id in self.job.board.kernel_data_wr_id :
+      t_id = 'kernel/sizeof_{0:s}'.format( id )
+      fd.attrs.create( t_id, self.job.board.kernel_data_wr_size[ id ], '<u8' )
+
+    for id in self.job.board.kernel_data_rd_id :
+      t_id = 'kernel/sizeof_{0:s}'.format( id )
+      fd.attrs.create( t_id, self.job.board.kernel_data_rd_size[ id ], '<u8' )
 
   # HDF5 file manipulation: add data
 
   def _hdf5_add_data( self, fd, n           ) :
-    spec = list()
-
-    for id in self.job.board.kernel_data_wr_id :
-      spec.append( (   'data/{0:s}'       .format( id ), ( n, self.job.board.kernel_data_wr_size[ id ] ), 'B'   ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), ( n,                                          ), '<u8' ) )
-    for id in self.job.board.kernel_data_rd_id :
-      spec.append( (   'data/{0:s}'       .format( id ), ( n, self.job.board.kernel_data_rd_size[ id ] ), 'B'   ) )
-      spec.append( (   'data/usedof_{0:s}'.format( id ), ( n,                                          ), '<u8' ) )
-
     self.job.board.hdf5_add_data( self.trace_content, fd, n           )
     self.job.scope.hdf5_add_data( self.trace_content, fd, n           )
 
-    sca3s_be.share.util.hdf5_add_data( spec, self.trace_content, fd, n           )
+    for id in self.job.board.kernel_data_wr_id :
+      t_id =   'data/{0:s}'       .format( id )
+      fd.create_dataset( t_id, ( n, self.job.board.kernel_data_wr_size[ id ] ), 'B'   )
+
+    for id in self.job.board.kernel_data_wr_id :
+      t_id =   'data/usedof_{0:s}'.format( id )
+      fd.create_dataset( t_id, ( n,                                          ), '<u8' )
+
+    for id in self.job.board.kernel_data_rd_id :
+      t_id =   'data/{0:s}'       .format( id )
+      fd.create_dataset( t_id, ( n, self.job.board.kernel_data_rd_size[ id ] ), 'B'   )
+
+    for id in self.job.board.kernel_data_rd_id :
+      t_id =   'data/usedof_{0:s}'.format( id )
+      fd.create_dataset( t_id, ( n,                                          ), '<u8' )
 
   # HDF5 file manipulation: set data
 
   def _hdf5_set_data( self, fd, n, i, trace ) :    
-    spec = list()
-    
-    for id in self.job.board.kernel_data_wr_id :
-      spec.append( ( 'data/{0:s}'       .format( id ), lambda k, fd, n, i, trace : [ trace[ k ][ i ] if i < len( trace[ k ] ) else 0 for i in range( len( fd[ k ][ i ] ) ) ] ) )
-      spec.append( ( 'data/usedof_{0:s}'.format( id ), lambda k, fd, n, i, trace :   trace[ k ]                                                                              ) )
-    for id in self.job.board.kernel_data_rd_id :
-      spec.append( ( 'data/{0:s}'       .format( id ), lambda k, fd, n, i, trace : [ trace[ k ][ i ] if i < len( trace[ k ] ) else 0 for i in range( len( fd[ k ][ i ] ) ) ] ) )
-      spec.append( ( 'data/usedof_{0:s}'.format( id ), lambda k, fd, n, i, trace :   trace[ k ]                                                                              ) )
-
     self.job.board.hdf5_set_data( self.trace_content, fd, n, i, trace )
     self.job.scope.hdf5_set_data( self.trace_content, fd, n, i, trace )
+    
+    for id in self.job.board.kernel_data_wr_id :
+      t_id =   'data/{0:s}'       .format( id )
+      if ( t_id in trace_content ) :
+        fd[ t_id ][ i ] = [ trace[ t_id ][ i ] if i < len( trace[ t_id ] ) else 0 for i in range( len( fd[ t_id ][ i ] ) ) ]
 
-    sca3s_be.share.util.hdf5_set_data( spec, self.trace_content, fd, n, i, trace )
+    for id in self.job.board.kernel_data_wr_id :
+      t_id =   'data/usedof_{0:s}'.format( id )
+      if ( t_id in trace_content ) :      
+        fd[ t_id ][ i ] =   trace[ t_id ]
+
+    for id in self.job.board.kernel_data_rd_id :
+      t_id =   'data/{0:s}'       .format( id )
+      if ( t_id in trace_content ) :
+        fd[ t_id ][ i ] = [ trace[ t_id ][ i ] if i < len( trace[ t_id ] ) else 0 for i in range( len( fd[ t_id ][ i ] ) ) ]
+
+    for id in self.job.board.kernel_data_rd_id :
+      t_id =   'data/usedof_{0:s}'.format( id )
+      if ( t_id in trace_content ) :      
+        fd[ t_id ][ i ] =   trace[ t_id ]
 
   # Prepare the driver
 

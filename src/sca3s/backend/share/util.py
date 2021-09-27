@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import binascii, h5py, hashlib, numpy, random, re
+import binascii, hashlib, numpy, random, re
 
 def str2seq( x ) :
   return        [ ord( t ) for t in x ]
@@ -127,23 +127,3 @@ def value( x, ids = dict() ) :
       r += m.group( 1 ) * ( 2 * random.randint( 0, int( ids[ m.group( 2 ).strip( '|' ) ] ) - 1 ) )
 
   return bytes( binascii.a2b_hex( ''.join( [ ( '%X' % random.getrandbits( 4 ) ) if ( r[ i ] == '$' ) else ( r[ i ] ) for i in range( len( r ) ) ] ) ) )
-
-def hdf5_add_attr( spec, trace_content, fd              ) :
-  sca3s_be.share.sys.log.debug( 'HDF5 => add_addr, spec = %s' % ( str( spec ) ) )
-  
-  for ( k, v, t ) in spec :
-    fd.attrs.create( k, v, dtype = t )
-
-def hdf5_add_data( spec, trace_content, fd, n           ) :
-  sca3s_be.share.sys.log.debug( 'HDF5 => add_data, spec = %s' % ( str( spec ) ) )
-  
-  for ( k, v, t ) in spec :
-    if ( k in trace_content ) :
-      fd.create_dataset( k, v, t )
-
-def hdf5_set_data( spec, trace_content, fd, n, i, trace ) :
-  sca3s_be.share.sys.log.debug( 'HDF5 => set_data, spec = %s' % ( str( spec ) ) )
-  
-  for ( k, f )    in spec :
-    if ( k in trace_content ) :
-      fd[ k ][ i ] = f( k, fd, n, i, trace )
