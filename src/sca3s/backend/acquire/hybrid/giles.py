@@ -39,7 +39,7 @@ class HybridImp( hybrid.HybridAbs ) :
       return {}
   
     def get_docker_env ( self ) :
-      return { 'COUNT_MAJOR' : self.job.conf.get( 'trace_spec' ).get( 'count' ), 'COUNT_MINOR' : 1 }
+      return { 'TRACE_COUNT_MAJOR' : self.job.conf.get( 'trace_spec' ).get( 'count' ), 'TRACE_COUNT_MINOR' : 1 }
 
     def get_docker_conf( self ) :
       t = [ '-DDRIVER_NONINTERACTIVE' ]
