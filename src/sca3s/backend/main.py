@@ -16,16 +16,20 @@ def process( manifest ) :
     sca3s_be.share.sys.log.info( 'process job prologue' )
 
     try :
-      if ( not manifest.has( 'job_type'    ) ) :
-        raise Exception( 'manifest missing job type'       )
       if ( not manifest.has( 'job_id'      ) ) :
         raise Exception( 'manifest missing job identifier' )
+      else :
+        job_id      = manifest.get( 'job_id'      )
+
+      if ( not manifest.has( 'job_type'    ) ) :
+        raise Exception( 'manifest missing job type'       )
+      else :
+        job_type    = manifest.get( 'job_type'    )
+
       if ( not manifest.has( 'job_version' ) ) :
         raise Exception( 'manifest missing job version'    )
-
-      job_type    = manifest.get( 'job_type'    )
-      job_id      = manifest.get( 'job_id'      )
-      job_version = manifest.get( 'job_version' )
+      else :
+        job_version = manifest.get( 'job_version' )
 
       if ( not sca3s_be.share.version.match( job_version ) ) :
         raise Exception( 'inconsistent manifest version' )
