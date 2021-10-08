@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import argparse, logging, os, sys, tempfile
+import argparse, gc, logging, os, sys, tempfile
 
 CONF = {
   'definitions' : {
@@ -406,3 +406,6 @@ def init() :
   log.indent_inc( message = 'dump sys configuration', level = logging.DEBUG )
   conf.dump( log, level = logging.DEBUG )
   log.indent_dec()  
+
+def collect()
+  gc.collect()
