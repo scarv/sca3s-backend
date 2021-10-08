@@ -303,25 +303,25 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
         self._prepare_scope()
         self.log.indent_dec()
     
-        sca3s_be.share.sys.relex()
+        sca3s_be.share.sys.relax()
 
         self.log.indent_inc( message = 'execute driver prologue' )
         self.driver.execute_prologue()
         self.log.indent_dec()
     
-        sca3s_be.share.sys.relex()
+        sca3s_be.share.sys.relax()
 
         self.log.indent_inc( message = 'execute driver'          )
         self.driver.execute()
         self.log.indent_dec()
     
-        sca3s_be.share.sys.relex()
+        sca3s_be.share.sys.relax()
 
         self.log.indent_inc( message = 'execute driver epilogue' )
         self.driver.execute_epilogue()
         self.log.indent_dec()
 
-        sca3s_be.share.sys.relex()
+        sca3s_be.share.sys.relax()
 
         self.log.indent_inc( message = 'dump driver outcome'     )
         self.log.info( 'transfer = %s' % ( str( self.result_transfer ) ) )
