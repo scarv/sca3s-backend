@@ -407,5 +407,5 @@ def init() :
   conf.dump( log, level = logging.DEBUG )
   log.indent_dec()  
 
-def collect()
+def collect() :
   gc.collect()
