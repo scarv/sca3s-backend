@@ -127,13 +127,13 @@ class Report( pylatex.Document ) :
       plt.xlabel( r'{\tt sample }' )
   
       ts = fd[ 'trace/signal'  ][ 0 ]
-      ys = numpy.array( ts[ : : points // len( ts ) ] )
+      ys = numpy.array( ts[ : : len( ts ) // points ] )
       xs = numpy.arange( 0, len( ys ) )
   
       plt.plot( xs, ys, 'tab:blue' )
   
       ts = fd[ 'trace/trigger' ][ 0 ]
-      ys = numpy.array( ts[ : : points // len( ts ) ] )
+      ys = numpy.array( ts[ : : len( ts ) // points ] )
       xs = numpy.arange( 0, len( ys ) )
   
       plt.plot( xs, ys, 'tab:red'  )
