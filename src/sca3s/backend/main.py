@@ -10,7 +10,7 @@ from sca3s import middleware as sca3s_mw
 import importlib, multiprocessing, os, shutil, signal, tempfile, time
 
 def process( manifest ) :
-  job_id = None ; job_status = sca3s_mw.share.status.Status.SUCCESS ; job_response = list()
+  job_id = None ; job_status = sca3s_mw.share.status.Status.SUCCESS ; job_response = dict()
 
   try :
     sca3s_be.share.sys.log.info( 'process job prologue' )
