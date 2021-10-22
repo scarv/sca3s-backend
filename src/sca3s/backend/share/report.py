@@ -121,17 +121,19 @@ class Report( pylatex.Document ) :
   # Emit document content: calibration report.
 
   def emit_section_calibrate( self ) :
-    def render( fd, width = 1.0 ) :
+    def render( fd, width = 1.0, points = 10000 ) :
       # step #2: generate plot
   
       plt.xlabel( r'{\tt sample }' )
   
-      ys = numpy.array( fd[ 'trace/signal'  ][ 0 ] )
+      ts = fd[ 'trace/signal'  ][ 0 ]
+      ys = numpy.array( ts[ : : max( 1, len( ts ) // points ) ] )
       xs = numpy.arange( 0, len( ys ) )
   
       plt.plot( xs, ys, 'tab:blue' )
   
-      ys = numpy.array( fd[ 'trace/trigger' ][ 0 ] )
+      ts = fd[ 'trace/trigger' ][ 0 ]
+      ys = numpy.array( ts[ : : max( 1, len( ts ) // points ) ] )
       xs = numpy.arange( 0, len( ys ) )
   
       plt.plot( xs, ys, 'tab:red'  )

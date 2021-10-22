@@ -10,7 +10,7 @@ from sca3s import middleware as sca3s_mw
 import importlib, multiprocessing, os, shutil, signal, tempfile, time
 
 def process( manifest ) :
-  job_id = None ; job_status = sca3s_mw.share.status.Status.SUCCESS ; job_response = list()
+  job_id = None ; job_status = sca3s_mw.share.status.Status.SUCCESS ; job_response = dict()
 
   try :
     sca3s_be.share.sys.log.info( 'process job prologue' )
@@ -55,6 +55,8 @@ def process( manifest ) :
     except Exception as e :
       job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROLOGUE ; raise e
 
+    sca3s_be.share.sys.relax()
+
     sca3s_be.share.sys.log.info( 'process job'          )
 
     try :    
@@ -67,6 +69,8 @@ def process( manifest ) :
     except Exception as e :
       job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_PROCESS  ; raise e
 
+    sca3s_be.share.sys.relax()
+
     sca3s_be.share.sys.log.info( 'process job epilogue' )
 
     try :    
@@ -75,6 +79,8 @@ def process( manifest ) :
 
     except Exception as e :
       job_status = sca3s_mw.share.status.Status.FAILURE_BE_JOB_EPILOGUE ; raise e
+
+    sca3s_be.share.sys.relax()
 
   except Exception as e :
     sca3s_mw.share.exception.dump( e, log = sca3s_be.share.sys.log )
@@ -141,6 +147,7 @@ def run_mode_api() :
           sca3s_be.share.sys.log.info( 'announce thread: handled SIG{ABRT,TERM} => terminating' ) ; return
         if ( ( ping % api_announce_ping ) == 0 ) :
           sca3s_be.share.sys.log.info( 'announce thread: activity ping' )
+          sca3s_be.share.sys.relax( verbose = True )
 
         ping += 1 ; time.sleep( api_announce_wait )
 
@@ -161,6 +168,7 @@ def run_mode_api() :
           sca3s_be.share.sys.log.info( 'retrieve thread: handled SIG{ABRT,TERM} => terminating' ) ; return
         if ( ( ping % api_retrieve_ping ) == 0 ) :
           sca3s_be.share.sys.log.info( 'retrieve thread: activity ping' )
+          sca3s_be.share.sys.relax( verbose = True )
     
         ping += 1 ; time.sleep( api_retrieve_wait )
   

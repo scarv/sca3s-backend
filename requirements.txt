@@ -8,6 +8,7 @@ jsonmerge
 jsonschema
 more-itertools
 picoscope
+psutil
 pycrypto
 PyJWT
 pylatex

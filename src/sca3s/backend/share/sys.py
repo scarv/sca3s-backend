@@ -7,7 +7,7 @@
 from sca3s import backend    as sca3s_be
 from sca3s import middleware as sca3s_mw
 
-import argparse, logging, os, sys, tempfile
+import argparse, gc, logging, os, psutil, sys, tempfile
 
 CONF = {
   'definitions' : {
@@ -383,26 +383,46 @@ def init() :
 
   # initialise system logger
 
-  log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_SYS, path = sca3s_be.share.sys.conf.get( 'log', section = 'path' ) )
+  log  = sca3s_be.share.log.build_log( sca3s_be.share.log.TYPE_SYS, path = conf.get( 'log', section = 'path' ) )
 
   # dump configuration
 
-  log.indent_inc( message = 'dump env configuration', level = logging.DEBUG )
+  log.indent_inc( message = 'dump env configuration' )
 
-  log.debug( 'env    = {0}'.format( os.environ      ) ) 
+  log.info( 'env    = {0}'.format( os.environ      ) ) 
 
-  log.debug( 'argc   = {0}'.format( len( sys.argv ) ) )
-  log.debug( 'argv   = {0}'.format(      sys.argv   ) )
+  log.info( 'argc   = {0}'.format( len( sys.argv ) ) )
+  log.info( 'argv   = {0}'.format(      sys.argv   ) )
 
-  log.debug( 'cwd    = {0}'.format( os.getcwd()     ) )
+  log.info( 'cwd    = {0}'.format( os.getcwd()     ) )
 
-  log.debug( 'uid    = {0} => {1}'.format( os.getuid(), os.geteuid() ) )
-  log.debug( 'gid    = {0} => {1}'.format( os.getgid(), os.getegid() ) )
+  log.info( 'uid    = {0} => {1}'.format( os.getuid(), os.geteuid() ) )
+  log.info( 'gid    = {0} => {1}'.format( os.getgid(), os.getegid() ) )
 
-  log.debug( 'groups = {0}'.format( os.getgroups()  ) )
+  log.info( 'groups = {0}'.format( os.getgroups()  ) )
 
   log.indent_dec()  
 
-  log.indent_inc( message = 'dump sys configuration', level = logging.DEBUG )
-  conf.dump( log, level = logging.DEBUG )
+  log.indent_inc( message = 'dump sys configuration' )
+  conf.dump( log )
   log.indent_dec()  
+
+def relax( verbose = False ) :
+  if ( verbose ) :
+    log.indent_inc( message = 'relaxing ...' )
+
+    log.info( '< disk (job) = %s', psutil.disk_usage( conf.get( 'job', section = 'path' ) ) )
+    log.info( '< disk (log) = %s', psutil.disk_usage( conf.get( 'log', section = 'path' ) ) )
+
+    log.info( '< net        = %s', psutil.net_io_counters() )
+
+    log.info( '< memory     = %s', str( psutil.virtual_memory() ) )
+    log.info( '< swap       = %s', str( psutil.swap_memory()    ) )
+
+  gc.collect()
+
+  if ( verbose ) :
+    log.info( '> memory     = %s', str( psutil.virtual_memory() ) )
+    log.info( '< swap       = %s', str( psutil.swap_memory()    ) )
+
+    log.indent_dec()
