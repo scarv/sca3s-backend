@@ -338,9 +338,15 @@ CONF = {
             { '$ref' : '#/definitions/scope:picoscope-ps2206b'    },
             { '$ref' : '#/definitions/scope:picoscope-ps3406b'    },
             { '$ref' : '#/definitions/scope:picoscope-ps5444b'    }
-          ] 
+          ]
+        }, {
+          'allOf' : [ {
+            'roles' : { 'type' :  'array', 'default' : [ 'user' ], 'items' : { 
+              'type' : 'string' 
+            } }
+          } ]
         } ],
-        'required' : [ 'board_id', 'board_desc', 'board_spec', 'scope_id', 'scope_desc', 'scope_spec' ]
+        'required' : [ 'board_id', 'board_desc', 'board_spec', 'scope_id', 'scope_desc', 'scope_spec', 'roles' ]
       } }
     }
   }

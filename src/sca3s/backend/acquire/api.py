@@ -47,6 +47,6 @@ class APIImp( sca3s_be.share.api.APIAbs ):
     json[ 'devices' ] = dict()
 
     for ( device_id, device_spec ) in sca3s_be.share.sys.conf.get( 'device_db', section = 'job' ).items() :
-      json[ 'devices' ][ device_id ] = { k : device_spec[ k ] for k in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc' ] }
+      json[ 'devices' ][ device_id ] = { k : device_spec[ k ] for k in [ 'board_id', 'board_desc', 'scope_id', 'scope_desc', 'roles' ] }
 
     return self._request( requests.post,  url, json = json )
