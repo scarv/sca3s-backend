@@ -14,12 +14,12 @@ while [[ ${#} -gt 0 ]] ; do
   case ${1} in
     -v|--version)
       git -C ${REPO_HOME} tag --force "v${REPO_VERSION}"
-      git push origin --tags
+      git push origin --force --tags
       shift
       ;;
     -s|--system)
       git -C ${REPO_HOME} tag --force "sca3s"
-      git push origin --tags
+      git push origin --force --tags
       shift
       ;;
   esac
