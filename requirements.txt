@@ -3,9 +3,9 @@ boto3==1.20.7
 cowpy==1.1.1
 docker==5.0.3
 gitpython==3.1.20
-h5py==3.6.0
+h5py==3.1.0
 jsonmerge==1.8.0
-jsonschema==4.2.1
+jsonschema==4.0.0
 more-itertools==8.11.0
 picoscope==0.7.15
 psutil==5.8.0
@@ -14,8 +14,8 @@ PyJWT==2.3.0
 pylatex==1.4.1
 pyserial==3.5
 requests==2.26.0
-scipy==1.7.2
+scipy==1.5.4
 trsfile==2.0
-numpy==1.21.4
-matplotlib==3.5.0
+numpy==1.19.5
+matplotlib==3.3.4
 
