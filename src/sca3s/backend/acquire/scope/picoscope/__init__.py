@@ -101,12 +101,15 @@ class ScopeType( scope.ScopeAbs ) :
     return { 'resolution' : self.signal_resolution, 'dtype' : self.signal_dtype, 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'samples' : self.signal_samples }
 
   def acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
+    def callback() :
+      pass 
+
     if ( mode & scope.ACQUIRE_MODE_PRIME ) :
       # configure trigger
       self.scope_unit.setSimpleTrigger( self.channel_trigger_id, threshold_V = self.channel_trigger_threshold, direction = 'Rising', timeout_ms = int( self.channel_trigger_timeout * 1.0e3 ) )
     
       # start acquisition
-      self.scope_unit.runBlock()
+      self.scope_unit.runBlock( callback = callback )
 
     if ( mode & scope.ACQUIRE_MODE_FETCH ) :
       # wait for acquisition to complete  
@@ -122,7 +125,7 @@ class ScopeType( scope.ScopeAbs ) :
       return ( signal_trigger, signal_acquire )
 
   def  open( self ) :
-    self.scope_unit = self.api( serialNumber = self.unit_id.encode(), connect = True )
+    self.scope_unit = self.api( serialNumber = self.unit_id, connect = True )
 
     if ( self.scope_unit == None ) :
       raise Exception( 'failed to open scope' )
