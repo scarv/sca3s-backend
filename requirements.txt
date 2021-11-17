@@ -2,10 +2,10 @@ art==5.3
 boto3==1.20.7
 cowpy==1.1.1
 docker==5.0.3
-gitpython==3.1.20
+gitpython==3.1.18
 h5py==3.1.0
 jsonmerge==1.8.0
-jsonschema==4.0.0
+jsonschema==4.0.0a6
 more-itertools==8.11.0
 picoscope==0.7.15
 psutil==5.8.0
