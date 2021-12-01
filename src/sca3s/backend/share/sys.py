@@ -310,7 +310,7 @@ CONF = {
     'api:retrieve_ping'   : { 'type' :  'number',                             'default' :                        10 },
 
     'exec_native:env'     : { 'type' :  'object',                             'default' :                        {} },
-    'exec_native:timeout' : { 'type' :  'number',                             'default' :                      None },
+    'exec_native:timeout' : { 'type' :  'number',                             'default' :                         0 },
 
     'exec_docker:env'     : { 'type' :  'object',                             'default' :                        {} },
     'exec_docker:vol'     : { 'type' :  'object',                             'default' :                        {} },

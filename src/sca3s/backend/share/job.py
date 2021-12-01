@@ -64,7 +64,7 @@ class JobAbs( abc.ABC ) :
 
     # execute
     try :
-      pd = subprocess.run( cmd, cwd = self.path, env = env, timeout = timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
+      pd = subprocess.run( cmd, cwd = self.path, env = env, timeout = None if ( timeout == 0 ) else timeout, stdout = subprocess.PIPE, stderr = subprocess.PIPE )
 
       if ( not quiet ) :
         self._drain( 'stdout', pd.stdout )
