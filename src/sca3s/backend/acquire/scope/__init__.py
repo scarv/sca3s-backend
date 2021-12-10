@@ -18,22 +18,24 @@ from sca3s.backend.acquire import depo   as depo
 
 import abc, h5py, numpy, os
 
-CALIBRATE_MODE_DEFAULT   =    0
-CALIBRATE_MODE_DURATION  =    1
-CALIBRATE_MODE_INTERVAL  =    2
-CALIBRATE_MODE_FREQUENCY =    3
-CALIBRATE_MODE_AUTO      =    4
 
-CALIBRATE_STEP_0         =    0
-CALIBRATE_STEP_1         =    1
-CALIBRATE_STEP_2         =    2
-CALIBRATE_STEP_3         =    3
+CONF_SELECT_DEFAULT       =    0
+CONF_SELECT_DERIVED       =    1
 
-RESOLUTION_MIN           =    0
-RESOLUTION_MAX           = 1024
+CONF_DERIVE_RESOLUTION    =    0
+CONF_DERIVE_DURATION      =    1
+CONF_DERIVE_INTERVAL      =    2
 
-ACQUIRE_MODE_PRIME       = 0x01
-ACQUIRE_MODE_FETCH       = 0x02
+CALIBRATE_STEP_0          =    0
+CALIBRATE_STEP_1          =    1
+CALIBRATE_STEP_2          =    2
+CALIBRATE_STEP_3          =    3
+
+RESOLUTION_MIN            =    0
+RESOLUTION_MAX            = 1024
+
+ACQUIRE_MODE_PRIME        = 0x01
+ACQUIRE_MODE_FETCH        = 0x02
 
 class ScopeAbs( abc.ABC ) :
   def __init__( self, job ) :

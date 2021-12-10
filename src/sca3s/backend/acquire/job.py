@@ -86,8 +86,11 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
   # Prepare the scope.
   # 
-  # 1. transfer board parameters
-  # 2. calibrate
+  # 1. select parameters
+  #    - resolution
+  #    -   duration
+  #    -   interval
+  # 2. select configuration
 
   def _prepare_scope( self ) :
     trace_spec            = self.conf.get( 'trace_spec' )
@@ -101,23 +104,14 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     trace_type            =        trace_spec.get( 'type'            )
 
-    #if   ( trace_resolution_id == 'bit'  ) :
-    #  trace_resolution = trace_resolution_spec
-    #elif ( trace_resolution_id == 'min'  ) :
-    #  trace_resolution = scope.RESOLUTION_MIN
-    #elif ( trace_resolution_id == 'max'  ) :
-    #  trace_resolution = scope.RESOLUTION_MAX
-    #
-    #if   ( trace_period_id == 'duration'  ) :
-    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_DURATION,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    #elif ( trace_period_id == 'interval'  ) :
-    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_INTERVAL,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    #elif ( trace_period_id == 'frequency' ) :
-    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_FREQUENCY, value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    #elif ( trace_period_id == 'auto'      ) :
-    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_AUTO,                                 resolution = trace_resolution, dtype = trace_type )
-    #
-    #self.log.info( 'conf = %s', t )
+    trace_resolution      = None
+    trace_duration        = None
+    trace_interval        = None
+
+    def conf_derive( mode ) :
+      return scope.conf_derive( mode, resolution = trace_resolution, duration = trace_duration, interval = trace_interval, dtype = trace_type )
+    def conf_select( mode ) :
+      return scope.conf_select( mode, resolution = trace_resolution, duration = trace_duration, interval = trace_interval, dtype = trace_type )
 
     if   ( trace_resolution_id == 'user' ) :
       trace_resolution = trace_resolution_spec
@@ -128,20 +122,19 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     elif ( trace_resolution_id == 'min'  ) :
       trace_resolution = scope.RESOLUTION_MIN
 
-    trace_resolution = nearest_resolution_for_scope( trace_resolution )
+    trace_resolution = conf_derive( scope.CONF_DERIVE_RESOLUTION )
     
     if   ( trace_duration_id == 'user' ) :
       trace_duration = trace_duration_spec
     elif ( trace_duration_id == 'auto' ) :
-      trace_duration = measure()
+      trace_duration = conf_derive( scope.CONF_DERIVE_DURATION )
 
     if   ( trace_interval_id == 'user' ) :
       trace_interval = trace_interval_spec
     elif ( trace_interval_id == 'auto' ) :
-      trace_interval = max_interval_for_duration( trace_duration )
-    
-    conf = select_closest_timebase( trace_resolution, trace_duration, trace_interval )
+      trace_interval = conf_derive( scope.CONF_DERIVE_INTERVAL )
 
+    self.log.info( 'conf = %s', conf_select( scope.CONF_SELECT_DERIVED ) )
 
   # Prepare the repo.
   # 
