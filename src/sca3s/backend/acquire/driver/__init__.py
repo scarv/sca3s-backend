@@ -20,7 +20,7 @@ import abc, h5py, numpy, os
 
 class DriverAbs( abc.ABC ) :
   def __init__( self, job ) :
-    self.job           = job
+    self.job               = job
 
     self.driver_id         = self.job.conf.get( 'driver_id'   )
     self.driver_spec       = self.job.conf.get( 'driver_spec' )

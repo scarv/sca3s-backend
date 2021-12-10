@@ -92,31 +92,56 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   def _prepare_scope( self ) :
     trace_spec            = self.conf.get( 'trace_spec' )
 
-    trace_resolution_id   =      trace_spec.get( 'resolution_id'   )
-    trace_resolution_spec = int( trace_spec.get( 'resolution_spec' ) )
+    trace_resolution_id   =        trace_spec.get( 'resolution_id'   )
+    trace_resolution_spec =   int( trace_spec.get( 'resolution_spec' ) )
+    trace_duration_id     =        trace_spec.get(   'duration_id'   )
+    trace_duration_spec   = float( trace_spec.get(   'duration_spec' ) )
+    trace_interval_id     =        trace_spec.get(   'interval_id'   )
+    trace_interval_spec   = float( trace_spec.get(   'interval_spec' ) )
 
-    trace_period_id       =      trace_spec.get( 'period_id'       )
-    trace_period_spec     = int( trace_spec.get( 'period_spec'     ) )
+    trace_type            =        trace_spec.get( 'type'            )
 
-    trace_type            =      trace_spec.get( 'type'            )
+    #if   ( trace_resolution_id == 'bit'  ) :
+    #  trace_resolution = trace_resolution_spec
+    #elif ( trace_resolution_id == 'min'  ) :
+    #  trace_resolution = scope.RESOLUTION_MIN
+    #elif ( trace_resolution_id == 'max'  ) :
+    #  trace_resolution = scope.RESOLUTION_MAX
+    #
+    #if   ( trace_period_id == 'duration'  ) :
+    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_DURATION,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    #elif ( trace_period_id == 'interval'  ) :
+    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_INTERVAL,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    #elif ( trace_period_id == 'frequency' ) :
+    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_FREQUENCY, value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
+    #elif ( trace_period_id == 'auto'      ) :
+    #  t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_AUTO,                                 resolution = trace_resolution, dtype = trace_type )
+    #
+    #self.log.info( 'conf = %s', t )
 
-    if   ( trace_resolution_id == 'bit'  ) :
+    if   ( trace_resolution_id == 'user' ) :
       trace_resolution = trace_resolution_spec
-    elif ( trace_resolution_id == 'min'  ) :
-      trace_resolution = scope.RESOLUTION_MIN
+    elif ( trace_resolution_id == 'auto' ) :
+      trace_resolution = scope.RESOLUTION_MAX
     elif ( trace_resolution_id == 'max'  ) :
       trace_resolution = scope.RESOLUTION_MAX
+    elif ( trace_resolution_id == 'min'  ) :
+      trace_resolution = scope.RESOLUTION_MIN
 
-    if   ( trace_period_id == 'duration'  ) :
-      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_DURATION,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    elif ( trace_period_id == 'interval'  ) :
-      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_INTERVAL,  value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    elif ( trace_period_id == 'frequency' ) :
-      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_FREQUENCY, value = trace_period_spec, resolution = trace_resolution, dtype = trace_type )
-    elif ( trace_period_id == 'auto'      ) :
-      t = self.scope.calibrate( mode = scope.CALIBRATE_MODE_AUTO,                                 resolution = trace_resolution, dtype = trace_type )
+    trace_resolution = nearest_resolution_for_scope( trace_resolution )
+    
+    if   ( trace_duration_id == 'user' ) :
+      trace_duration = trace_duration_spec
+    elif ( trace_duration_id == 'auto' ) :
+      trace_duration = measure()
 
-    self.log.info( 'conf = %s', t )
+    if   ( trace_interval_id == 'user' ) :
+      trace_interval = trace_interval_spec
+    elif ( trace_interval_id == 'auto' ) :
+      trace_interval = max_interval_for_duration( trace_duration )
+    
+    conf = select_closest_timebase( trace_resolution, trace_duration, trace_interval )
+
 
   # Prepare the repo.
   # 
