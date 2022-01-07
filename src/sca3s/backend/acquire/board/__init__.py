@@ -140,19 +140,19 @@ class BoardAbs( abc.ABC ) :
       raise Exception( 'failed board interaction' )
 
   def hdf5_add_attr( self, trace_content, fd              ) :
-    fd.attrs.create( 'board/kernel_version',   str( self.kernel_version   ), h5py.special_dtype( vlen = str ) )
+    fd.attrs.create( 'board/kernel_version',   str( self.kernel_version   ), dtype = h5py.string_dtype() )
 
-    fd.attrs.create( 'board/kernel_id',        str( self.kernel_id        ), h5py.special_dtype( vlen = str ) )
-    fd.attrs.create( 'board/kernel_id_nameof', str( self.kernel_id_nameof ), h5py.special_dtype( vlen = str ) )
-    fd.attrs.create( 'board/kernel_id_modeof', str( self.kernel_id_modeof ), h5py.special_dtype( vlen = str ) )
+    fd.attrs.create( 'board/kernel_id',        str( self.kernel_id        ), dtype = h5py.string_dtype() )
+    fd.attrs.create( 'board/kernel_id_nameof', str( self.kernel_id_nameof ), dtype = h5py.string_dtype() )
+    fd.attrs.create( 'board/kernel_id_modeof', str( self.kernel_id_modeof ), dtype = h5py.string_dtype() )
 
-    fd.attrs.create( 'board/kernel_io',        str( self.kernel_io        ), h5py.special_dtype( vlen = str ) )
+    fd.attrs.create( 'board/kernel_io',        str( self.kernel_io        ), dtype = h5py.string_dtype() )
 
   def hdf5_add_data( self, trace_content, fd, n           ) :
     if ( 'perf/cycle'    in trace_content ) :
-      fd.create_dataset( 'perf/cycle',    ( n, ), '<u8' )
+      fd.create_dataset( 'perf/cycle',    ( n, ), dtype = '<u8' )
     if ( 'perf/duration' in trace_content ) :
-      fd.create_dataset( 'perf/duration', ( n, ), '<f8' )
+      fd.create_dataset( 'perf/duration', ( n, ), dtype = '<f8' )
 
   def hdf5_set_data( self, trace_content, fd, n, i, trace ) :
     if ( 'perf/cycle'    in trace_content ) :

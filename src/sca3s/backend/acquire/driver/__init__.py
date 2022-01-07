@@ -359,11 +359,11 @@ class DriverAbs( abc.ABC ) :
 
     for id in self.job.board.kernel_data_wr_id :
       t_id = 'kernel/sizeof_{0:s}'.format( id )
-      fd.attrs.create( t_id, self.job.board.kernel_data_wr_size[ id ], '<u8' )
+      fd.attrs.create( t_id, self.job.board.kernel_data_wr_size[ id ], dtype = '<u8' )
 
     for id in self.job.board.kernel_data_rd_id :
       t_id = 'kernel/sizeof_{0:s}'.format( id )
-      fd.attrs.create( t_id, self.job.board.kernel_data_rd_size[ id ], '<u8' )
+      fd.attrs.create( t_id, self.job.board.kernel_data_rd_size[ id ], dtype = '<u8' )
 
   # HDF5 file manipulation: add data
 
@@ -373,19 +373,19 @@ class DriverAbs( abc.ABC ) :
 
     for id in self.job.board.kernel_data_wr_id :
       t_id =   'data/{0:s}'       .format( id )
-      fd.create_dataset( t_id, ( n, self.job.board.kernel_data_wr_size[ id ] ), 'B'   )
+      fd.create_dataset( t_id, ( n, self.job.board.kernel_data_wr_size[ id ] ), dtype = 'B'   )
 
     for id in self.job.board.kernel_data_wr_id :
       t_id =   'data/usedof_{0:s}'.format( id )
-      fd.create_dataset( t_id, ( n,                                          ), '<u8' )
+      fd.create_dataset( t_id, ( n,                                          ), dtype = '<u8' )
 
     for id in self.job.board.kernel_data_rd_id :
       t_id =   'data/{0:s}'       .format( id )
-      fd.create_dataset( t_id, ( n, self.job.board.kernel_data_rd_size[ id ] ), 'B'   )
+      fd.create_dataset( t_id, ( n, self.job.board.kernel_data_rd_size[ id ] ), dtype = 'B'   )
 
     for id in self.job.board.kernel_data_rd_id :
       t_id =   'data/usedof_{0:s}'.format( id )
-      fd.create_dataset( t_id, ( n,                                          ), '<u8' )
+      fd.create_dataset( t_id, ( n,                                          ), dtype = '<u8' )
 
   # HDF5 file manipulation: set data
 
@@ -395,22 +395,22 @@ class DriverAbs( abc.ABC ) :
     
     for id in self.job.board.kernel_data_wr_id :
       t_id =   'data/{0:s}'       .format( id )
-      if ( t_id in trace_content ) :
+      if ( t_id in self.trace_content ) :
         fd[ t_id ][ i ] = [ trace[ t_id ][ i ] if i < len( trace[ t_id ] ) else 0 for i in range( len( fd[ t_id ][ i ] ) ) ]
 
     for id in self.job.board.kernel_data_wr_id :
       t_id =   'data/usedof_{0:s}'.format( id )
-      if ( t_id in trace_content ) :      
+      if ( t_id in self.trace_content ) :      
         fd[ t_id ][ i ] =   trace[ t_id ]
 
     for id in self.job.board.kernel_data_rd_id :
       t_id =   'data/{0:s}'       .format( id )
-      if ( t_id in trace_content ) :
+      if ( t_id in self.trace_content ) :
         fd[ t_id ][ i ] = [ trace[ t_id ][ i ] if i < len( trace[ t_id ] ) else 0 for i in range( len( fd[ t_id ][ i ] ) ) ]
 
     for id in self.job.board.kernel_data_rd_id :
       t_id =   'data/usedof_{0:s}'.format( id )
-      if ( t_id in trace_content ) :      
+      if ( t_id in self.trace_content ) :      
         fd[ t_id ][ i ] =   trace[ t_id ]
 
   # Prepare the driver

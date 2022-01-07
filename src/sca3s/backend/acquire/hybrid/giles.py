@@ -109,44 +109,39 @@ class HybridImp( hybrid.HybridAbs ) :
     def __init__( self, job ) :
       super().__init__( job )
 
-    def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :  
-      resolution = sca3s_be.share.util.closest( [ 1 ], resolution )
+    def conf_derive( self, mode, dtype = None, resolution = None, interval = None, duration = None ) :
+      if   ( mode == scope.CONF_DERIVE_RESOLUTION ) :
+        return sca3s_be.share.util.closest( resolution, [ 1 ] )
 
-      # select configuration
-      if   ( mode == scope.CALIBRATE_MODE_DEFAULT   ) :
-        interval = 1
-        duration = int( self.scope_spec.get( 'channel_trigger_timeout' ) )
+      elif ( mode == scope.CONF_DERIVE_INTERVAL   ) :
+        return 1
 
-      elif ( mode == scope.CALIBRATE_MODE_DURATION  ) :
-        interval = 1
-        duration = int( value                                            )
+      elif ( mode == scope.CONF_DERIVE_DURATION   ) :
+        return self.calibrate( dtype = dtype, resolution = resolution )
 
-      elif ( mode == scope.CALIBRATE_MODE_INTERVAL  ) :
-        raise Exception( 'unsupported calibration mode' )
+    def conf_select( self, mode, dtype = None, resolution = None, interval = None, duration = None ) :
+      if   ( mode == scope.CONF_SELECT_DEFAULT    ) :
+        resolution = 1
+        interval   = 1
+        duration   = int( self.scope_spec.get( 'channel_trigger_timeout' ) )
 
-      elif ( mode == scope.CALIBRATE_MODE_FREQUENCY ) :
-        raise Exception( 'unsupported calibration mode' )
+      elif ( mode == scope.CONF_SELECT_DERIVED    ) :
+        pass
 
-      elif ( mode == scope.CALIBRATE_MODE_AUTO      ) :
-        return self._autocalibrate( resolution = resolution, dtype = dtype )
-  
-      # configure channels
       self.channel_trigger_range     = self.job.board.get_channel_trigger_range()
       self.channel_trigger_threshold = self.job.board.get_channel_trigger_threshold()
       self.channel_acquire_range     = self.job.board.get_channel_acquire_range()
       self.channel_acquire_threshold = self.job.board.get_channel_acquire_threshold()
-
-      samples = duration
   
-      # configure signal
-      self.signal_resolution = resolution
       self.signal_dtype      = dtype
+      self.signal_resolution = resolution
   
       self.signal_interval   = interval
       self.signal_duration   = duration
-      self.signal_samples    = samples
+
+      self.signal_samples    = duration
   
-      return { 'resolution' : self.signal_resolution, 'dtype' : self.signal_dtype, 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'samples' : self.signal_samples }
+      return { 'dtype' : self.signal_dtype, 'resolution' : self.signal_resolution, 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'samples' : self.signal_samples }
   
     def acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
       if ( mode & scope.ACQUIRE_MODE_PRIME ) :

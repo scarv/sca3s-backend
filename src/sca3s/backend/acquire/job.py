@@ -102,16 +102,16 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     trace_interval_id     =        trace_spec.get(   'interval_id'   )
     trace_interval_spec   = float( trace_spec.get(   'interval_spec' ) )
 
-    trace_type            =        trace_spec.get( 'type'            )
+    trace_dtype           =        trace_spec.get( 'dtype'           )
 
     trace_resolution      = None
     trace_duration        = None
     trace_interval        = None
 
     def conf_derive( mode ) :
-      return scope.conf_derive( mode, resolution = trace_resolution, duration = trace_duration, interval = trace_interval, dtype = trace_type )
+      return self.scope.conf_derive( mode, dtype = trace_dtype, resolution = trace_resolution, interval = trace_interval, duration = trace_duration )
     def conf_select( mode ) :
-      return scope.conf_select( mode, resolution = trace_resolution, duration = trace_duration, interval = trace_interval, dtype = trace_type )
+      return self.scope.conf_select( mode, dtype = trace_dtype, resolution = trace_resolution, interval = trace_interval, duration = trace_duration )
 
     if   ( trace_resolution_id == 'user' ) :
       trace_resolution = trace_resolution_spec
@@ -124,15 +124,15 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
 
     trace_resolution = conf_derive( scope.CONF_DERIVE_RESOLUTION )
     
-    if   ( trace_duration_id == 'user' ) :
-      trace_duration = trace_duration_spec
-    elif ( trace_duration_id == 'auto' ) :
-      trace_duration = conf_derive( scope.CONF_DERIVE_DURATION )
-
     if   ( trace_interval_id == 'user' ) :
       trace_interval = trace_interval_spec
     elif ( trace_interval_id == 'auto' ) :
       trace_interval = conf_derive( scope.CONF_DERIVE_INTERVAL )
+
+    if   ( trace_duration_id == 'user' ) :
+      trace_duration = trace_duration_spec
+    elif ( trace_duration_id == 'auto' ) :
+      trace_duration = conf_derive( scope.CONF_DERIVE_DURATION )
 
     self.log.info( 'conf = %s', conf_select( scope.CONF_SELECT_DERIVED ) )
 

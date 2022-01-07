@@ -61,7 +61,7 @@ def octetstr2int( x ) :
 def int2octetstr( x ) :
   return str2octetstr( seq2str( int2seq( x, 2 ** 8 ) ) )
 
-def closest( xs, x ) :
+def closest( x, xs ) :
   return min( xs, key = lambda t : abs( t - x ) )
 
 MEASURE_MODE_DURATION    = 0

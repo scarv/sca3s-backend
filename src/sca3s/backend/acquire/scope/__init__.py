@@ -19,23 +19,23 @@ from sca3s.backend.acquire import depo   as depo
 import abc, h5py, numpy, os
 
 
-CONF_SELECT_DEFAULT       =    0
-CONF_SELECT_DERIVED       =    1
+CONF_DERIVE_RESOLUTION =    0
+CONF_DERIVE_DURATION   =    1
+CONF_DERIVE_INTERVAL   =    2
 
-CONF_DERIVE_RESOLUTION    =    0
-CONF_DERIVE_DURATION      =    1
-CONF_DERIVE_INTERVAL      =    2
+CONF_SELECT_DEFAULT    =    0
+CONF_SELECT_DERIVED    =    1
 
-CALIBRATE_STEP_0          =    0
-CALIBRATE_STEP_1          =    1
-CALIBRATE_STEP_2          =    2
-CALIBRATE_STEP_3          =    3
+CALIBRATE_STEP_0       =    0
+CALIBRATE_STEP_1       =    1
+CALIBRATE_STEP_2       =    2
+CALIBRATE_STEP_3       =    3
 
-RESOLUTION_MIN            =    0
-RESOLUTION_MAX            = 1024
+RESOLUTION_MIN         =    0
+RESOLUTION_MAX         = 1024
 
-ACQUIRE_MODE_PRIME        = 0x01
-ACQUIRE_MODE_FETCH        = 0x02
+ACQUIRE_MODE_PRIME     = 0x01
+ACQUIRE_MODE_FETCH     = 0x02
 
 class ScopeAbs( abc.ABC ) :
   def __init__( self, job ) :
@@ -63,7 +63,7 @@ class ScopeAbs( abc.ABC ) :
   def __str__( self ) :
     return self.scope_id
 
-  def _autocalibrate( self, resolution = 8, dtype = '<f8' ) :
+  def calibrate( self, dtype = None, resolution = None ) :
     trace_spec             = self.job.conf.get( 'trace_spec' )
 
     trace_calibrate_trials = int( trace_spec.get( 'calibrate_trials' ) )
@@ -92,7 +92,7 @@ class ScopeAbs( abc.ABC ) :
 
     self.job.log.indent_inc( message = 'auto-calibration step #0: default'        )
 
-    t  = self.calibrate( mode = scope.CALIBRATE_MODE_DEFAULT,             resolution = resolution, dtype = dtype )
+    t  = self.conf_select( scope.CONF_SELECT_DEFAULT, dtype = dtype, resolution = resolution )
     self.job.log.info( 't_conf = %s', str( t ) )
 
     self.job.log.indent_dec()
@@ -105,7 +105,7 @@ class ScopeAbs( abc.ABC ) :
       ls = step( fd, 1                      ) ; l  = max( ls ) ; l = ( 2 * l ) 
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
-    t  = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
+    t  = self.conf_select( scope.CONF_SELECT_DERIVED, dtype = t[ 'dtype' ], resolution = t[ 'resolution' ], interval = t[ 'interval' ], duration = l )
     self.job.log.info( 't_conf = %s', str( t ) )
 
     self.job.log.indent_dec()
@@ -118,7 +118,7 @@ class ScopeAbs( abc.ABC ) :
       ls = step( fd, trace_calibrate_trials ) ; l  = max( ls ) ; l = ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l )
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
-    t = self.calibrate( mode = scope.CALIBRATE_MODE_DURATION, value = l, resolution = resolution, dtype = dtype )
+    t  = self.conf_select( scope.CONF_SELECT_DERIVED, dtype = t[ 'dtype' ], resolution = t[ 'resolution' ], interval = t[ 'interval' ], duration = l )
     self.job.log.info( 't_conf = %s', str( t ) )
 
     self.job.log.indent_dec()
@@ -132,25 +132,26 @@ class ScopeAbs( abc.ABC ) :
 
     self.job.log.indent_dec()
 
-    return t
+    return l
 
   def hdf5_add_attr( self, trace_content, fd              ) :
-    fd.attrs.create( 'scope/signal_resolution',    ( self.signal_resolution ), '<u8'                            )
-    fd.attrs.create( 'scope/signal_dtype',      str( self.signal_dtype      ), h5py.special_dtype( vlen = str ) )
+    fd.attrs.create( 'scope/signal_dtype',      str( self.signal_dtype      ), dtype = h5py.string_dtype() )
+    fd.attrs.create( 'scope/signal_resolution',    ( self.signal_resolution ), dtype = '<u8'               )
 
-    fd.attrs.create( 'scope/signal_interval',      ( self.signal_interval   ), '<f8'                            )
-    fd.attrs.create( 'scope/signal_duration',      ( self.signal_duration   ), '<f8'                            )
-    fd.attrs.create( 'scope/signal_samples',       ( self.signal_samples    ), '<u8'                            )
+    fd.attrs.create( 'scope/signal_interval',      ( self.signal_interval   ), dtype = '<f8'               )
+    fd.attrs.create( 'scope/signal_duration',      ( self.signal_duration   ), dtype = '<f8'               )
+
+    fd.attrs.create( 'scope/signal_samples',       ( self.signal_samples    ), dtype = '<u8'               )
 
   def hdf5_add_data( self, trace_content, fd, n           ) :
     if ( 'trace/trigger' in trace_content ) :
-      fd.create_dataset( 'trace/trigger',  ( n, self.signal_samples ),    self.signal_dtype )
+      fd.create_dataset( 'trace/trigger',  ( n, self.signal_samples ), dtype =    self.signal_dtype )
     if (  'trace/signal' in trace_content ) :
-      fd.create_dataset( 'trace/signal',   ( n, self.signal_samples ),    self.signal_dtype )
+      fd.create_dataset( 'trace/signal',   ( n, self.signal_samples ), dtype =    self.signal_dtype )
     if (  'crop/trigger' in trace_content ) :
-      fd.create_dataset(  'crop/trigger',  ( n,                     ), h5py.regionref_dtype )
+      fd.create_dataset(  'crop/trigger',  ( n,                     ), dtype = h5py.regionref_dtype )
     if (  'crop/signal'  in trace_content ) :
-      fd.create_dataset(  'crop/signal',   ( n,                     ), h5py.regionref_dtype )
+      fd.create_dataset(  'crop/signal',   ( n,                     ), dtype = h5py.regionref_dtype )
 
   def hdf5_set_data( self, trace_content, fd, n, i, trace ) :
     if ( 'trace/trigger' in trace ) :
@@ -172,17 +173,21 @@ class ScopeAbs( abc.ABC ) :
       fd[  'crop/signal'  ][ i ] =    fd[ 'trace/signal'  ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ]
 
   @abc.abstractmethod
-  def calibrate( self, mode = scope.CALIBRATE_MODE_DEFAULT, value = None, resolution = 8, dtype = '<f8' ) :
+  def conf_derive( self, mode, dtype = None, resolution = None, interval = None, duration = None ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def   acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
+  def conf_select( self, mode, dtype = None, resolution = None, interval = None, duration = None ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def      open( self ) :
+  def acquire( self, mode = scope.ACQUIRE_MODE_PRIME | scope.ACQUIRE_MODE_FETCH ) :
     raise NotImplementedError()
 
   @abc.abstractmethod
-  def     close( self ) :
+  def    open( self ) :
+    raise NotImplementedError()
+
+  @abc.abstractmethod
+  def   close( self ) :
     raise NotImplementedError()
