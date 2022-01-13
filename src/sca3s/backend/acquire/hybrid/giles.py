@@ -109,6 +109,8 @@ class HybridImp( hybrid.HybridAbs ) :
     def __init__( self, job ) :
       super().__init__( job )
 
+      self.channel_trigger_timeout = self.scope_spec.get( 'channel_trigger_timeout' )
+
     def conf_derive( self, mode, dtype = None, resolution = None, interval = None, duration = None ) :
       if   ( mode == scope.CONF_DERIVE_RESOLUTION ) :
         return sca3s_be.share.util.closest( resolution, [ 1 ] )
@@ -120,18 +122,22 @@ class HybridImp( hybrid.HybridAbs ) :
         return self.calibrate( dtype = dtype, resolution = resolution )
 
     def conf_select( self, mode, dtype = None, resolution = None, interval = None, duration = None ) :
-      if   ( mode == scope.CONF_SELECT_DEFAULT    ) :
+      if   ( mode == scope.CONF_SELECT_INIT       ) :
         resolution = 1
-        interval   = 1
-        duration   = int( self.scope_spec.get( 'channel_trigger_timeout' ) )
 
-      elif ( mode == scope.CONF_SELECT_DERIVED    ) :
-        pass
+        interval   = 1
+        duration   =                self.channel_trigger_timeout
+
+      elif ( mode == scope.CONF_SELECT_FINI       ) :
+        interval   = 1
+        duration   = min( duration, self.channel_trigger_timeout )
 
       self.channel_trigger_range     = self.job.board.get_channel_trigger_range()
       self.channel_trigger_threshold = self.job.board.get_channel_trigger_threshold()
       self.channel_acquire_range     = self.job.board.get_channel_acquire_range()
       self.channel_acquire_threshold = self.job.board.get_channel_acquire_threshold()
+
+      samples = int( duration )
   
       self.signal_dtype      = dtype
       self.signal_resolution = resolution
@@ -139,7 +145,7 @@ class HybridImp( hybrid.HybridAbs ) :
       self.signal_interval   = interval
       self.signal_duration   = duration
 
-      self.signal_samples    = duration
+      self.signal_samples    = samples
   
       return { 'dtype' : self.signal_dtype, 'resolution' : self.signal_resolution, 'interval' : self.signal_interval, 'duration' : self.signal_duration, 'samples' : self.signal_samples }
   

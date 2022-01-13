@@ -291,9 +291,9 @@ CONF = {
     'security:template'   : { 'type' :  'object',                             'default' : {},        'properties' : {
       'enforce' : { 'type' : 'boolean', 'default' : True                                                                     },
 
-          'url' : { 'type' :  'string', 'default' : 'https://github.com/scarv/sca3s-harness.git'                             },
-          'tag' : { 'type' :  'string', 'default' : 'master'                                                                 },
-      'pattern' : { 'type' :  'string', 'default' : '^README.md$|^sca3s.json$|^src/sca3s/harness/kernel/.*/kernel_imp.[ch]$' }
+          'url' : { 'type' :  'string', 'default' : 'https://github.com/scarv/sca3s-harness.git' },
+          'tag' : { 'type' :  'string', 'default' : 'master'                                     },
+      'pattern' : { 'type' :  'string', 'default' : '^README.md$|^sca3s.json$|^src/sca3s/harness/kernel/.*/kernel_imp.[ch]$|^src/sca3s/harness/kernel/.*/kernel_imp.manifest$' }
     } },
 
     'security:creds'      : { 'type' :  'object',                             'default' :                        {} },

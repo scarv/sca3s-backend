@@ -23,16 +23,11 @@ CONF_DERIVE_RESOLUTION =    0
 CONF_DERIVE_DURATION   =    1
 CONF_DERIVE_INTERVAL   =    2
 
-CONF_SELECT_DEFAULT    =    0
-CONF_SELECT_DERIVED    =    1
+CONF_SELECT_INIT       =    0
+CONF_SELECT_FINI       =    1
 
-CALIBRATE_STEP_0       =    0
-CALIBRATE_STEP_1       =    1
-CALIBRATE_STEP_2       =    2
-CALIBRATE_STEP_3       =    3
-
-RESOLUTION_MIN         =    0
-RESOLUTION_MAX         = 1024
+CONF_RESOLUTION_MIN    =    0
+CONF_RESOLUTION_MAX    = 1024
 
 ACQUIRE_MODE_PRIME     = 0x01
 ACQUIRE_MODE_FETCH     = 0x02
@@ -92,7 +87,7 @@ class ScopeAbs( abc.ABC ) :
 
     self.job.log.indent_inc( message = 'auto-calibration step #0: default'        )
 
-    t  = self.conf_select( scope.CONF_SELECT_DEFAULT, dtype = dtype, resolution = resolution )
+    t  = self.conf_select( scope.CONF_SELECT_INIT, dtype = dtype, resolution = resolution )
     self.job.log.info( 't_conf = %s', str( t ) )
 
     self.job.log.indent_dec()
@@ -105,7 +100,7 @@ class ScopeAbs( abc.ABC ) :
       ls = step( fd, 1                      ) ; l  = max( ls ) ; l = ( 2 * l ) 
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
-    t  = self.conf_select( scope.CONF_SELECT_DERIVED, dtype = t[ 'dtype' ], resolution = t[ 'resolution' ], interval = t[ 'interval' ], duration = l )
+    t  = self.conf_select( scope.CONF_SELECT_FINI, dtype = t[ 'dtype' ], resolution = t[ 'resolution' ], interval = t[ 'interval' ], duration = l )
     self.job.log.info( 't_conf = %s', str( t ) )
 
     self.job.log.indent_dec()
@@ -118,7 +113,7 @@ class ScopeAbs( abc.ABC ) :
       ls = step( fd, trace_calibrate_trials ) ; l  = max( ls ) ; l = ( 1 * l ) + ( ( trace_calibrate_margin / 100 ) * l )
 
     self.job.log.info( 'ls = %s -> l = %s', str( ls ), str( l ) )
-    t  = self.conf_select( scope.CONF_SELECT_DERIVED, dtype = t[ 'dtype' ], resolution = t[ 'resolution' ], interval = t[ 'interval' ], duration = l )
+    t  = self.conf_select( scope.CONF_SELECT_FINI, dtype = t[ 'dtype' ], resolution = t[ 'resolution' ], interval = t[ 'interval' ], duration = l )
     self.job.log.info( 't_conf = %s', str( t ) )
 
     self.job.log.indent_dec()
