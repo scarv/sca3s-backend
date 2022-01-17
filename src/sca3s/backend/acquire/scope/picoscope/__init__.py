@@ -53,15 +53,19 @@ class ScopeType( scope.ScopeAbs ) :
       return self.calibrate( dtype = dtype, resolution = resolution )
 
   def conf_select( self, mode, dtype = None, resolution = None, interval = None, duration = None ) :
-    if   ( mode == scope.CONF_SELECT_DEFAULT    ) :
-      interval = self.channel_trigger_timeout / self._maxSamples( resolution )
-      timebase = self._interval2timebase( resolution, interval )
-      interval = self._timebase2interval( resolution, timebase ) 
+    if   ( mode == scope.CONF_SELECT_INIT       ) :
+      resolution = 8
 
-      duration =                     interval * self._maxSamples( resolution )  
+      interval   = self.channel_trigger_timeout / self._maxSamples( resolution )
+      timebase   = self._interval2timebase( resolution, interval )
+      interval   = self._timebase2interval( resolution, timebase ) 
+      duration   =                     interval * self._maxSamples( resolution ) 
 
-    elif ( mode == scope.CONF_SELECT_DERIVED    ) :
-      pass
+    elif ( mode == scope.CONF_SELECT_FINI       ) :
+      timebase   = self._interval2timebase( resolution, interval )
+      interval   = self._timebase2interval( resolution, timebase ) 
+      duration   = min( duration, self.channel_trigger_timeout                   )
+      duration   = min( duration,      interval * self._maxSamples( resolution ) )
 
     if ( hasattr( self.scope_unit, '_lowLevelMemorySegments'      ) ) :
       self.scope_unit.memorySegments( 1 )

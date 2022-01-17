@@ -116,14 +116,14 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     if   ( trace_resolution_id == 'user' ) :
       trace_resolution = trace_resolution_spec
     elif ( trace_resolution_id == 'auto' ) :
-      trace_resolution = scope.RESOLUTION_MAX
+      trace_resolution = scope.CONF_RESOLUTION_MIN
     elif ( trace_resolution_id == 'max'  ) :
-      trace_resolution = scope.RESOLUTION_MAX
+      trace_resolution = scope.CONF_RESOLUTION_MAX
     elif ( trace_resolution_id == 'min'  ) :
-      trace_resolution = scope.RESOLUTION_MIN
+      trace_resolution = scope.CONF_RESOLUTION_MIN
 
     trace_resolution = conf_derive( scope.CONF_DERIVE_RESOLUTION )
-    
+
     if   ( trace_interval_id == 'user' ) :
       trace_interval = trace_interval_spec
     elif ( trace_interval_id == 'auto' ) :
@@ -134,7 +134,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     elif ( trace_duration_id == 'auto' ) :
       trace_duration = conf_derive( scope.CONF_DERIVE_DURATION )
 
-    self.log.info( 'conf = %s', conf_select( scope.CONF_SELECT_DERIVED ) )
+    self.log.info( 'conf = %s', conf_select( scope.CONF_SELECT_FINI ) )
 
   # Prepare the repo.
   # 
