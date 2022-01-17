@@ -95,14 +95,11 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
   def _prepare_scope( self ) :
     trace_spec            = self.conf.get( 'trace_spec' )
 
-    trace_resolution_id   =        trace_spec.get( 'resolution_id'   )
-    trace_resolution_spec =   int( trace_spec.get( 'resolution_spec' ) )
-    trace_duration_id     =        trace_spec.get(   'duration_id'   )
-    trace_duration_spec   = float( trace_spec.get(   'duration_spec' ) )
-    trace_interval_id     =        trace_spec.get(   'interval_id'   )
-    trace_interval_spec   = float( trace_spec.get(   'interval_spec' ) )
+    trace_resolution_id   = trace_spec.get( 'resolution_id' )
+    trace_interval_id     = trace_spec.get(   'interval_id' )
+    trace_duration_id     = trace_spec.get(   'duration_id' )
 
-    trace_dtype           =        trace_spec.get( 'dtype'           )
+    trace_dtype           = trace_spec.get( 'dtype'         )
 
     trace_resolution      = None
     trace_duration        = None
@@ -114,7 +111,7 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
       return self.scope.conf_select( mode, dtype = trace_dtype, resolution = trace_resolution, interval = trace_interval, duration = trace_duration )
 
     if   ( trace_resolution_id == 'user' ) :
-      trace_resolution = trace_resolution_spec
+      trace_resolution = int( trace_spec.get( 'resolution_spec' ) )
     elif ( trace_resolution_id == 'auto' ) :
       trace_resolution = scope.CONF_RESOLUTION_MIN
     elif ( trace_resolution_id == 'max'  ) :
@@ -125,12 +122,12 @@ class JobImp( sca3s_be.share.job.JobAbs ) :
     trace_resolution = conf_derive( scope.CONF_DERIVE_RESOLUTION )
 
     if   ( trace_interval_id == 'user' ) :
-      trace_interval = trace_interval_spec
+      trace_interval = float( trace_spec.get( 'interval_spec' ) )
     elif ( trace_interval_id == 'auto' ) :
       trace_interval = conf_derive( scope.CONF_DERIVE_INTERVAL )
 
     if   ( trace_duration_id == 'user' ) :
-      trace_duration = trace_duration_spec
+      trace_duration = float( trace_spec.get( 'duration_spec' ) )
     elif ( trace_duration_id == 'auto' ) :
       trace_duration = conf_derive( scope.CONF_DERIVE_DURATION )
 
