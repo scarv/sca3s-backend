@@ -15,6 +15,6 @@ pyserial==3.5
 requests==2.26.0
 scipy==1.5.4
 trsfile==2.0
-numpy==1.19.5
+numpy==1.21
 matplotlib==3.3.4
 
