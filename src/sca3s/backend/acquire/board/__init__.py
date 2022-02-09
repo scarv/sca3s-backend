@@ -16,7 +16,7 @@ from sca3s.backend.acquire import driver as driver
 from sca3s.backend.acquire import repo   as repo
 from sca3s.backend.acquire import depo   as depo
 
-import abc, h5py, importlib, os, serial, struct
+import abc, h5py, importlib, numexpr, os, serial, struct
 
 class BoardAbs( abc.ABC ) :
   def __init__( self, job ) :
@@ -191,13 +191,13 @@ class BoardAbs( abc.ABC ) :
         if ( ( '|data %s' % ( id ) ) in self.kernel_io ) :
           self.kernel_io[ id ] = sca3s_be.share.util.str2octetstr( bytes( [ 0 ] * int( self.kernel_io[ '|data %s' % ( id ) ] ) ) )
 
-    # convert integer sizes into octet strings
+    # convert (evaluated: some sizes might involve simple expressions) integer sizes into octet strings
 
     for ( k, v ) in self.kernel_io.items() :
       if ( k.startswith( '|data' ) ) :
-        self.kernel_io[ k ] = sca3s_be.share.util.int2octetstr( int( v ) )
+        self.kernel_io[ k ] = sca3s_be.share.util.int2octetstr( int( numexpr.evaluate( v ) ) )
       if ( k.startswith( '#data' ) ) :
-        self.kernel_io[ k ] = sca3s_be.share.util.int2octetstr( int( v ) )
+        self.kernel_io[ k ] = sca3s_be.share.util.int2octetstr( int( numexpr.evaluate( v ) ) )
 
     fd.close()
 
