@@ -9,7 +9,7 @@ jsonschema==4.0.0a6
 more-itertools==8.11.0
 picoscope==0.7.15
 psutil==5.8.0
-PyJWT==2.3.0
+PyJWT==2.4.0
 pylatex==1.4.1
 pyserial==3.5
 requests==2.26.0
