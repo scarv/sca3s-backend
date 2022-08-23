@@ -6,7 +6,7 @@ gitpython==3.1.18
 h5py==3.1.0
 jsonmerge==1.8.0
 jsonschema==4.0.0a6
-more-itertools==8.11.0
+more-itertools==8.14.0
 picoscope==0.7.15
 psutil==5.8.0
 PyJWT==2.4.0
@@ -15,7 +15,7 @@ pyserial==3.5
 requests==2.26.0
 scipy==1.5.4
 trsfile==2.0
-numpy==1.21
+numpy==1.22
 numexpr==2.8.1
 matplotlib==3.3.4
 
