@@ -64,25 +64,21 @@ def int2octetstr( x ) :
 def closest( x, xs ) :
   return min( xs, key = lambda t : abs( t - x ) )
 
-MEASURE_MODE_DURATION    = 0
-MEASURE_MODE_TRIGGER_POS = 1
-MEASURE_MODE_TRIGGER_NEG = 2
+EDGE_MODE_POS = 0
+EDGE_MODE_NEG = 1
 
-def measure( mode, samples, threshold ) :
-  done = False ; edge_pos = 0; edge_neg = len( samples ) - 1
+def edge( mode, samples, start = 0, threshold = 0 ) :
+  i = start
 
-  for ( i, sample ) in enumerate( samples ) :
-    if ( ( not done ) and ( sample > threshold ) ) :
-      done =  True ; edge_pos = i
-    if ( (     done ) and ( sample < threshold ) ) :
-      done = False ; edge_neg = i ; break
+  while ( i < len( samples ) ) :
+    if   ( ( mode == EDGE_MODE_POS ) and ( samples[ i ] > threshold ) ) :
+      return i
+    elif ( ( mode == EDGE_MODE_NEG ) and ( samples[ i ] < threshold ) ) :
+      return i
 
-  if   ( mode == MEASURE_MODE_DURATION    ) :
-    return edge_neg - edge_pos + 1
-  elif ( mode == MEASURE_MODE_TRIGGER_POS ) :
-    return            edge_pos
-  elif ( mode == MEASURE_MODE_TRIGGER_NEG ) :
-    return edge_neg
+    i += 1
+
+  return None
 
 def randbytes( n, seed = None ) :
   if ( seed != None ) :

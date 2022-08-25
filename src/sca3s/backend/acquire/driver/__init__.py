@@ -28,6 +28,7 @@ class DriverAbs( abc.ABC ) :
     self.trace_spec        = self.job.conf.get(  'trace_spec' )
 
     self.trace_content     =       self.trace_spec.get( 'content'     )
+
     self.trace_count_major =  int( self.trace_spec.get( 'count_major' ) )
     self.trace_count_minor =  int( self.trace_spec.get( 'count_minor' ) )
 
@@ -257,18 +258,24 @@ class DriverAbs( abc.ABC ) :
   # Driver policy: user-driven.
 
   def _policy_user( self, fd ) :
-    n   = 1 * self.trace_count_major
+    n_major = 1 * self.trace_count_major
+    n_minor =     self.trace_count_minor 
 
-    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
+    n_total = n_major * n_minor
+
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n_total )
 
     data = self._policy_user_init( self.policy_spec )
 
-    for i in range( n ) :
-      self._acquire_log_inc( n, i )
-      self._hdf5_set_data( fd, n, i, self.acquire( data ) )
-      self._acquire_log_dec( n, i )
+    for i in range( n_major ) :
+      self._acquire_log_inc( n_major, i )
 
-      data = self._policy_user_step( self.policy_spec, n, i, data )
+      for ( j, trace ) in enumerate( self.acquire( data = data ) ) :
+        self._hdf5_set_data( fd, n_total, i * n_major + j, trace )
+
+      self._acquire_log_dec( n_major, i )
+
+      data = self._policy_user_step( self.policy_spec, n_major, i, data )
 
   # Driver policy: TVLA-driven.
   #
@@ -278,35 +285,40 @@ class DriverAbs( abc.ABC ) :
   # - mode = rvr_d ~> random-versus random data  
 
   def _policy_tvla( self, fd ) :
-    n   = 2 * self.trace_count_major
+    n_major = 2 * self.trace_count_major
+    n_minor =     self.trace_count_minor 
 
-    lhs = numpy.fromiter( range( 0, int( n / 2 ) ), numpy.int )
-    rhs = numpy.fromiter( range( int( n / 2 ), n ), numpy.int )
+    n_total = n_major * n_minor
+
+    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n_total )
+
+    lhs = numpy.fromiter( range( 0, int( n_total / 2 )          ), numpy.int )
+    rhs = numpy.fromiter( range(    int( n_total / 2 ), n_total ), numpy.int )
 
     if ( 'tvla/lhs' in self.trace_content ) :
       fd[ 'tvla/lhs' ] = lhs
     if ( 'tvla/rhs' in self.trace_content ) :
       fd[ 'tvla/rhs' ] = rhs
 
-    self._hdf5_add_attr( fd ) ; self._hdf5_add_data( fd, n )
-
     data = self._policy_tvla_init( self.policy_spec, mode = 'lhs' )
 
     for i in lhs :
-      self._acquire_log_inc( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, n, i, self.acquire( data ) )
-      self._acquire_log_dec( n, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      self._acquire_log_inc( n_total, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      for ( j, trace ) in enumerate( self.acquire( data = data ) ) :
+        self._hdf5_set_data( fd, n_total, i * n_major + j, trace )
+      self._acquire_log_dec( n_total, i, message = 'lhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self._policy_tvla_step( self.policy_spec, n, i, data, mode = 'lhs' )
+      data = self._policy_tvla_step( self.policy_spec, n_total, i, data, mode = 'lhs' )
 
     data = self._policy_tvla_init( self.policy_spec, mode = 'rhs' )
 
     for i in rhs :
-      self._acquire_log_inc( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
-      self._hdf5_set_data( fd, n, i, self.acquire( data ) )
-      self._acquire_log_dec( n, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      self._acquire_log_inc( n_total, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
+      for ( j, trace ) in enumerate( self.acquire( data = data ) ) :
+        self._hdf5_set_data( fd, n_total, i * n_major + j, trace )
+      self._acquire_log_dec( n_total, i, message = 'rhs of %s' % ( self.policy_spec.get( 'tvla_mode' ) ) )
 
-      data = self._policy_tvla_step( self.policy_spec, n, i, data, mode = 'rhs' )
+      data = self._policy_tvla_step( self.policy_spec, n_total, i, data, mode = 'rhs' )
 
   # TODO
 
@@ -419,11 +431,19 @@ class DriverAbs( abc.ABC ) :
   def prepare( self ) :
     raise NotImplementedError()
 
-  # Acquire via driver.
+  # Acquire via driver:
+  #
+  # 1. write  input data
+  # 2. execute kernel + sample time-stamp counter
+  # 3. execute    nop + sample time-stamp counter
+  # 4. read  output data
+  # 5. extract and annotate each (sub)trace
 
   def acquire( self, data = None ) :
     if ( data == None ) :
       data = dict()
+
+    self.job.log.indent_inc( message = 'execute acquisition' )
 
     for id in self.job.board.kernel_data_wr_id :
       if ( not id in data ) :
@@ -436,39 +456,56 @@ class DriverAbs( abc.ABC ) :
     self.job.board.interact( '!kernel' + ' ' + '%d' % self.trace_count_minor )
     cycle_enc = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
 
-    ( trigger, signal ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
+    ( trigger, content ) = self.job.scope.acquire( mode = scope.ACQUIRE_MODE_FETCH )
 
     self.job.board.interact( '!nop'    + ' ' + '%d' % self.trace_count_minor )
     cycle_nop = sca3s_be.share.util.octetstr2int( self.job.board.interact( '<data fcc' ) )
 
-    edge_pos = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_POS, trigger, self.job.scope.channel_trigger_threshold )
-    edge_neg = sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_TRIGGER_NEG, trigger, self.job.scope.channel_trigger_threshold )
-
-    duration = float( edge_neg - edge_pos ) * self.job.scope.signal_interval
-  
     for id in self.job.board.kernel_data_rd_id :
       data[ id ] = sca3s_be.share.util.octetstr2str( self.job.board.interact( '<data %s' % ( id ) ) )
 
     data_wr = { id : data[ id ] for id in self.job.board.kernel_data_wr_id }
     data_rd = { id : data[ id ] for id in self.job.board.kernel_data_rd_id }
 
-    self.job.log.info( 'acquire: data_wr => %s' % str( data_wr ) )
-    self.job.log.info( 'acquire: data_rd => %s' % str( data_rd ) )
+    self.job.log.info( 'data_wr => %s' % str( data_wr ) )
+    self.job.log.info( 'data_rd => %s' % str( data_rd ) )
 
     if ( ( self.job.board.board_mode == 'interactive' ) and self._supports_verify() ) :
       if ( not self._verify( data_wr, data_rd ) ) :
-        raise Exception( 'failed I/O verification: interactive I/O != model' )
+        raise Exception( 'failed acquire: interactive I/O != model' )
 
-    trace = { 'trace/trigger' : trigger, 'trace/signal' : signal, 'edge/pos' : edge_pos, 'edge/neg' : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop, 'perf/duration' : duration }
+    traces = list() ; t = 0 
 
-    trace.update( { 'data/%s'        % ( id ) :      data_wr[ id ]   for id in self.job.board.kernel_data_wr_id } )
-    trace.update( { 'data/usedof_%s' % ( id ) : len( data_wr[ id ] ) for id in self.job.board.kernel_data_wr_id } )
-    trace.update( { 'data/%s'        % ( id ) :      data_rd[ id ]   for id in self.job.board.kernel_data_rd_id } )
-    trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel_data_rd_id } )
+    for i in range( self.trace_count_minor ) :
+      edge_pos = sca3s_be.share.util.edge( sca3s_be.share.util.EDGE_MODE_POS, trigger, start = t, threshold = self.job.scope.channel_trigger_threshold )
+      t = edge_pos
+      edge_neg = sca3s_be.share.util.edge( sca3s_be.share.util.EDGE_MODE_NEG, trigger, start = t, threshold = self.job.scope.channel_trigger_threshold )
+      t = edge_neg
 
-    sca3s_be.share.sys.log.debug( 'acquire => trace= %s' % ( str( trace ) ) )
+      if ( edge_pos == None ) :
+        edge_pos =                  0
+        self.job.log.info( 'no +ve edge detected for (sub)trace {0:d} => defaulting to sample {1:d}'.format( i + 1, edge_pos ) )
+      if ( edge_neg == None ) :
+        edge_neg = len( trigger ) - 1
+        self.job.log.info( 'no -ve edge detected for (sub)trace {0:d} => defaulting to sample {1:d}'.format( i + 1, edge_neg ) )
 
-    return trace
+      self.job.log.info( 'located (sub)trace {0:>{width}d} of {1:d}'.format( i + 1, self.trace_count_minor, width = len( str( self.trace_count_minor ) ) ) )
+
+      trace = { 'trace/trigger' :  trigger, 
+                'trace/content' :  content,
+                 'edge/pos'     : edge_pos,
+                 'edge/neg'     : edge_neg, 'perf/cycle' : cycle_enc - cycle_nop,  'perf/duration' : float( edge_neg - edge_pos ) * self.job.scope.signal_interval }
+
+      trace.update( { 'data/%s'        % ( id ) :      data_wr[ id ]   for id in self.job.board.kernel_data_wr_id } )
+      trace.update( { 'data/usedof_%s' % ( id ) : len( data_wr[ id ] ) for id in self.job.board.kernel_data_wr_id } )
+      trace.update( { 'data/%s'        % ( id ) :      data_rd[ id ]   for id in self.job.board.kernel_data_rd_id } )
+      trace.update( { 'data/usedof_%s' % ( id ) : len( data_rd[ id ] ) for id in self.job.board.kernel_data_rd_id } )
+
+      traces.append( trace )
+
+    self.job.log.indent_dec()
+
+    return traces
 
   # Execute the driver prologue
 

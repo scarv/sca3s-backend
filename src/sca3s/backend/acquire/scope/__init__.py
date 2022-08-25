@@ -68,18 +68,21 @@ class ScopeAbs( abc.ABC ) :
       os.mkdir( os.path.join( self.job.path, 'calibrate' ) )
 
     def step( fd, n ) :
-      fd.create_dataset( 'trace/trigger', ( n, self.signal_samples ), self.signal_dtype )
-      fd.create_dataset( 'trace/signal',  ( n, self.signal_samples ), self.signal_dtype )
+      #fd.create_dataset( 'trace/trigger', ( n, self.signal_samples ), self.signal_dtype )
+      #fd.create_dataset( 'trace/content', ( n, self.signal_samples ), self.signal_dtype )
 
       ls = list()
  
       for i in range( n ) :
-        trace = self.job.driver.acquire()
+        traces   = self.job.driver.acquire() 
 
-        fd[ 'trace/trigger' ][ i ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )
-        fd[ 'trace/signal'  ][ i ] = sca3s_be.share.util.resize( trace[ 'trace/signal'  ], self.signal_samples, dtype = self.signal_dtype )
+        edge_pos = traces[  0 ][ 'edge/pos' ]
+        edge_neg = traces[ -1 ][ 'edge/neg' ]
 
-        ls.append( sca3s_be.share.util.measure( sca3s_be.share.util.MEASURE_MODE_DURATION, trace[ 'trace/trigger' ], self.job.scope.channel_trigger_threshold ) * self.job.scope.signal_interval )
+        #fd[ 'trace/trigger' ][ i ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )
+        #fd[ 'trace/content' ][ i ] = sca3s_be.share.util.resize( trace[ 'trace/content' ], self.signal_samples, dtype = self.signal_dtype )
+
+        ls.append( ( edge_neg - edge_pos ) * self.job.scope.signal_interval )
 
       return ls
 
@@ -141,7 +144,7 @@ class ScopeAbs( abc.ABC ) :
   def hdf5_add_data( self, trace_content, fd, n           ) :
     if ( 'trace/trigger' in trace_content ) :
       fd.create_dataset( 'trace/trigger',  ( n, self.signal_samples ), dtype =    self.signal_dtype )
-    if (  'trace/signal' in trace_content ) :
+    if ( 'trace/signal'  in trace_content ) :
       fd.create_dataset( 'trace/signal',   ( n, self.signal_samples ), dtype =    self.signal_dtype )
     if (  'crop/trigger' in trace_content ) :
       fd.create_dataset(  'crop/trigger',  ( n,                     ), dtype = h5py.regionref_dtype )
@@ -152,7 +155,7 @@ class ScopeAbs( abc.ABC ) :
     if ( 'trace/trigger' in trace ) :
       trace[ 'trace/trigger' ] = sca3s_be.share.util.resize( trace[ 'trace/trigger' ], self.signal_samples, dtype = self.signal_dtype )
     if ( 'trace/signal'  in trace ) :
-      trace[ 'trace/signal'  ] = sca3s_be.share.util.resize( trace[ 'trace/signal'  ], self.signal_samples, dtype = self.signal_dtype )
+      trace[ 'trace/content' ] = sca3s_be.share.util.resize( trace[ 'trace/content' ], self.signal_samples, dtype = self.signal_dtype )
     if ( 'edge/pos'      in trace ) :
       trace[ 'edge/pos'      ] = min( trace[ 'edge/pos' ], self.signal_samples - 1 )
     if ( 'edge/neg'      in trace ) :
@@ -161,7 +164,7 @@ class ScopeAbs( abc.ABC ) :
     if ( 'trace/trigger' in trace_content ) :
       fd[ 'trace/trigger' ][ i ] = trace[ 'trace/trigger' ]
     if ( 'trace/signal'  in trace_content ) :
-      fd[ 'trace/signal'  ][ i ] = trace[ 'trace/signal'  ]
+      fd[ 'trace/signal'  ][ i ] = trace[ 'trace/content' ]
     if (  'crop/trigger' in trace_content ) :
       fd[  'crop/trigger' ][ i ] =    fd[ 'trace/trigger' ].regionref[ i, trace[ 'edge/pos' ] : trace[ 'edge/neg' ] ]
     if (  'crop/signal'  in trace_content ) :
